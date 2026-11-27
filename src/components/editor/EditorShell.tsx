@@ -16,9 +16,9 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore, type ComponentType } from "react";
 import { PublishDialog } from "@/components/share/PublishDialog";
 import { Button } from "@/components/ui/button";
-import { useEditorStore } from "@/lib/editor/store";
+import { currentElements, useEditorStore } from "@/lib/editor/store";
 import { cn } from "@/lib/utils";
-import type { ElementType } from "@/types/letter";
+import type { ElementType, FaceId } from "@/types/letter";
 import { AudioPanel } from "./AudioPanel";
 import { BackgroundPanel } from "./BackgroundPanel";
 import { EditorCanvas } from "./EditorCanvas";
@@ -101,7 +101,7 @@ function useShortcuts() {
       const state = useEditorStore.getState();
       const mod = event.ctrlKey || event.metaKey;
       const key = event.key.toLowerCase();
-      const selected = state.doc.canvas_data.elements.find((el) => el.id === state.selectedId);
+      const selected = currentElements(state).find((el) => el.id === state.selectedId);
 
       if (mod && key === "z") {
         event.preventDefault();
@@ -188,13 +188,38 @@ function HistoryButtons() {
   );
 }
 
+const FACES: { value: FaceId; label: string }[] = [
+  { value: "front", label: "Bìa trước" },
+  { value: "inside", label: "Lời mời + QR" },
+];
+
+/** Chọn mặt thiệp đang thiết kế. */
+function FaceSwitch() {
+  const face = useEditorStore((s) => s.face);
+  return (
+    <div role="group" aria-label="Mặt thiệp" className="flex rounded-lg border bg-card p-0.5">
+      {FACES.map(({ value, label }) => (
+        <button
+          key={value}
+          type="button"
+          aria-pressed={face === value}
+          onClick={() => useEditorStore.getState().setFace(value)}
+          className="rounded-md px-3 py-1.5 text-sm aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function EditorShell() {
   const desktop = useDesktop();
   const [tab, setTab] = useState<TabId>("template");
   const [sheetOpen, setSheetOpen] = useState(false);
   const title = useEditorStore((s) => s.doc.title);
   const selectedType = useEditorStore(
-    (s) => s.doc.canvas_data.elements.find((el) => el.id === s.selectedId)?.type,
+    (s) => currentElements(s).find((el) => el.id === s.selectedId)?.type,
   );
   useShortcuts();
   useLeaveWarning();
@@ -288,11 +313,10 @@ export function EditorShell() {
         )}
 
         <main className="flex min-w-0 flex-1 flex-col">
-          {desktop && (
-            <div className="flex min-h-12 items-center gap-3 border-b bg-card px-3 py-1.5">
-              <ElementToolbar />
-            </div>
-          )}
+          <div className="flex min-h-12 items-center gap-3 border-b bg-card px-3 py-1.5">
+            <FaceSwitch />
+            {desktop && <ElementToolbar className="ml-auto" />}
+          </div>
           <EditorCanvas />
           {!desktop && !sheetOpen && (
             // Thanh nổi trên điện thoại, chỉ hiện khi đang chọn một thành phần.

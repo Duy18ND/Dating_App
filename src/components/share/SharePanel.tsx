@@ -4,7 +4,6 @@ import { Download, FileText } from "lucide-react";
 import { useState } from "react";
 import { inputClass, Toggle } from "@/components/editor/ui";
 import { Button } from "@/components/ui/button";
-import type { PrintSize } from "@/lib/print-config";
 import { recipientLink, sanitizeRecipient } from "@/lib/recipient";
 import { createQrBlob, letterUrl, quietZone } from "@/lib/render/qr";
 import { LIMITS } from "@/lib/validation";
@@ -14,7 +13,7 @@ import { CopyButton } from "./CopyButton";
 const QR_PNG_PX = 1024;
 
 async function downloadQr(url: string, slug: string, canvas: CanvasData) {
-  const design = canvas.elements.find((el) => el.type === "qr_code");
+  const design = canvas.faces.inside.elements.find((el) => el.type === "qr_code");
   const blob = await createQrBlob({
     url,
     size: QR_PNG_PX,
@@ -63,7 +62,7 @@ export function SharePanel({
   const [guest, setGuest] = useState("");
   const [error, setError] = useState<string>();
   const [hideBackground, setHideBackground] = useState(defaultHideBackground);
-  const [exporting, setExporting] = useState<PrintSize | null>(null);
+  const [exporting, setExporting] = useState(false);
   const [pdfError, setPdfError] = useState<string>();
   // Thành phần này chỉ dựng sau thao tác trên trình duyệt nên luôn có window.
   const url = letterUrl(window.location.origin, slug);
@@ -99,51 +98,42 @@ export function SharePanel({
             onChange={(event) => setGuest(event.target.value)}
           />
         </label>
-        {sanitizeRecipient(guest) && (
-          <LinkRow label="Link riêng" url={recipientLink(url, guest)} />
-        )}
+        {sanitizeRecipient(guest) && <LinkRow label="Link riêng" url={recipientLink(url, guest)} />}
       </div>
 
       <div className="space-y-2">
-        <div className="flex flex-wrap gap-2">
-          {(["A6", "A5"] as const).map((size) => (
-            <Button
-              key={size}
-              type="button"
-              variant={size === canvas.defaultPrintSize ? "default" : "outline"}
-              disabled={exporting !== null}
-              onClick={async () => {
-                setExporting(size);
-                setPdfError(undefined);
-                try {
-                  // Konva và jsPDF nặng, chỉ tải khi bấm nút.
-                  const { exportLetterPdf } = await import("@/lib/client/export-pdf");
-                  await exportLetterPdf({
-                    canvas,
-                    qrUrl: url,
-                    size,
-                    hideBackground,
-                    fileName: `thiep-${slug}-${size}.pdf`,
-                  });
-                } catch (cause) {
-                  setPdfError(cause instanceof Error ? cause.message : "Không xuất được PDF.");
-                } finally {
-                  setExporting(null);
-                }
-              }}
-            >
-              <FileText /> {exporting === size ? "Đang tạo PDF..." : `Tải PDF ${size}`}
-            </Button>
-          ))}
-        </div>
+        <Button
+          type="button"
+          disabled={exporting}
+          onClick={async () => {
+            setExporting(true);
+            setPdfError(undefined);
+            try {
+              // Konva và jsPDF nặng, chỉ tải khi bấm nút.
+              const { exportLetterPdf } = await import("@/lib/client/export-pdf");
+              await exportLetterPdf({
+                canvas,
+                qrUrl: url,
+                cardBackground: !hideBackground,
+                fileName: `bo-thiep-${slug}.pdf`,
+              });
+            } catch (cause) {
+              setPdfError(cause instanceof Error ? cause.message : "Không xuất được PDF.");
+            } finally {
+              setExporting(false);
+            }
+          }}
+        >
+          <FileText /> {exporting ? "Đang tạo PDF..." : "Tải PDF bộ in"}
+        </Button>
         <Toggle
-          label="Ẩn nền khi in (giấy Kraft hoặc giấy màu)"
+          label="Ẩn nền thiệp khi in (giấy Kraft hoặc giấy màu)"
           checked={hideBackground}
           onChange={setHideBackground}
         />
         <p className="text-xs text-muted-foreground">
-          PDF gồm 2 trang A4: phôi phong bì C6 (nét liền cắt, nét đứt gấp) và thiệp kèm dấu cắt
-          góc. In đúng 100%, không chọn &quot;Vừa trang&quot;.
+          PDF gồm 3 trang A4: phong bì C7, thiệp gập (2 dải cắt rồi dán lưng vào nhau) và thư gấp 3.
+          In đúng 100%, không chọn &quot;Vừa trang&quot;.
         </p>
         {pdfError && (
           <p role="alert" className="text-sm text-destructive">
@@ -152,7 +142,7 @@ export function SharePanel({
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        Mẹo in: thiệp dùng giấy 250–300 gsm, phong bì Kraft dùng giấy 120–180 gsm.
+        Mẹo in: thiệp 150–180 gsm (dán 2 lớp), thư 80–100 gsm, phong bì 120–150 gsm.
       </p>
     </div>
   );

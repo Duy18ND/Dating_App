@@ -2,7 +2,7 @@
 
 import { Eraser, MousePointer2, PenLine, Rows3, Grip } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEditorStore, type Tool } from "@/lib/editor/store";
+import { currentElements, useEditorStore, type Tool } from "@/lib/editor/store";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { LIMITS } from "@/lib/validation";
 import { ColorField } from "./ColorField";
@@ -26,12 +26,12 @@ export function HandwritingPanel() {
   const setPen = useEditorStore((s) => s.setPen);
   const addElement = useEditorStore((s) => s.addElement);
   const update = useEditorStore((s) => s.updateElement);
-  const count = useEditorStore((s) => s.doc.canvas_data.elements.length);
+  const count = useEditorStore((s) => currentElements(s).length);
   const strokes = useEditorStore(
-    (s) => s.doc.canvas_data.elements.filter((el) => el.type === "handwriting").length,
+    (s) => currentElements(s).filter((el) => el.type === "handwriting").length,
   );
   const selectedArea = useEditorStore((s) =>
-    s.doc.canvas_data.elements.find((el) => el.id === s.selectedId && el.type === "lined_area"),
+    currentElements(s).find((el) => el.id === s.selectedId && el.type === "lined_area"),
   );
   const full = count >= LIMITS.maxElements;
 

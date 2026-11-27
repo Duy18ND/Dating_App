@@ -4,8 +4,14 @@ import { buttonVariants } from "@/components/ui/button";
 import { TEMPLATES } from "@/lib/templates";
 
 const STEPS = [
-  ["Thiết kế", "Chọn mẫu A6, thêm chữ, ảnh, sticker và nhạc nền. Không cần đăng nhập."],
-  ["In và gói", "Tải PDF gồm thiệp A6 hoặc A5 và phôi phong bì C6, in trên giấy A4."],
+  [
+    "Thiết kế",
+    "Chọn mẫu, trang trí bìa thiệp và trang lời mời, thêm nhạc nền. Không cần đăng nhập.",
+  ],
+  [
+    "In và cắt dán",
+    "Tải PDF in trên giấy A4: phong bì mini, thiệp gập có bìa và thư gấp 3. Cắt theo dấu, dán lại.",
+  ],
   ["Mở thư", "Người nhận quét mã QR trên thiệp để bóc dấu sáp, nghe nhạc và trả lời bạn."],
 ] as const;
 
@@ -17,15 +23,19 @@ export default function Home() {
           Thư giấy cầm trên tay, lời nhắn sống trên màn hình
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
-          Tự thiết kế tấm thiệp A6, in ra giấy và gửi kèm mã QR mở thư có nhạc. Miễn phí.
+          Tự thiết kế bộ thiệp mini nhỏ xinh, in ra cắt dán, viết tay vài dòng và gửi kèm mã QR mở
+          thư có nhạc. Miễn phí.
         </p>
-        <Link href="#mau-thu" className={buttonVariants({ size: "lg", className: "mt-8 h-11 px-6" })}>
+        <Link
+          href="#mau-thu"
+          className={buttonVariants({ size: "lg", className: "mt-8 h-11 px-6" })}
+        >
           Chọn mẫu để bắt đầu
         </Link>
       </section>
 
       <section id="mau-thu" className="mx-auto max-w-6xl scroll-mt-6 px-4 py-8">
-        <h2 className="text-2xl font-semibold">Bốn mẫu thiệp A6</h2>
+        <h2 className="text-2xl font-semibold">Bốn mẫu thiệp mini</h2>
         <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {TEMPLATES.map((template) => (
             <li key={template.type}>

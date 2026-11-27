@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { blankLetter } from "./defaults";
-import { HISTORY_LIMIT, sortByLayer, useEditorStore } from "./store";
+import { currentElements, HISTORY_LIMIT, sortByLayer, useEditorStore } from "./store";
 
 const state = () => useEditorStore.getState();
-const elements = () => state().doc.canvas_data.elements;
-const add = (text: string) => state().addElement({ type: "text", x: 0, y: 0, text });
+const elements = () => currentElements(state());
+const add = (text: string) => state().addElement({ type: "text", x: 0, y: 0, text, fontSize: 64 });
 const order = () => sortByLayer(elements()).map((el) => el.text);
 
 beforeEach(() => state().load(blankLetter()));
@@ -33,7 +33,7 @@ describe("editor store", () => {
     state().setBackground({ blur: 4 }, "blur");
     expect(state().past).toHaveLength(2);
     state().undo();
-    expect(state().doc.canvas_data.background.blur).toBe(3);
+    expect(state().doc.canvas_data.faces.front.background.blur).toBe(3);
   });
 
   it("thay đổi mới xóa nhánh redo", () => {
@@ -81,11 +81,65 @@ describe("editor store", () => {
 });
 
 describe("khóa kích thước mã QR", () => {
-  it("không cho thu nhỏ dưới 240px và luôn vuông", () => {
-    const id = state().addElement({ type: "qr_code", x: 0, y: 0, width: 280, height: 280 });
+  it("không cho thu nhỏ dưới 340px và luôn vuông", () => {
+    state().setFace("inside");
+    const id = state().addElement({ type: "qr_code", x: 0, y: 0, width: 380, height: 380 });
     state().updateElement(id, { width: 100, height: 90 });
-    expect(elements()[0]).toMatchObject({ width: 240, height: 240 });
-    state().updateElement(id, { width: 400 });
-    expect(elements()[0]).toMatchObject({ width: 400, height: 400 });
+    expect(elements()[0]).toMatchObject({ width: 340, height: 340 });
+    state().updateElement(id, { width: 420 });
+    expect(elements()[0]).toMatchObject({ width: 420, height: 420 });
+  });
+});
+
+describe("hai mặt thiệp", () => {
+  const faces = () => state().doc.canvas_data.faces;
+
+  it("thêm và đổi nền chỉ tác động lên mặt đang sửa", () => {
+    add("bìa");
+    state().setFace("inside");
+    add("trong");
+    state().setBackground({ type: "color", value: "#FFEEEE" });
+    expect(faces().front.elements.map((el) => el.text)).toEqual(["bìa"]);
+    expect(faces().inside.elements.map((el) => el.text)).toEqual(["trong"]);
+    expect(faces().front.background.type).toBe("preset");
+    expect(faces().inside.background.value).toBe("#FFEEEE");
+  });
+
+  it("đổi mặt thì bỏ chọn, và không vào lịch sử", () => {
+    add("a");
+    const steps = state().past.length;
+    state().setFace("inside");
+    expect(state().selectedId).toBeNull();
+    expect(state().past).toHaveLength(steps);
+  });
+
+  it("sửa và xóa theo id ở đúng mặt chứa phần tử", () => {
+    const a = add("a");
+    state().setFace("inside");
+    state().updateElement(a, { x: 50 });
+    expect(faces().front.elements[0].x).toBe(50);
+    state().removeElement(a);
+    expect(faces().front.elements).toHaveLength(0);
+  });
+
+  it("undo chuyển sang mặt vừa bị thay đổi", () => {
+    add("bìa");
+    state().setFace("inside");
+    state().undo();
+    expect(state().face).toBe("front");
+    expect(faces().front.elements).toHaveLength(0);
+    state().setFace("inside");
+    state().redo();
+    expect(state().face).toBe("front");
+  });
+
+  it("undo được thay đổi của thư, phong bì, trang viết tay", () => {
+    state().setLetter({ greeting: "Gửi Na" });
+    state().setEnvelope({ monogram: "N ♡" });
+    state().setWritingPage({ paper: "plain" });
+    state().undo();
+    state().undo();
+    expect(state().doc.canvas_data.letter.greeting).toBe("Gửi Na");
+    expect(state().doc.canvas_data.envelope.monogram).toBe("");
   });
 });

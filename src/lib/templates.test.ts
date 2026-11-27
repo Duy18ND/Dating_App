@@ -4,26 +4,30 @@ import { PRINT_CONFIG } from "@/lib/print-config";
 import { isScannableColor, quietZone } from "@/lib/render/qr";
 import { TEXT_DEFAULTS } from "@/lib/render/text";
 import { letterPayloadSchema } from "@/lib/validation";
-import { TEMPLATE_TYPES } from "@/types/letter";
+import { FACE_IDS, TEMPLATE_TYPES } from "@/types/letter";
 import { createFromTemplate, TEMPLATES } from "./templates";
 
-const { width: W, height: H, safeMarginPx: M } = PRINT_CONFIG.CANVAS;
+const { width: W, height: H, safeMarginPx: M, minFontPx } = PRINT_CONFIG.CANVAS;
 
 describe("4 mẫu thư", () => {
   it("đủ 4 loại", () => {
     expect(TEMPLATES.map((t) => t.type).sort()).toEqual([...TEMPLATE_TYPES].sort());
   });
 
-  it.each(TEMPLATE_TYPES)("%s: qua validation, nằm trong lề an toàn", (type) => {
+  it.each(TEMPLATE_TYPES)("%s: qua validation, hai mặt nằm trong lề an toàn", (type) => {
     const payload = createFromTemplate(type);
     const result = letterPayloadSchema.safeParse(payload);
     expect(result.error?.issues).toBeUndefined();
 
-    const codes = payload.canvas_data.elements.filter((el) => el.type === "qr_code");
+    const { faces } = payload.canvas_data;
+    // Mã QR duy nhất nằm ở trang Lời mời.
+    const codes = faces.inside.elements.filter((el) => el.type === "qr_code");
     expect(codes).toHaveLength(1);
     expect(isScannableColor(codes[0].fill!)).toBe(true);
+    expect(faces.front.elements.length).toBeGreaterThan(0);
 
-    for (const el of payload.canvas_data.elements) {
+    for (const el of FACE_IDS.flatMap((face) => faces[face].elements)) {
+      if (el.type === "text") expect(el.fontSize, el.id).toBeGreaterThanOrEqual(minFontPx);
       // Mã QR tính cả thẻ nền sáng. Chiều cao chữ ước lượng theo số dòng viết sẵn.
       const pad = el.type === "qr_code" ? quietZone(el.width!) : 0;
       const height =

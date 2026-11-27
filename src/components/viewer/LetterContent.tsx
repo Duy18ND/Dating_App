@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import { LetterView } from "@/components/letter/LetterView";
 import { letterUrl } from "@/lib/render/qr";
-import type { PublicLetter } from "@/types/letter";
+import { FACE_IDS, type PublicLetter } from "@/types/letter";
 import { AcceptBlock, PollBlock, RsvpBlock } from "./blocks";
 
 const noSubscribe = () => () => {};
@@ -26,16 +26,20 @@ export function LetterContent({ letter, recipient }: { letter: PublicLetter; rec
   return (
     <main className="mx-auto flex w-full max-w-md flex-col gap-5 px-4 py-6">
       {name && <h1 className="text-center font-playfair text-2xl text-primary">Gửi {name}</h1>}
-      <div
-        role="img"
-        aria-label={[
-          letter.title,
-          ...letter.canvas_data.elements.flatMap((el) => (el.type === "text" ? [el.text] : [])),
-        ].join(". ")}
-        className="overflow-hidden rounded-lg border shadow-sm"
-      >
-        <LetterView canvas={letter.canvas_data} qrUrl={letterUrl(origin, letter.slug)} />
-      </div>
+      {FACE_IDS.map((id) => {
+        const face = letter.canvas_data.faces[id];
+        const texts = face.elements.flatMap((el) => (el.type === "text" ? [el.text] : []));
+        return (
+          <div
+            key={id}
+            role="img"
+            aria-label={[id === "front" ? letter.title : "Bên trong thiệp", ...texts].join(". ")}
+            className="overflow-hidden rounded-lg border shadow-sm"
+          >
+            <LetterView face={face} qrUrl={letterUrl(origin, letter.slug)} />
+          </div>
+        );
+      })}
       {senderName && <p className="text-right font-dancing text-2xl">Từ {senderName}</p>}
 
       {blocks.acceptButton?.enabled && <AcceptBlock {...shared} block={blocks.acceptButton} />}

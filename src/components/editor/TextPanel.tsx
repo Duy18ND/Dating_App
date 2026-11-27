@@ -2,7 +2,7 @@
 
 import { AlignCenter, AlignLeft, AlignRight, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEditorStore } from "@/lib/editor/store";
+import { currentElements, useEditorStore } from "@/lib/editor/store";
 import { FONT_NAMES, type FontName } from "@/lib/font-names";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { TEXT_DEFAULTS } from "@/lib/render/text";
@@ -10,7 +10,7 @@ import { ColorField } from "./ColorField";
 import { Field, inputClass, Section, Slider } from "./ui";
 
 export const INK_COLORS = ["#2B2623", "#5A4636", "#8E2424", "#2F4A3A", "#243B5A", "#FFFFFF"];
-const { width: CANVAS_W, safeMarginPx } = PRINT_CONFIG.CANVAS;
+const { width: CANVAS_W, height: CANVAS_H, safeMarginPx, minFontPx } = PRINT_CONFIG.CANVAS;
 const MAX_WIDTH = CANVAS_W - safeMarginPx * 2;
 const ALIGNS = [
   ["left", AlignLeft, "Căn trái"],
@@ -32,7 +32,7 @@ export function AddTextButton() {
           addElement({
             type: "text",
             x: (CANVAS_W - width) / 2,
-            y: 300,
+            y: Math.round((CANVAS_H - TEXT_DEFAULTS.fontSize * TEXT_DEFAULTS.lineHeight) / 2),
             width,
             text: "Nhập lời nhắn của bạn",
             fontFamily: "Be Vietnam Pro",
@@ -51,7 +51,7 @@ export function AddTextButton() {
 /** Thanh thuộc tính: chỉ hiện khi đang chọn một khối chữ. */
 export function TextPanel() {
   const element = useEditorStore((s) =>
-    s.doc.canvas_data.elements.find((el) => el.id === s.selectedId && el.type === "text"),
+    currentElements(s).find((el) => el.id === s.selectedId && el.type === "text"),
   );
   const update = useEditorStore((s) => s.updateElement);
   const endCoalesce = useEditorStore((s) => s.endCoalesce);
@@ -83,8 +83,9 @@ export function TextPanel() {
 
       <Slider
         label="Cỡ chữ"
-        min={24}
-        max={160}
+        // Nhỏ hơn mức này in ra trên thiệp mini sẽ khó đọc.
+        min={minFontPx}
+        max={240}
         step={2}
         value={element.fontSize ?? TEXT_DEFAULTS.fontSize}
         format={(v) => `${v}px`}

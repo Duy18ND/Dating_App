@@ -1,5 +1,4 @@
 import type { FontName } from "@/lib/font-names";
-import type { PrintSize } from "@/lib/print-config";
 
 export const TEMPLATE_TYPES = ["confession", "wedding", "dinner", "holiday"] as const;
 export type TemplateType = (typeof TEMPLATE_TYPES)[number];
@@ -35,7 +34,7 @@ export type ImageFilter = (typeof IMAGE_FILTERS)[number];
 export interface CanvasElement {
   id: string;
   type: ElementType;
-  // Góc trên trái theo hệ tọa độ logic 1240 x 1754; rotation tính bằng độ quanh điểm này.
+  // Góc trên trái theo hệ tọa độ logic của mặt thiệp (PRINT_CONFIG.CANVAS); rotation tính bằng độ quanh điểm này.
   x: number;
   y: number;
   width?: number;
@@ -61,12 +60,51 @@ export interface CanvasElement {
   lineStyle?: "ruled" | "dot_grid";
 }
 
-export interface CanvasData {
-  width: 1240;
-  height: 1754;
-  defaultPrintSize: PrintSize;
+/** Một mặt thiệp được thiết kế tự do trên canvas 1760 x 1240. */
+export interface CardFace {
   background: BackgroundConfig;
   elements: CanvasElement[];
+}
+
+/** front = bìa trước; inside = trang bên phải khi mở thiệp (lời mời + mã QR). */
+export const FACE_IDS = ["front", "inside"] as const;
+export type FaceId = (typeof FACE_IDS)[number];
+
+export const PAPER_STYLES = ["ruled", "dot_grid", "plain"] as const;
+export type PaperStyle = (typeof PAPER_STYLES)[number];
+
+/** Trang bên trái khi mở thiệp: để người gửi viết bút. */
+export interface WritingPageConfig {
+  paper: PaperStyle;
+  color: string;
+}
+
+/** Thư viết tay gấp 3 (FR-11). */
+export interface LetterSheetConfig {
+  paper: PaperStyle;
+  greeting: string;
+  signature: string;
+  fontFamily: FontName;
+  inkColor: string;
+  paperColor: string;
+  decorIconId?: string;
+}
+
+/** Chữ trang trí trên nắp phong bì và bìa sau (FR-12). Màu giấy là web_config.envelopeColor. */
+export interface EnvelopeDecor {
+  monogram: string;
+  line: string;
+  fontFamily: FontName;
+}
+
+export interface CanvasData {
+  version: 2;
+  width: 1760;
+  height: 1240;
+  faces: Record<FaceId, CardFace>;
+  writingPage: WritingPageConfig;
+  letter: LetterSheetConfig;
+  envelope: EnvelopeDecor;
 }
 
 export interface WebConfig {

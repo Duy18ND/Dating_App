@@ -4,19 +4,32 @@ import type Konva from "konva";
 import { createRoot } from "react-dom/client";
 import { PENDING } from "@/components/letter/ElementNode";
 import LetterStage from "@/components/letter/LetterStage";
-import { PRINT_CONFIG, type PrintSize } from "@/lib/print-config";
-import { cardRect, cropMarks, envelopeC6, foldMarks, type Segment } from "@/lib/print/layout";
-import type { CanvasData } from "@/types/letter";
+import { PRINT_CONFIG } from "@/lib/print-config";
+import {
+  cardStrips,
+  cropMarks,
+  envelopeC7,
+  letterSheet,
+  sideFoldMarks,
+  type Rect,
+  type Segment,
+} from "@/lib/print/layout";
+import { PART_SIZE_MM, type RenderedPart } from "@/lib/print/parts";
+import type { CanvasData, CardFace } from "@/types/letter";
 
 const READY_TIMEOUT_MS = 20_000;
 const INK: [number, number, number] = [43, 38, 35];
 const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
 
 /**
- * Vẽ lá thư trên một Stage riêng ngoài màn hình (scale 1, không có Transformer hay khung
- * lề an toàn) rồi chụp với pixelRatio 2 = 2480 x 3508 px.
+ * Vẽ một mặt thiệp trên Stage riêng ngoài màn hình (scale 1, không có Transformer hay khung lề
+ * an toàn) rồi chụp với pixelRatio 2 = 3520 x 2480 px. Chưa có tràn màu (T-29).
  */
-async function renderCard(canvas: CanvasData, qrUrl: string, hideBackground: boolean) {
+export async function renderCardFace(
+  face: CardFace,
+  qrUrl: string,
+  background: boolean,
+): Promise<RenderedPart> {
   const host = document.createElement("div");
   host.setAttribute("aria-hidden", "true");
   host.style.cssText = "position:fixed;left:-30000px;top:0;pointer-events:none;";
@@ -26,10 +39,10 @@ async function renderCard(canvas: CanvasData, qrUrl: string, hideBackground: boo
     const stage = await new Promise<Konva.Stage>((resolve) =>
       root.render(
         <LetterStage
-          canvas={canvas}
+          face={face}
           scale={1}
           qrUrl={qrUrl}
-          hideBackground={hideBackground}
+          hideBackground={!background}
           listening={false}
           stageRef={(node) => {
             if (node) resolve(node);
@@ -47,15 +60,10 @@ async function renderCard(canvas: CanvasData, qrUrl: string, hideBackground: boo
     }
     await frame();
     await frame();
-    // Ẩn nền thì phải giữ trong suốt (PNG); còn lại dùng JPEG cho file nhẹ.
-    const format = hideBackground ? "PNG" : "JPEG";
     try {
-      const dataUrl = stage.toDataURL({
-        pixelRatio: PRINT_CONFIG.EXPORT_PIXEL_RATIO,
-        mimeType: hideBackground ? "image/png" : "image/jpeg",
-        quality: 0.95,
-      });
-      return { dataUrl, format };
+      const canvas = stage.toCanvas({ pixelRatio: PRINT_CONFIG.EXPORT_PIXEL_RATIO });
+      const size = PART_SIZE_MM.cardFront;
+      return { canvas, widthMm: size.width, heightMm: size.height, bleedMm: 0, opaque: background };
     } catch {
       // Ảnh từ R2 thiếu CORS làm canvas bị "tainted".
       throw new Error(
@@ -68,50 +76,80 @@ async function renderCard(canvas: CanvasData, qrUrl: string, hideBackground: boo
   }
 }
 
+/** Xoay 90° theo chiều kim đồng hồ: ảnh ngang thành ảnh đứng để đặt vào dải thiệp trên A4. */
+function rotateClockwise(source: HTMLCanvasElement): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  canvas.width = source.height;
+  canvas.height = source.width;
+  const ctx = canvas.getContext("2d")!;
+  ctx.translate(canvas.width, 0);
+  ctx.rotate(Math.PI / 2);
+  ctx.drawImage(source, 0, 0);
+  return canvas;
+}
+
 export async function exportLetterPdf(options: {
   canvas: CanvasData;
   qrUrl: string;
-  size: PrintSize;
-  hideBackground: boolean;
+  /** false: bỏ nền các mặt thiệp để in lên giấy màu/Kraft. */
+  cardBackground: boolean;
   fileName: string;
 }) {
-  const [{ jsPDF }, card] = await Promise.all([
+  const [{ jsPDF }, front, inside] = await Promise.all([
     import("jspdf"),
-    renderCard(options.canvas, options.qrUrl, options.hideBackground),
+    renderCardFace(options.canvas.faces.front, options.qrUrl, options.cardBackground),
+    renderCardFace(options.canvas.faces.inside, options.qrUrl, options.cardBackground),
   ]);
   const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
   pdf.setDrawColor(...INK);
   const draw = (segments: Segment[]) =>
     segments.forEach(([[x1, y1], [x2, y2]]) => pdf.line(x1, y1, x2, y2));
+  const solid = (width = 0.2) => {
+    pdf.setLineWidth(width);
+    pdf.setLineDashPattern([], 0);
+  };
+  const dashed = () => {
+    pdf.setLineWidth(0.2);
+    pdf.setLineDashPattern([1.5, 1], 0);
+  };
+  const place = (part: RenderedPart, slot: Rect) =>
+    pdf.addImage(
+      rotateClockwise(part.canvas),
+      part.opaque ? "JPEG" : "PNG",
+      slot.x,
+      slot.y,
+      slot.width,
+      slot.height,
+      undefined,
+      "FAST",
+    );
 
-  // Trang 1: phôi phong bì C6, vẽ bằng vector. Nét liền = cắt, nét đứt = gấp.
-  const envelope = envelopeC6();
-  pdf.setLineWidth(0.3);
-  pdf.setLineDashPattern([], 0);
+  // Trang 1: phong bì C7. Nét liền = cắt, nét đứt = gấp. (T-29: nắp bo tròn, vùng dán, chữ nắp.)
+  const envelope = envelopeC7();
+  solid(0.3);
   draw(envelope.cut.map((point, i) => [point, envelope.cut[(i + 1) % envelope.cut.length]]));
-  pdf.setLineWidth(0.2);
-  pdf.setLineDashPattern([2, 1.5], 0);
+  dashed();
   draw(envelope.fold);
 
-  // Trang 2: ruột thiệp là ảnh chụp Stage, đúng khổ A6/A5, kèm dấu cắt góc.
+  // Trang 2: hai dải thiệp gập. (T-29/30/31: bìa sau, trang viết tay, tràn màu.)
   pdf.addPage("a4", "portrait");
-  const rect = cardRect(options.size);
-  pdf.addImage(
-    card.dataUrl,
-    card.format,
-    rect.x,
-    rect.y,
-    rect.width,
-    rect.height,
-    undefined,
-    "FAST",
-  );
-  pdf.setLineDashPattern([], 0);
-  pdf.setLineWidth(0.2);
-  draw(cropMarks(rect));
-  if (options.size === "A5") {
-    pdf.setLineDashPattern([1.5, 1], 0);
-    draw(foldMarks(rect));
+  const { outer, inner, slots } = cardStrips();
+  place(front, slots.front);
+  place(inside, slots.inside);
+  for (const strip of [outer, inner]) {
+    solid();
+    draw(cropMarks(strip));
+    dashed();
+    draw(sideFoldMarks(strip, strip.y + strip.height / 2));
   }
+
+  // Trang 3: thư gấp 3. (T-30: dòng kẻ, lời chào, chữ ký.)
+  pdf.addPage("a4", "portrait");
+  const letter = letterSheet();
+  solid();
+  draw(cropMarks(letter.rect));
+  dashed();
+  for (const y of letter.folds) draw(sideFoldMarks(letter.rect, y));
+
   pdf.save(options.fileName);
 }

@@ -1,5 +1,16 @@
 # Bàn giao
 
+## Sau T-26, T-27 (cho Sonnet làm T-30, T-31, T-37 và Opus làm T-29)
+
+- Dữ liệu: `canvas_data` v2 trong `src/types/letter.ts` (`faces.front`, `faces.inside`, `writingPage`, `letter`, `envelope`). Store có `face` (mặt đang sửa), `currentElements`, `selectedElement`, `setFace`, `setWritingPage`, `setLetter`, `setEnvelope`; tất cả đi qua Undo/Redo.
+- Hợp đồng hàm vẽ: `src/lib/print/parts.ts`. Mỗi hàm vẽ trả `RenderedPart` (canvas phủ cả vùng tràn màu, đường cắt ở `(bleed, bleed)`). Dùng `createPartCanvas(part, options)` để có canvas và hệ trục mm. `PRINT_PX_PER_MM = 14` cho phần vẽ bằng Canvas 2D (giữ dưới giới hạn canvas của Safari iOS).
+  - T-30: `writingPage` và `letter` (thư gấp 3, ô 105 x 74, vạch gấp `letterSheet().folds`).
+  - T-31: `cardBack` (chữ lồng nhỏ) và `envelopeFlap` (114 x 45 mm, vẽ xuôi; T-29 xoay 180°). Màu giấy phong bì là `web_config.envelopeColor`.
+  - Font: phải chờ `document.fonts.load(...)` trước khi vẽ chữ lên canvas (xem `useFontsKey` trong `src/components/letter/hooks.ts`).
+- Hình học A4: `src/lib/print/layout.ts` (`envelopeC7`, `cardStrips` với 4 ô `back/front/writing/inside` đã xoay 90° theo chiều kim đồng hồ, `letterSheet`).
+- PDF tạm: `src/lib/client/export-pdf.tsx` đã ra 3 trang, đặt bìa trước và trang Lời mời đúng ô. T-29 bổ sung bìa sau, trang viết tay, thư, phong bì nắp bo tròn + vùng dán + chữ nắp, tràn màu và 3 công tắc nền.
+- Bố cục 4 mẫu trong `src/lib/templates.ts` là bản tạm; T-28 thay bằng kết quả Gemini (Prompt 1). Test `templates.test.ts` kiểm tra lề an toàn, cỡ chữ, QR.
+
 > Cập nhật sau các task Opus: T-09, T-14, T-16, T-19, T-20 đã xong. Các mục "Cho T-…" bên dưới giữ lại để tham khảo. Review: `docs/REVIEW_OPUS.md`. Prompt Gemini: `docs/GEMINI_PROMPTS.md`.
 
 # Bàn giao sau các task Sonnet

@@ -3,22 +3,14 @@
 import { useEditorStore } from "@/lib/editor/store";
 import { createFromTemplate, TEMPLATES } from "@/lib/templates";
 import { cn } from "@/lib/utils";
-import { Choice, Section } from "./ui";
+import { Section } from "./ui";
 
 function PrintSize() {
-  const size = useEditorStore((s) => s.doc.canvas_data.defaultPrintSize);
   return (
-    <Section title="Khổ in">
-      <Choice
-        options={[
-          { value: "A6", label: "Thiệp A6 (105 x 148 mm)" },
-          { value: "A5", label: "A5 gấp đôi (148 x 210 mm)" },
-        ]}
-        value={size}
-        onChange={useEditorStore.getState().setPrintSize}
-      />
-      <p className="text-xs text-muted-foreground">
-        A5 dành cho thư dài, gấp đôi theo vạch giữa vẫn vừa phong bì C6.
+    <Section title="Bộ in mini">
+      <p className="text-sm text-muted-foreground">
+        Thiệp gập 10,5 x 7,4 cm mở như cuốn sách, thư gấp 3 và phong bì 11,4 x 8,1 cm. Bạn thiết kế
+        bìa trước và trang Lời mời; trang bên trái để viết tay.
       </p>
     </Section>
   );

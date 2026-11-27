@@ -1,0 +1,115 @@
+{
+  "confession": [
+    {
+      "type": "hero",
+      "lead": "Tờ giấy trong phong bì là phần riêng tư, còn trang này giữ mấy chuyện nhỏ mình muốn kể cậu nghe trước khi hỏi một câu."
+    },
+    {
+      "type": "first_day",
+      "text": "Lần đầu gặp cậu ở [địa điểm gặp đầu tiên], mình thật ra không nghĩ tụi mình sẽ thân đến mức này. Chỉ nhớ hôm đó cậu [một chi tiết nhỏ dễ thương khiến bạn ấn tượng], rồi từ lúc nào không hay, cuối ngày nào mình cũng mở khung chat chờ tin nhắn của cậu."
+    },
+    {
+      "type": "memories",
+      "items": [
+        { "caption": "Buổi đi [tên quán / địa điểm] hôm đó ngồi nói chuyện quên luôn giờ về." },
+        { "caption": "Lần tụi mình cùng trú mưa / đi dạo ở [nơi đáng nhớ], tự nhiên thấy ở cạnh cậu rất yên." },
+        { "caption": "Mấy tấm hình chụp vội ở [chuyến đi hoặc buổi hẹn gần nhất], nhìn lại lúc nào cũng bật cười." }
+      ]
+    },
+    {
+      "type": "reasons",
+      "items": [
+        "Cậu luôn lắng nghe thật kỹ, kể cả mấy chuyện vụn vặt mình kể hơi lộn xộn.",
+        "Ở cạnh cậu mình không cần gồng lên cho hoàn hảo, cứ thoải mái là chính mình.",
+        "Cách cậu nhớ mấy sở thích nhỏ xíu như [món ăn / thức uống yêu thích] làm mình ấm lòng mãi.",
+        "Mỗi lần mình mệt, chỉ cần nghe cậu rủ đi [hoạt động quen thuộc] là thấy nhẹ hẳn.",
+        "Cậu khiến những ngày bình thường nhất cũng thành ngày mình muốn nhớ."
+      ]
+    },
+    {
+      "type": "counter",
+      "label": "Số ngày từ hôm tụi mình quen nhau ([ngày quen])",
+      "mode": "since"
+    },
+    {
+      "type": "message",
+      "title": "Điều mình giữ kỹ suốt thời gian qua",
+      "body": "Mình không giỏi nói mấy lời hoa mỹ, nên mới làm hẳn một chiếc thiệp mini rồi gửi thêm trang nhỏ này cho cậu. Có những lúc đi cạnh nhau, mình đã định mở lời nhưng rồi lại ngại làm cậu bất ngờ.\n\nCảm ơn cậu vì đã xuất hiện thật dịu dàng, biến mấy buổi tối bình thường thành khoảng thời gian mình mong chờ nhất trong tuần. Mình không hứa những chuyện quá xa vời, chỉ muốn có mặt khi cậu vui, ngồi cùng cậu khi cậu mệt, và cùng cậu đi thử thêm thật nhiều [món ăn / nơi muốn đi cùng nhau].\n\nNếu cậu cũng thấy tim đập giống mình một chút, trả lời câu hỏi ở dưới nha."
+    },
+    {
+      "type": "interact"
+    },
+    {
+      "type": "ending",
+      "text": "Dù cậu chọn thế nào, cảm ơn cậu đã đọc hết đến dòng này. Giữ tấm thiệp giấy lại làm kỷ niệm nha."
+    }
+  ],
+  "wedding": [
+    {
+      "type": "hero",
+      "lead": "Sau một chặng đường đủ dài để hiểu và thương nhau thật nhiều, tụi mình sắp bước sang chương mới và rất mong có bạn chung vui."
+    },
+    {
+      "type": "counter",
+      "label": "Đếm ngược tới ngày tiệc thành hôn của chúng mình",
+      "mode": "until"
+    },
+    {
+      "type": "memories",
+      "items": [
+        { "caption": "Chương 1 · [Năm quen nhau]: Lần đầu chạm mặt ở [địa điểm] và câu chuyện bắt đầu từ một lời chào ngại ngùng." },
+        { "caption": "Chương 2 · [Cột mốc đáng nhớ]: Những chuyến đi chung, vài lần giận dỗi trẻ con rồi lại chọn nắm tay đi tiếp." },
+        { "caption": "Chương 3 · [Ngày cầu hôn]: Khoảnh khắc cả hai cùng gật đầu cho hành trình về chung một nhà." }
+      ]
+    },
+    {
+      "type": "interact"
+    },
+    {
+      "type": "ending",
+      "text": "Sự có mặt của bạn là món quà trọn vẹn nhất với hai đứa mình. Hẹn gặp bạn ở [tên địa điểm tổ chức] nhé!"
+    }
+  ],
+  "dinner": [
+    {
+      "type": "hero",
+      "lead": "Tuần này chạy deadline đủ mệt rồi, cho phép mình mời cậu một bữa thật ngon để nạp lại năng lượng nha."
+    },
+    {
+      "type": "counter",
+      "label": "Đếm ngược tới giờ lên đồ đi ăn tối",
+      "mode": "until"
+    },
+    {
+      "type": "interact"
+    },
+    {
+      "type": "ending",
+      "text": "Chốt xong nhớ giữ bụng thật đói nha! Tới giờ mình qua đón ở [điểm đón / hẹn gặp]."
+    }
+  ],
+  "holiday": [
+    {
+      "type": "hero",
+      "lead": "Có những lời chúc nhắn qua chat thấy hơi vội, nên mình kẹp tấm thiệp mini này kèm một góc nhỏ trên web gửi riêng cho cậu."
+    },
+    {
+      "type": "message",
+      "title": "Gửi cậu nhân dịp [Sinh nhật / Giáng sinh]",
+      "body": "Chúc cậu bước sang [tuổi mới / mùa lễ hội mới] luôn khỏe mạnh, ngủ đủ giấc, ít phải bận lòng vì mấy chuyện không đáng và gặp toàn người tử tế quanh mình.\n\nCảm ơn cậu vì một năm qua đã luôn đồng hành, chia sẻ từ những lúc vui hết nấc tới mấy hôm tụt mood cần người ngồi nghe. Mong những dự định cậu đang ấp ủ như [một mục tiêu hoặc ước mơ của người nhận] sẽ sớm thành hiện thực theo cách nhẹ nhàng nhất.\n\nHôm nay cứ gác hết việc lại, ăn món cậu thích và tận hưởng trọn vẹn ngày của mình nha!"
+    },
+    {
+      "type": "memories",
+      "items": [
+        { "caption": "Khoảnh khắc đáng nhớ đầu tiên của tụi mình ở [địa điểm kỷ niệm 1]." },
+        { "caption": "Tấm ảnh dìm nhưng siêu vui trong buổi đi [hoạt động cùng nhau] hồi [tháng/năm]." },
+        { "caption": "Một ngày bình thường mà cười đau bụng chỉ vì [câu chuyện nội bộ của hai người]." },
+        { "caption": "Mong bộ sưu tập kỷ niệm năm tới sẽ có thêm thật nhiều bức hình đẹp hơn nữa." }
+      ]
+    },
+    {
+      "type": "ending",
+      "text": "Chúc cậu một ngày thật rực rỡ và ấm áp. Lúc nào rảnh nhớ khao / hẹn nhau một bữa nha!"
+    }
+  ]
+}

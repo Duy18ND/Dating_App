@@ -4,8 +4,10 @@ import { PRINT_CONFIG } from "@/lib/print-config";
 import {
   BACKGROUND_PRESETS,
   ELEMENT_TYPES,
+  FACE_IDS,
   IMAGE_FILTERS,
   IMAGE_FRAMES,
+  PAPER_STYLES,
   TEMPLATE_TYPES,
   type CanvasData,
   type LetterPayload,
@@ -18,6 +20,9 @@ export const LIMITS = {
   maxBodyBytes: 1_000_000,
   maxNameLength: 50,
   maxTextLength: 2000,
+  maxMonogram: 12,
+  maxEnvelopeLine: 80,
+  maxLetterLine: 60,
 } as const;
 
 export function isHttpUrl(value: string): boolean {
@@ -63,7 +68,7 @@ export const elementSchema = z
     locked: z.boolean().optional(),
     text: z.string().max(LIMITS.maxTextLength).optional(),
     fontFamily: z.enum(FONT_NAMES).optional(),
-    fontSize: z.number().min(8).max(400).optional(),
+    fontSize: z.number().min(PRINT_CONFIG.CANVAS.minFontPx).max(600).optional(),
     fill: hexColor.optional(),
     align: z.enum(["left", "center", "right"]).optional(),
     src: z.string().max(500).optional(),
@@ -99,31 +104,68 @@ export const elementSchema = z
     if (el.type === "image" && el.src && !isHttpUrl(el.src)) fail("src", "URL ảnh không hợp lệ");
   });
 
-/** Các URL ảnh người dùng tải lên (ảnh trên canvas và ảnh nền), đã bỏ trùng. */
+const allElements = (canvas: CanvasData) => FACE_IDS.flatMap((face) => canvas.faces[face].elements);
+
+/** Các URL ảnh người dùng tải lên trên cả hai mặt thiệp (ảnh và ảnh nền), đã bỏ trùng. */
 export function collectUserImageUrls(canvas: CanvasData): string[] {
-  const urls = canvas.elements.flatMap((el) => (el.type === "image" && el.src ? [el.src] : []));
-  if (canvas.background.type === "image") urls.push(canvas.background.value);
+  const urls = allElements(canvas).flatMap((el) => (el.type === "image" && el.src ? [el.src] : []));
+  for (const face of FACE_IDS) {
+    const background = canvas.faces[face].background;
+    if (background.type === "image") urls.push(background.value);
+  }
   return [...new Set(urls)];
 }
 
+const faceSchema = z.strictObject({
+  background: backgroundSchema,
+  elements: z.array(elementSchema).max(LIMITS.maxElements),
+});
+
+/** Đếm theo ký tự hiển thị để emoji và chữ có dấu tính là 1. */
+const shortText = (max: number) =>
+  z.string().refine((value) => [...value].length <= max, `Tối đa ${max} ký tự`);
+
 export const canvasDataSchema = z
   .strictObject({
+    version: z.literal(2),
     width: z.literal(PRINT_CONFIG.CANVAS.width),
     height: z.literal(PRINT_CONFIG.CANVAS.height),
-    defaultPrintSize: z.enum(["A6", "A5"]).default("A6"),
-    background: backgroundSchema,
-    elements: z.array(elementSchema).max(LIMITS.maxElements),
+    faces: z.strictObject({ front: faceSchema, inside: faceSchema }),
+    writingPage: z.strictObject({ paper: z.enum(PAPER_STYLES), color: hexColor }),
+    letter: z.strictObject({
+      paper: z.enum(PAPER_STYLES),
+      greeting: shortText(LIMITS.maxLetterLine),
+      signature: shortText(LIMITS.maxLetterLine),
+      fontFamily: z.enum(FONT_NAMES),
+      inkColor: hexColor,
+      paperColor: hexColor,
+      decorIconId: z.string().max(60).optional(),
+    }),
+    envelope: z.strictObject({
+      monogram: shortText(LIMITS.maxMonogram),
+      line: shortText(LIMITS.maxEnvelopeLine),
+      fontFamily: z.enum(FONT_NAMES),
+    }),
   })
   .superRefine((canvas, ctx) => {
-    if (new Set(canvas.elements.map((el) => el.id)).size !== canvas.elements.length) {
-      ctx.addIssue({ code: "custom", path: ["elements"], message: "Trùng id phần tử" });
+    const fail = (path: (string | number)[], message: string) =>
+      ctx.addIssue({ code: "custom", path, message });
+    const elements = allElements(canvas);
+    if (elements.length > LIMITS.maxElements) {
+      fail(["faces"], `Thiệp tối đa ${LIMITS.maxElements} thành phần`);
+    }
+    if (new Set(elements.map((el) => el.id)).size !== elements.length) {
+      fail(["faces"], "Trùng id phần tử");
     }
     if (collectUserImageUrls(canvas).length > LIMITS.maxUserImages) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["elements"],
-        message: `Mỗi thư tối đa ${LIMITS.maxUserImages} ảnh tải lên`,
-      });
+      fail(["faces"], `Mỗi thiệp tối đa ${LIMITS.maxUserImages} ảnh tải lên`);
+    }
+    // Mã QR chỉ nằm ở trang Lời mời, và chỉ một mã.
+    if (canvas.faces.front.elements.some((el) => el.type === "qr_code")) {
+      fail(["faces", "front"], "Mã QR chỉ đặt ở trang Lời mời");
+    }
+    if (canvas.faces.inside.elements.filter((el) => el.type === "qr_code").length > 1) {
+      fail(["faces", "inside"], "Mỗi thiệp chỉ có một mã QR");
     }
   });
 

@@ -17,7 +17,9 @@ export function scalePatch(el: CanvasElement, sx: number, sy: number): Partial<C
     case "text":
       return {
         width: round(clamp((el.width ?? TEXT_DEFAULTS.width) * sx, 60, 5000)),
-        fontSize: round(clamp((el.fontSize ?? TEXT_DEFAULTS.fontSize) * sy, 8, 400)),
+        fontSize: round(
+          clamp((el.fontSize ?? TEXT_DEFAULTS.fontSize) * sy, PRINT_CONFIG.CANVAS.minFontPx, 600),
+        ),
       };
     case "handwriting":
       return {

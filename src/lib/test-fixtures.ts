@@ -1,19 +1,27 @@
+import { blankCanvas } from "@/lib/editor/defaults";
 import type { LetterPayload } from "@/types/letter";
 
 export function samplePayload(): LetterPayload {
+  const canvas = blankCanvas();
+  canvas.faces.front.elements = [
+    {
+      id: "t1",
+      type: "text",
+      x: 100,
+      y: 100,
+      rotation: 0,
+      zIndex: 0,
+      text: "Xin chào",
+      fontSize: 96,
+    },
+  ];
+  canvas.faces.inside.elements = [
+    { id: "q1", type: "qr_code", x: 1180, y: 400, width: 380, height: 380, rotation: 0, zIndex: 0 },
+  ];
   return {
     template_type: "confession",
     title: "Thư gửi bạn",
-    canvas_data: {
-      width: 1240,
-      height: 1754,
-      defaultPrintSize: "A6",
-      background: { type: "preset", value: "cream", overlayOpacity: 0 },
-      elements: [
-        { id: "t1", type: "text", x: 100, y: 100, rotation: 0, zIndex: 0, text: "Xin chào" },
-        { id: "q1", type: "qr_code", x: 480, y: 1300, width: 280, height: 280, rotation: 0, zIndex: 1 },
-      ],
-    },
+    canvas_data: canvas,
     web_config: {
       recipientName: "Minh Anh",
       senderName: "Nam",

@@ -22,7 +22,7 @@ describe("kho sticker meme", () => {
 
   it("đường dẫn sticker qua được validation của server", () => {
     const payload = samplePayload();
-    payload.canvas_data.elements = MEMES.map((meme, i) => ({
+    payload.canvas_data.faces.front.elements = MEMES.map((meme, i) => ({
       id: meme.id,
       type: "sticker_img",
       src: meme.src,

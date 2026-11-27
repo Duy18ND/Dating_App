@@ -12,10 +12,10 @@ import { Field, inputClass, Section, Slider } from "./ui";
 
 const QR_COLORS = ["#2B2623", "#8E2424", "#2F4A3A", "#243B5A", "#4A2C5E"];
 const MAX_QR_PX = 600;
-const { width: W, height: H, safeMarginPx, minQrPx, defaultQrPx } = PRINT_CONFIG.CANVAS;
+const { width: W, height: H, minQrPx, defaultQrPx } = PRINT_CONFIG.CANVAS;
 
 /** Chiều rộng in thật (mm) trên thiệp, để người dùng biết mã có đủ lớn không. */
-const printedMm = (px: number, cardWidthMm: number) => Math.round((px / W) * cardWidthMm);
+const printedMm = (px: number) => Math.round((px / W) * PRINT_CONFIG.CARD_FACE_MM.width);
 
 function QrPreview({ color, iconId }: { color: string; iconId?: string }) {
   const [src, setSrc] = useState<string>();
@@ -56,12 +56,12 @@ function QrPreview({ color, iconId }: { color: string; iconId?: string }) {
   );
 }
 
-/** Mã QR đổi màu, chèn icon giữa. Mỗi thư chỉ cần một mã. */
+/** Mã QR đổi màu, chèn icon giữa. Mỗi thiệp có một mã, luôn ở trang Lời mời (mặt inside). */
 export function QrPanel() {
   const element = useEditorStore((s) =>
-    s.doc.canvas_data.elements.find((el) => el.type === "qr_code"),
+    s.doc.canvas_data.faces.inside.elements.find((el) => el.type === "qr_code"),
   );
-  const cardSize = useEditorStore((s) => s.doc.canvas_data.defaultPrintSize);
+  const setFace = useEditorStore((s) => s.setFace);
   const addElement = useEditorStore((s) => s.addElement);
   const update = useEditorStore((s) => s.updateElement);
   const select = useEditorStore((s) => s.select);
@@ -74,31 +74,42 @@ export function QrPanel() {
         <Button
           type="button"
           variant="outline"
-          onClick={() =>
+          onClick={() => {
+            setFace("inside");
+            // Đặt ở nửa phải trang Lời mời, chừa nửa trái cho lời nhắn.
             addElement({
               type: "qr_code",
-              x: (W - defaultQrPx) / 2,
-              // Chừa cả thẻ nền sáng nằm trong lề an toàn.
-              y: H - safeMarginPx - quietZone(defaultQrPx) - defaultQrPx,
+              x: Math.round(W * 0.67 - defaultQrPx / 2),
+              y: Math.round((H - defaultQrPx) / 2),
               width: defaultQrPx,
               height: defaultQrPx,
               fill: QR_COLORS[0],
-            })
-          }
+            });
+          }}
         >
           <QrCode /> Thêm mã QR
         </Button>
+        <p className="text-xs text-muted-foreground">
+          Mã QR được đặt ở trang Lời mời bên trong thiệp.
+        </p>
       </Section>
     );
   }
 
   const color = element.fill ?? QR_COLORS[0];
   const size = element.width ?? defaultQrPx;
-  const cardWidthMm = PRINT_CONFIG.CARD_SIZES_MM[cardSize].width;
 
   return (
     <Section title="Mã QR">
-      <Button type="button" variant="outline" size="sm" onClick={() => select(element.id)}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          setFace("inside");
+          select(element.id);
+        }}
+      >
         Chọn mã trên thiệp
       </Button>
       <QrPreview color={color} iconId={element.iconId} />
@@ -141,7 +152,7 @@ export function QrPanel() {
         max={MAX_QR_PX}
         step={4}
         value={size}
-        format={(px) => `${Math.round(px)}px (~${printedMm(px, cardWidthMm)}mm trên ${cardSize})`}
+        format={(px) => `${Math.round(px)}px (~${printedMm(px)} mm khi in)`}
         onChange={(px) => update(element.id, { width: px, height: px }, `qr-size:${element.id}`)}
         onCommit={endCoalesce}
       />

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { useEditorStore } from "@/lib/editor/store";
+import { currentElements, useEditorStore } from "@/lib/editor/store";
 import { cn } from "@/lib/utils";
 
 function Action({
@@ -54,9 +54,7 @@ export function ElementToolbar({
   onOpenProperties?: () => void;
   className?: string;
 }) {
-  const element = useEditorStore((s) =>
-    s.doc.canvas_data.elements.find((el) => el.id === s.selectedId),
-  );
+  const element = useEditorStore((s) => currentElements(s).find((el) => el.id === s.selectedId));
   const { moveLayer, updateElement, duplicateElement, removeElement } = useEditorStore.getState();
   if (!element) return null;
   const id = element.id;

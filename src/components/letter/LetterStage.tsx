@@ -5,7 +5,7 @@ import type { ReactNode, Ref } from "react";
 import { Layer, Stage } from "react-konva";
 import { sortByLayer } from "@/lib/editor/store";
 import { PRINT_CONFIG } from "@/lib/print-config";
-import type { CanvasData } from "@/types/letter";
+import type { CardFace } from "@/types/letter";
 import { BackgroundLayer } from "./BackgroundLayer";
 import { ElementNode, type ElementHandlers } from "./ElementNode";
 import { useFontsKey } from "./hooks";
@@ -13,8 +13,9 @@ import { useFontsKey } from "./hooks";
 const { width: W, height: H } = PRINT_CONFIG.CANVAS;
 
 export interface LetterStageProps {
-  canvas: CanvasData;
-  /** Hệ số hiển thị. Tọa độ trong stage luôn là hệ logic 1240 x 1754. */
+  /** Một mặt thiệp. Mọi mặt có cùng kích thước logic PRINT_CONFIG.CANVAS. */
+  face: CardFace;
+  /** Hệ số hiển thị. Tọa độ trong stage luôn là hệ logic PRINT_CONFIG.CANVAS. */
   scale: number;
   qrUrl: string;
   hideBackground?: boolean;
@@ -25,15 +26,15 @@ export interface LetterStageProps {
   onChange?: ElementHandlers["onChange"];
   /** Chặn chọn/kéo phần tử, ví dụ khi đang vẽ tay. */
   listening?: boolean;
-  /** Layer bổ sung của editor: Transformer, khung lề an toàn, nếp gấp A5 (T-09). */
+  /** Layer bổ sung của editor: Transformer, khung lề an toàn. */
   children?: ReactNode;
 }
 
 /** Bộ vẽ lá thư dùng chung cho editor và trang người nhận. */
 export default function LetterStage(props: LetterStageProps) {
-  const { canvas, scale, qrUrl, stageRef, hideBackground, hiddenElementId, onSelect, onEdit } = props;
+  const { face, scale, qrUrl, stageRef, hideBackground, hiddenElementId, onSelect, onEdit } = props;
   const { onChange, listening = true, children } = props;
-  const texts = canvas.elements.filter((el) => el.type === "text");
+  const texts = face.elements.filter((el) => el.type === "text");
   const fontsKey = useFontsKey(
     texts.map((el) => el.fontFamily ?? "Be Vietnam Pro"),
     texts.map((el) => el.text).join(""),
@@ -49,9 +50,9 @@ export default function LetterStage(props: LetterStageProps) {
       onClick={(event) => event.target === event.target.getStage() && onSelect?.(null)}
       onTap={(event) => event.target === event.target.getStage() && onSelect?.(null)}
     >
-      <BackgroundLayer background={canvas.background} hidden={hideBackground} />
+      <BackgroundLayer background={face.background} hidden={hideBackground} />
       <Layer name="content" listening={listening}>
-        {sortByLayer(canvas.elements).map((element) => (
+        {sortByLayer(face.elements).map((element) => (
           <ElementNode
             key={element.id}
             element={element}

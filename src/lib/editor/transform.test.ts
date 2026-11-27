@@ -32,11 +32,15 @@ describe("scalePatch", () => {
     });
   });
 
-  it("QR luôn vuông và không nhỏ hơn 240px", () => {
-    expect(scalePatch(el({ type: "qr_code", width: 280, height: 280 }), 0.5, 0.3)).toEqual({
-      width: 240,
-      height: 240,
+  it("QR luôn vuông và không nhỏ hơn 340px", () => {
+    expect(scalePatch(el({ type: "qr_code", width: 380, height: 380 }), 0.5, 0.3)).toEqual({
+      width: 340,
+      height: 340,
     });
+  });
+
+  it("chữ không thu nhỏ dưới cỡ tối thiểu khi in", () => {
+    expect(scalePatch(el({ type: "text", width: 500, fontSize: 60 }), 1, 0.1).fontSize).toBe(48);
   });
 });
 

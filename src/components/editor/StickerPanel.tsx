@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useEditorStore } from "@/lib/editor/store";
+import { currentElements, useEditorStore } from "@/lib/editor/store";
 import { findIcon, ICON_CATEGORIES, ICON_VIEWBOX, ICONS, type LetterIcon } from "@/lib/icons";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { DEFAULT_STICKER_TAB, MEMES, STICKER_SIZE_PX, type StickerTab } from "@/lib/stickers";
@@ -49,7 +49,7 @@ export function StickerPanel() {
   const update = useEditorStore((s) => s.updateElement);
   const endCoalesce = useEditorStore((s) => s.endCoalesce);
   const selected = useEditorStore((s) =>
-    s.doc.canvas_data.elements.find((el) => el.id === s.selectedId && el.type === "svg_icon"),
+    currentElements(s).find((el) => el.id === s.selectedId && el.type === "svg_icon"),
   );
   const selectedIcon = findIcon(selected?.iconId);
 
@@ -70,7 +70,12 @@ export function StickerPanel() {
                 className="rounded-md border bg-card p-1 hover:bg-accent"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- ảnh tĩnh ~10KB */}
-                <img src={meme.src} alt={meme.label} loading="lazy" className="aspect-square w-full" />
+                <img
+                  src={meme.src}
+                  alt={meme.label}
+                  loading="lazy"
+                  className="aspect-square w-full"
+                />
               </button>
             ))
           : ICONS.filter((icon) => icon.category === tab).map((icon) => (

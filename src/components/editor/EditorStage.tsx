@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { Layer, Line, Rect, Transformer } from "react-konva";
 import type { NodeChange } from "@/components/letter/ElementNode";
 import LetterStage from "@/components/letter/LetterStage";
-import { useEditorStore } from "@/lib/editor/store";
+import { currentElements, useEditorStore } from "@/lib/editor/store";
 import { normalizeAngle, pinchPatch, scalePatch } from "@/lib/editor/transform";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { LIMITS } from "@/lib/validation";
@@ -136,9 +136,7 @@ function usePinch(stageRef: React.RefObject<Konva.Stage | null>, active: boolean
       node.draggable(false);
       if (node.isDragging()) node.stopDrag();
       // Đọc lại sau stopDrag vì dragend vừa cập nhật vị trí.
-      const element = useEditorStore
-        .getState()
-        .doc.canvas_data.elements.find((el) => el.id === selectedId);
+      const element = currentElements(useEditorStore.getState()).find((el) => el.id === selectedId);
       if (!element || element.locked) return;
       const rect = node.getClientRect({ skipTransform: true });
       gesture = {
@@ -195,7 +193,7 @@ function usePinch(stageRef: React.RefObject<Konva.Stage | null>, active: boolean
 
 /** Canvas của trình thiết kế. Chỉ chạy phía trình duyệt (import qua next/dynamic, ssr: false). */
 export default function EditorStage({ scale }: { scale: number }) {
-  const canvas = useEditorStore((s) => s.doc.canvas_data);
+  const face = useEditorStore((s) => s.doc.canvas_data.faces[s.face]);
   const selectedId = useEditorStore((s) => s.selectedId);
   const editingTextId = useEditorStore((s) => s.editingTextId);
   const tool = useEditorStore((s) => s.tool);
@@ -204,7 +202,7 @@ export default function EditorStage({ scale }: { scale: number }) {
   const transformerRef = useRef<Konva.Transformer>(null);
   const liveRef = useRef<Konva.Line>(null);
 
-  const selected = canvas.elements.find((el) => el.id === selectedId);
+  const selected = face.elements.find((el) => el.id === selectedId);
   const selecting = tool === "select";
   const coarse = isCoarse();
 
@@ -222,8 +220,9 @@ export default function EditorStage({ scale }: { scale: number }) {
   usePinch(stageRef, selecting);
 
   function handleChange(id: string, change: NodeChange) {
-    const { doc, updateElement } = useEditorStore.getState();
-    const element = doc.canvas_data.elements.find((el) => el.id === id);
+    const state = useEditorStore.getState();
+    const element = currentElements(state).find((el) => el.id === id);
+    const { updateElement } = state;
     if (!element) return;
     const position = { x: Math.round(change.x), y: Math.round(change.y) };
     if (change.scaleX === undefined || change.scaleY === undefined) {
@@ -240,7 +239,7 @@ export default function EditorStage({ scale }: { scale: number }) {
   function handleSelect(id: string | null) {
     const state = useEditorStore.getState();
     if (state.tool === "eraser") {
-      const element = state.doc.canvas_data.elements.find((el) => el.id === id);
+      const element = currentElements(state).find((el) => el.id === id);
       if (element?.type === "handwriting") state.removeElement(element.id);
       return;
     }
@@ -261,7 +260,7 @@ export default function EditorStage({ scale }: { scale: number }) {
   return (
     <LetterStage
       stageRef={stageRef}
-      canvas={canvas}
+      face={face}
       scale={scale}
       qrUrl={`${typeof window === "undefined" ? "" : window.location.origin}/l/xemthu`}
       hiddenElementId={editingTextId}
@@ -282,16 +281,6 @@ export default function EditorStage({ scale }: { scale: number }) {
           dash={[12 / scale, 8 / scale]}
           opacity={0.45}
         />
-        {canvas.defaultPrintSize === "A5" && (
-          // Thiệp A5 gấp đôi ngang giữa để vừa phong bì C6.
-          <Line
-            points={[0, H / 2, W, H / 2]}
-            stroke="#7A7067"
-            strokeWidth={2 / scale}
-            dash={[4 / scale, 6 / scale]}
-            opacity={0.6}
-          />
-        )}
         <Line ref={liveRef} lineCap="round" lineJoin="round" tension={0.3} />
       </Layer>
       <Layer name="editor-transformer">

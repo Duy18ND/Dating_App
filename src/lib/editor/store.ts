@@ -1,7 +1,18 @@
 import { nanoid } from "nanoid";
 import { create } from "zustand";
-import { PRINT_CONFIG, type PrintSize } from "@/lib/print-config";
-import type { BackgroundConfig, CanvasElement, LetterPayload, WebConfig } from "@/types/letter";
+import { PRINT_CONFIG } from "@/lib/print-config";
+import {
+  FACE_IDS,
+  type BackgroundConfig,
+  type CanvasData,
+  type CanvasElement,
+  type EnvelopeDecor,
+  type FaceId,
+  type LetterPayload,
+  type LetterSheetConfig,
+  type WebConfig,
+  type WritingPageConfig,
+} from "@/types/letter";
 import { blankLetter } from "./defaults";
 
 export const HISTORY_LIMIT = 50;
@@ -25,6 +36,8 @@ interface EditorState {
   coalesceKey: string | null;
 
   // Trạng thái giao diện tạm thời, không vào lịch sử.
+  /** Mặt thiệp đang sửa. Thêm, chọn, đổi nền đều tác động lên mặt này. */
+  face: FaceId;
   selectedId: string | null;
   editingTextId: string | null;
   printHideBackground: boolean;
@@ -42,6 +55,7 @@ interface EditorState {
   select: (id: string | null) => void;
   setEditingText: (id: string | null) => void;
   setPrintHideBackground: (hide: boolean) => void;
+  setFace: (face: FaceId) => void;
 
   /**
    * Mọi thay đổi tài liệu đi qua đây. Các lần gọi liên tiếp cùng `key`
@@ -58,24 +72,51 @@ interface EditorState {
   duplicateElement: (id: string) => void;
   moveLayer: (id: string, move: LayerMove) => void;
   setBackground: (patch: Partial<BackgroundConfig>, key?: string) => void;
-  setPrintSize: (size: PrintSize) => void;
+  setWritingPage: (patch: Partial<WritingPageConfig>, key?: string) => void;
+  setLetter: (patch: Partial<LetterSheetConfig>, key?: string) => void;
+  setEnvelope: (patch: Partial<EnvelopeDecor>, key?: string) => void;
   setWebConfig: (patch: Partial<WebConfig>, key?: string) => void;
   setTitle: (title: string, key?: string) => void;
 }
 
+/** Phần tử của mặt đang sửa. Dùng làm selector: useEditorStore(currentElements). */
+export const currentElements = (s: { doc: LetterPayload; face: FaceId }) =>
+  s.doc.canvas_data.faces[s.face].elements;
+
+/** Phần tử đang chọn (trên mặt đang sửa). */
+export const selectedElement = (s: {
+  doc: LetterPayload;
+  face: FaceId;
+  selectedId: string | null;
+}) => currentElements(s).find((el) => el.id === s.selectedId);
+
+/** Mặt chứa phần tử `id`, hoặc undefined. */
+const faceOf = (canvas: CanvasData, id: string) =>
+  FACE_IDS.find((face) => canvas.faces[face].elements.some((el) => el.id === id));
+
+const withCanvas = (doc: LetterPayload, patch: Partial<CanvasData>): LetterPayload => ({
+  ...doc,
+  canvas_data: { ...doc.canvas_data, ...patch },
+});
+
 const withElements = (
   doc: LetterPayload,
+  face: FaceId | undefined,
   recipe: (elements: CanvasElement[]) => CanvasElement[],
 ): LetterPayload => {
-  const elements = recipe(doc.canvas_data.elements);
-  if (elements === doc.canvas_data.elements) return doc;
-  return { ...doc, canvas_data: { ...doc.canvas_data, elements } };
+  if (!face) return doc;
+  const current = doc.canvas_data.faces[face];
+  const elements = recipe(current.elements);
+  if (elements === current.elements) return doc;
+  return withCanvas(doc, {
+    faces: { ...doc.canvas_data.faces, [face]: { ...current, elements } },
+  });
 };
 
 export const sortByLayer = (elements: CanvasElement[]) =>
   [...elements].sort((a, b) => a.zIndex - b.zIndex);
 
-/** Mã QR luôn vuông và không nhỏ hơn mức còn quét được trên giấy A6. */
+/** Mã QR luôn vuông và không nhỏ hơn mức còn quét được trên thiệp mini. */
 function lockQrSize(el: CanvasElement): CanvasElement {
   if (el.type !== "qr_code") return el;
   const size = Math.max(el.width ?? 0, PRINT_CONFIG.CANVAS.minQrPx);
@@ -103,15 +144,20 @@ function reorder(elements: CanvasElement[], id: string, move: LayerMove): Canvas
   return renumber(ordered);
 }
 
+/** Mặt thiệp khác nhau giữa hai bản; undo/redo chuyển sang mặt đó để người dùng thấy thay đổi. */
+const changedFace = (a: LetterPayload, b: LetterPayload) =>
+  FACE_IDS.find((face) => a.canvas_data.faces[face] !== b.canvas_data.faces[face]);
+
 /** Bỏ chọn nếu phần tử không còn sau khi undo/redo/xóa. */
-const keepSelection = (doc: LetterPayload, id: string | null) =>
-  doc.canvas_data.elements.some((el) => el.id === id) ? id : null;
+const keepSelection = (doc: LetterPayload, face: FaceId, id: string | null) =>
+  doc.canvas_data.faces[face].elements.some((el) => el.id === id) ? id : null;
 
 export const useEditorStore = create<EditorState>()((set, get) => ({
   doc: blankLetter(),
   past: [],
   future: [],
   coalesceKey: null,
+  face: "front",
   selectedId: null,
   editingTextId: null,
   printHideBackground: false,
@@ -126,6 +172,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       published: published ?? null,
       savedDoc: doc,
       tool: "select",
+      face: "front",
       printHideBackground: false,
       past: [],
       future: [],
@@ -141,6 +188,11 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   select: (selectedId) => set({ selectedId, coalesceKey: null }),
   setEditingText: (editingTextId) => set({ editingTextId, coalesceKey: null }),
   setPrintHideBackground: (printHideBackground) => set({ printHideBackground }),
+  setFace: (face) => {
+    if (get().face !== face) {
+      set({ face, selectedId: null, editingTextId: null, coalesceKey: null });
+    }
+  },
 
   commit: (recipe, key) => {
     const { doc, past, coalesceKey } = get();
@@ -157,28 +209,32 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   endCoalesce: () => set({ coalesceKey: null }),
 
   undo: () => {
-    const { doc, past, future, selectedId } = get();
+    const { doc, past, future, selectedId, face } = get();
     const previous = past.at(-1);
     if (!previous) return;
+    const target = changedFace(doc, previous) ?? face;
     set({
       doc: previous,
       past: past.slice(0, -1),
       future: [doc, ...future],
       coalesceKey: null,
-      selectedId: keepSelection(previous, selectedId),
+      face: target,
+      selectedId: target === face ? keepSelection(previous, face, selectedId) : null,
       editingTextId: null,
     });
   },
   redo: () => {
-    const { doc, past, future, selectedId } = get();
+    const { doc, past, future, selectedId, face } = get();
     const [next, ...rest] = future;
     if (!next) return;
+    const target = changedFace(doc, next) ?? face;
     set({
       doc: next,
       past: [...past, doc],
       future: rest,
       coalesceKey: null,
-      selectedId: keepSelection(next, selectedId),
+      face: target,
+      selectedId: target === face ? keepSelection(next, face, selectedId) : null,
       editingTextId: null,
     });
   },
@@ -186,7 +242,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   addElement: (element) => {
     const id = nanoid(10);
     get().commit((doc) =>
-      withElements(doc, (elements) => {
+      withElements(doc, get().face, (elements) => {
         const zIndex = elements.reduce((max, el) => Math.max(max, el.zIndex + 1), 0);
         return [...elements, { rotation: 0, ...element, id, zIndex }];
       }),
@@ -197,7 +253,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   updateElement: (id, patch, key) =>
     get().commit(
       (doc) =>
-        withElements(doc, (elements) =>
+        withElements(doc, faceOf(doc.canvas_data, id), (elements) =>
           elements.some((el) => el.id === id)
             ? elements.map((el) => (el.id === id ? lockQrSize({ ...el, ...patch, id }) : el))
             : elements,
@@ -206,7 +262,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     ),
   removeElement: (id) => {
     get().commit((doc) =>
-      withElements(doc, (elements) => {
+      withElements(doc, faceOf(doc.canvas_data, id), (elements) => {
         const rest = elements.filter((el) => el.id !== id);
         return rest.length === elements.length ? elements : renumber(sortByLayer(rest));
       }),
@@ -214,29 +270,41 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     if (get().selectedId === id) set({ selectedId: null, editingTextId: null });
   },
   duplicateElement: (id) => {
-    const source = get().doc.canvas_data.elements.find((el) => el.id === id);
+    const source = currentElements(get()).find((el) => el.id === id);
     if (!source) return;
     get().addElement({ ...source, x: source.x + 30, y: source.y + 30, locked: false });
   },
   moveLayer: (id, move) =>
-    get().commit((doc) => withElements(doc, (elements) => reorder(elements, id, move))),
+    get().commit((doc) =>
+      withElements(doc, faceOf(doc.canvas_data, id), (elements) => reorder(elements, id, move)),
+    ),
 
-  setBackground: (patch, key) =>
-    get().commit(
-      (doc) => ({
-        ...doc,
-        canvas_data: {
-          ...doc.canvas_data,
-          background: { ...doc.canvas_data.background, ...patch },
+  setBackground: (patch, key) => {
+    const face = get().face;
+    get().commit((doc) => {
+      const current = doc.canvas_data.faces[face];
+      return withCanvas(doc, {
+        faces: {
+          ...doc.canvas_data.faces,
+          [face]: { ...current, background: { ...current.background, ...patch } },
         },
-      }),
+      });
+    }, key);
+  },
+  setWritingPage: (patch, key) =>
+    get().commit(
+      (doc) => withCanvas(doc, { writingPage: { ...doc.canvas_data.writingPage, ...patch } }),
       key,
     ),
-  setPrintSize: (defaultPrintSize) =>
-    get().commit((doc) =>
-      doc.canvas_data.defaultPrintSize === defaultPrintSize
-        ? doc
-        : { ...doc, canvas_data: { ...doc.canvas_data, defaultPrintSize } },
+  setLetter: (patch, key) =>
+    get().commit(
+      (doc) => withCanvas(doc, { letter: { ...doc.canvas_data.letter, ...patch } }),
+      key,
+    ),
+  setEnvelope: (patch, key) =>
+    get().commit(
+      (doc) => withCanvas(doc, { envelope: { ...doc.canvas_data.envelope, ...patch } }),
+      key,
     ),
   setWebConfig: (patch, key) =>
     get().commit((doc) => ({ ...doc, web_config: { ...doc.web_config, ...patch } }), key),

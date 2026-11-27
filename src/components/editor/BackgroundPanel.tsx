@@ -22,7 +22,7 @@ const MODES: { value: BackgroundConfig["type"]; label: string }[] = [
 
 /** Panel nền 3 lớp: mẫu giấy, màu tự chọn, ảnh nền kèm lớp phủ và làm mờ. */
 export function BackgroundPanel() {
-  const background = useEditorStore((s) => s.doc.canvas_data.background);
+  const background = useEditorStore((s) => s.doc.canvas_data.faces[s.face].background);
   const hideForPrint = useEditorStore((s) => s.printHideBackground);
   const setHideForPrint = useEditorStore((s) => s.setPrintHideBackground);
   const setBackground = useEditorStore((s) => s.setBackground);
@@ -95,7 +95,8 @@ export function BackgroundPanel() {
           const file = event.target.files?.[0];
           event.target.value = "";
           void upload(file, ({ url }) => {
-            const current = useEditorStore.getState().doc.canvas_data.background;
+            const state = useEditorStore.getState();
+            const current = state.doc.canvas_data.faces[state.face].background;
             const keep = current.type === "image";
             setBackground({
               type: "image",

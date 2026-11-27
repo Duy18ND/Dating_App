@@ -3,7 +3,7 @@
 import { ImagePlus } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { useEditorStore } from "@/lib/editor/store";
+import { currentElements, useEditorStore } from "@/lib/editor/store";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { LIMITS } from "@/lib/validation";
 import type { ImageFilter, ImageFrame } from "@/types/letter";
@@ -32,7 +32,7 @@ export function ImagePanel() {
   const addElement = useEditorStore((s) => s.addElement);
   const update = useEditorStore((s) => s.updateElement);
   const selected = useEditorStore((s) =>
-    s.doc.canvas_data.elements.find((el) => el.id === s.selectedId && el.type === "image"),
+    currentElements(s).find((el) => el.id === s.selectedId && el.type === "image"),
   );
 
   return (
@@ -53,7 +53,7 @@ export function ImagePanel() {
             addElement({
               type: "image",
               x: Math.round((PRINT_CONFIG.CANVAS.width - w) / 2),
-              y: 400,
+              y: Math.round((PRINT_CONFIG.CANVAS.height - height * scale) / 2),
               width: w,
               height: Math.round(height * scale),
               src: url,

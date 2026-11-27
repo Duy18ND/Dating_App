@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { fontFamilyOf } from "@/components/letter/hooks";
-import { useEditorStore } from "@/lib/editor/store";
+import { currentElements, useEditorStore } from "@/lib/editor/store";
 import { TEXT_DEFAULTS } from "@/lib/render/text";
 import { LIMITS } from "@/lib/validation";
 
@@ -13,7 +13,7 @@ import { LIMITS } from "@/lib/validation";
  */
 export function TextEditOverlay({ scale }: { scale: number }) {
   const element = useEditorStore((s) =>
-    s.doc.canvas_data.elements.find((el) => el.id === s.editingTextId && el.type === "text"),
+    currentElements(s).find((el) => el.id === s.editingTextId && el.type === "text"),
   );
   const updateElement = useEditorStore((s) => s.updateElement);
   const setEditingText = useEditorStore((s) => s.setEditingText);
