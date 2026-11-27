@@ -5,7 +5,7 @@ import { STICKER_SIZE_PX } from "@/lib/stickers";
 import type { CanvasElement, LetterPayload, TemplateType, WebConfig } from "@/types/letter";
 
 // 4 mẫu bố cục cho thiệp A6. Tọa độ theo canvas logic 1240 x 1754, lề an toàn 94px.
-const { width: W, safeMarginPx: M, minQrPx, defaultQrPx } = PRINT_CONFIG.CANVAS;
+const { width: W, safeMarginPx: M, defaultQrPx } = PRINT_CONFIG.CANVAS;
 const CONTENT_W = W - M * 2;
 
 type Draft = Omit<CanvasElement, "id" | "zIndex" | "rotation"> & { rotation?: number };
@@ -65,19 +65,36 @@ export const TEMPLATES: Template[] = [
   {
     type: "confession",
     name: "Tỏ tình / Kỷ niệm",
-    description: "Tiêu đề hoặc ảnh Polaroid, 8 dòng kẻ để viết tay và mã QR mở thư.",
-    title: "Gửi người thương",
+    description: "Bố cục 35/45/20: tiêu đề gọn, 7 dòng kẻ viết tay và mã QR mở nhạc.",
+    title: "Gửi cậu một điều nhỏ",
     background: { type: "preset", value: "cream", overlayOpacity: 0 },
-    // Bố cục 35 / 45 / 20: tiêu đề, vùng viết tay, QR kèm lời nhắn.
+    // Bố cục 35 / 45 / 20: tiêu đề ấm áp (hoặc thay bằng ảnh Polaroid), 7 dòng viết tay, QR mở nhạc.
     elements: [
-      icon("heart", 560, 150, 120, "#8E2424"),
-      text(310, "Gửi người thương", 112, "Charm", "#8E2424"),
-      text(490, "Có điều này mình muốn nói với bạn...", 52, "Cormorant Garamond"),
-      { type: "lined_area", x: M, y: 600, width: CONTENT_W, height: 660, lineStyle: "ruled" },
-      qr(130, 1372, defaultQrPx - 20, "#8E2424", "heart"),
-      text(1430, "Quét mã để nghe\nđiều mình chưa dám nói", 52, "Dancing Script", "#2B2623", {
-        x: 450,
-        width: 696,
+      icon("wax-seal", 564, 114, 112, "#8E2424"),
+      icon("sparkle", 460, 146, 48, "#C8A882"),
+      icon("sparkle", 732, 146, 48, "#C8A882"),
+      text(262, "Gửi cậu một điều nhỏ", 108, "Charm", "#8E2424"),
+      text(
+        432,
+        "Dành cho những lúc muốn nói trực tiếp\nmà tim lại đập hơi nhanh một chút.",
+        48,
+        "Cormorant Garamond",
+        "#5C524B",
+      ),
+      icon("heart-line", 588, 578, 64, "#8E2424"),
+      { type: "lined_area", x: M, y: 664, width: CONTENT_W, height: 580, lineStyle: "ruled" },
+      qr(134, 1344, 260, "#8E2424", "heart"),
+      text(
+        1366,
+        "Quét mã để nghe bản nhạc\nvà xem điều mình muốn hỏi nhé",
+        52,
+        "Dancing Script",
+        "#2B2623",
+        { x: 452, width: 694 },
+      ),
+      text(1536, "Mở bằng camera điện thoại · Bật loa nhỏ thôi nha", 30, "Be Vietnam Pro", "#7A7067", {
+        x: 452,
+        width: 694,
       }),
     ],
     web: {
@@ -85,9 +102,9 @@ export const TEMPLATES: Template[] = [
       blocks: {
         acceptButton: {
           enabled: true,
-          question: "Làm người yêu mình nhé?",
-          yesText: "Đồng ý",
-          noText: "Để suy nghĩ",
+          question: "Mình chính thức hẹn hò nha?",
+          yesText: "Đồng ý luôn",
+          noText: "Cho suy nghĩ thêm xíu",
           dodgeNo: true,
         },
       },
@@ -96,52 +113,86 @@ export const TEMPLATES: Template[] = [
   {
     type: "wedding",
     name: "Mời cưới / Đính hôn",
-    description: "Tông kem và rượu vang trang trọng, có form xác nhận tham dự.",
-    title: "Thiệp mời cưới",
+    description: "Tông kem và đỏ rượu vang trang trọng, kèm mã QR xác nhận tham dự.",
+    title: "Thiệp mời thành hôn",
     background: { type: "color", value: "#FBF6EE", overlayOpacity: 0 },
     elements: [
-      icon("rings", 540, 130, 160, WINE),
-      text(340, "TRÂN TRỌNG KÍNH MỜI", 50, "Cormorant Garamond", WINE),
-      text(480, "Minh Anh\n&\nHoàng Nam", 110, "Playfair Display", WINE),
-      icon("branch", 130, 520, 200, "#A8894F"),
-      icon("leaf", 920, 700, 170, "#A8894F"),
-      text(990, "Tới dự tiệc thành hôn của chúng mình\n17:30, Chủ nhật 10.01.2027\nNhà hàng Hoa Sen", 50, "Cormorant Garamond"),
-      qr(480, 1340, defaultQrPx, WINE, "rings"),
-      text(1250, "Quét mã để xác nhận tham dự", 36, "Be Vietnam Pro", "#7A7067"),
+      icon("rings", 554, 114, 132, WINE),
+      text(274, "TRÂN TRỌNG KÍNH MỜI", 44, "Cormorant Garamond", WINE),
+      text(358, "Tới chung vui trong ngày trọng đại của", 42, "Cormorant Garamond", "#5C524B"),
+      icon("branch", 104, 514, 148, "#A8894F"),
+      icon("leaf", 988, 520, 136, "#A8894F"),
+      text(446, "Tên cô dâu\n&\nTên chú rể", 96, "Playfair Display", WINE, { x: 268, width: 704 }),
+      icon("wreath", 576, 858, 88, "#A8894F"),
+      text(
+        974,
+        "17:30 · Chủ nhật, 10.01.2027\nTrung tâm Tiệc cưới (Tên địa điểm)\nSố nhà, Đường, Quận, Thành phố",
+        46,
+        "Cormorant Garamond",
+        "#2B2623",
+      ),
+      text(1204, "Quét mã để xác nhận tham dự & xem bản đồ", 34, "Be Vietnam Pro", "#7A7067"),
+      qr(480, 1320, defaultQrPx, WINE, "rings"),
     ],
     web: {
       envelopeColor: "#F4E9DA",
       waxSealColor: WINE,
       audio: { enabled: false, trackId: "wedding-1", startTime: 0, volume: 0.4 },
       blocks: {
-        rsvp: { enabled: true, eventDate: "2027-01-10T17:30", locationName: "Nhà hàng Hoa Sen", mapsUrl: "" },
+        rsvp: {
+          enabled: true,
+          eventDate: "2027-01-10T17:30",
+          locationName: "Trung tâm Tiệc cưới (Tên địa điểm)",
+          mapsUrl: "",
+        },
       },
     },
   },
   {
     type: "dinner",
     name: "Mời ăn / Hẹn hò",
-    description: "Vé mời vui nhộn kèm sticker và bình chọn món ăn.",
+    description: "Vé hẹn ăn uống vui nhộn, có sẵn 2 sticker meme và bình chọn món.",
     title: "Vé mời đi ăn",
     background: { type: "preset", value: "kraft", overlayOpacity: 0 },
     elements: [
-      text(150, "VÉ MỜI ĐI ĂN", 124, "Mali"),
-      text(340, "Có giá trị cho 01 buổi no nê", 50, "Be Vietnam Pro"),
-      icon("squiggle", 470, 420, 300, "#8E2424"),
-      sticker("di-an-hong", 130, 710, 380, -6),
-      sticker("chot-keo", 730, 770, 380, 6),
-      text(1190, "Thời gian: ................\nĐịa điểm: ..................", 52, "Mali"),
-      qr(480, 1360, defaultQrPx - 20, "#2B2623", "toast"),
+      text(114, "★ VÉ HẸN VIP · ĐÃ THANH TOÁN NỬA TẤM LÒNG ★", 30, "Be Vietnam Pro", "#8E2424"),
+      text(176, "VÉ MỜI ĐI ĂN", 116, "Mali", "#2B2623"),
+      text(350, "Có giá trị cho 01 buổi ăn no nê & nói xấu cả thế giới", 42, "Be Vietnam Pro", "#4E433C"),
+      icon("star", 476, 450, 48, "#C9A227"),
+      icon("toast", 574, 428, 92, "#8E2424"),
+      icon("star", 716, 450, 48, "#C9A227"),
+      sticker("di-an-hong", 124, 550, 380, -6),
+      sticker("chot-keo", 736, 570, 380, 6),
+      text(
+        994,
+        "Ngày giờ: ........................................\nĐiểm hẹn: .......................................\nQuy định: Không bùng kèo giờ chót",
+        44,
+        "Mali",
+        "#2B2623",
+      ),
+      qr(134, 1340, 260, "#2B2623", "toast"),
+      text(1366, "Quét mã chốt kèo\nvà vote món ăn tối nay!", 54, "Mali", "#8E2424", {
+        x: 452,
+        width: 694,
+      }),
+      text(1538, "Trình vé này cho người mời để đổi trà sữa", 30, "Be Vietnam Pro", "#5C524B", {
+        x: 452,
+        width: 694,
+      }),
     ],
     web: {
       audio: { enabled: false, trackId: "fun-1", startTime: 0, volume: 0.4 },
       blocks: {
-        poll: { enabled: true, question: "Mình ăn gì đây?", options: ["Lẩu", "Đồ nướng", "Bún đậu"] },
+        poll: {
+          enabled: true,
+          question: "Tối nay tụi mình ăn gì cho đã?",
+          options: ["Lẩu cay", "Thịt nướng", "Bún đậu mắm tôm"],
+        },
         acceptButton: {
           enabled: true,
-          question: "Đi hông?",
-          yesText: "Chốt kèo",
-          noText: "Bận rồi",
+          question: "Chốt lịch hẹn này luôn nha?",
+          yesText: "Chốt đơn liền",
+          noText: "Hôm khác đi mà",
           dodgeNo: true,
         },
       },
@@ -150,21 +201,38 @@ export const TEMPLATES: Template[] = [
   {
     type: "holiday",
     name: "Sinh nhật / Giáng sinh",
-    description: "Bưu thiếp có vùng chấm bi để viết lời chúc, kẹp kèm hộp quà.",
-    title: "Lời chúc ngày vui",
+    description: "Bưu thiếp có vùng chấm bi viết lời chúc, 1 sticker và mã QR mở quà.",
+    title: "Chúc ngày thật vui",
     background: { type: "preset", value: "plaid", overlayOpacity: 0 },
     elements: [
-      text(160, "Chúc mừng ngày vui!", 108, "Dancing Script", "#8E2424"),
-      icon("sparkle", 130, 360, 130, "#C9A227"),
-      icon("sparkle", 980, 360, 130, "#C9A227"),
-      sticker("chuc-mung", 430, 350, 380),
-      { type: "lined_area", x: M, y: 780, width: CONTENT_W, height: 500, lineStyle: "dot_grid" },
-      qr(866, 1380, minQrPx, "#2F4A3A", "star"),
-      text(1440, "Mở quà online\nở mã bên cạnh nhé", 56, "Charm", "#2B2623", { x: M, width: 720 }),
+      text(118, "Chúc cậu một ngày thật rực rỡ!", 94, "Dancing Script", "#8E2424"),
+      text(258, "BƯU THIẾP GỬI KÈM NHIỀU NIỀM VUI NHỎ", 32, "Be Vietnam Pro", "#2F4A3A"),
+      icon("sparkle", 168, 434, 112, "#C9A227"),
+      sticker("chuc-mung", 440, 326, 360),
+      icon("sparkle", 960, 434, 112, "#C9A227"),
+      { type: "lined_area", x: M, y: 722, width: CONTENT_W, height: 552, lineStyle: "dot_grid" },
+      text(1372, "Quét mã bên cạnh\nđể nghe nhạc & mở lời nhắn nha", 54, "Charm", "#2B2623", {
+        x: M,
+        width: 700,
+      }),
+      text(1542, "Gợi ý: giữ lại tấm bưu thiếp này kẹp vào sổ tay nhé", 28, "Be Vietnam Pro", "#5C524B", {
+        x: M,
+        width: 700,
+      }),
+      qr(852, 1344, 260, "#2F4A3A", "star"),
     ],
     web: {
       waxSealColor: "#2F4A3A",
       audio: { enabled: false, trackId: "festive-1", startTime: 0, volume: 0.4 },
+      blocks: {
+        acceptButton: {
+          enabled: true,
+          question: "Nhận hết lời chúc và niềm vui này nha?",
+          yesText: "Nhận luôn nè!",
+          noText: "Xin thêm chút may mắn",
+          dodgeNo: false,
+        },
+      },
     },
   },
 ];
