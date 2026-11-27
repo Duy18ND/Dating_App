@@ -1,0 +1,86 @@
+name: Deploy Supabase Migrations
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "supabase/migrations/**"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview pending SQL migrations without applying them"
+        type: boolean
+        default: false
+
+# Never cancel an in-flight database migration.
+concurrency:
+  group: supabase-migrations
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    name: Push Supabase Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check Supabase secrets
+        id: check_secrets
+        shell: bash
+        env:
+          HAS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+          HAS_PROJECT: ${{ secrets.SUPABASE_PROJECT_ID != '' }}
+          HAS_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD != '' }}
+        run: |
+          missing=()
+          [ "$HAS_TOKEN" != "true" ] && missing+=("SUPABASE_ACCESS_TOKEN")
+          [ "$HAS_PROJECT" != "true" ] && missing+=("SUPABASE_PROJECT_ID")
+          [ "$HAS_PASSWORD" != "true" ] && missing+=("SUPABASE_DB_PASSWORD")
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            list=$(IFS=", "; echo "${missing[*]}")
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::Missing required GitHub Secrets: ${list}. Add them in Settings -> Secrets and variables -> Actions."
+              exit 1
+            else
+              echo "::warning::Skipping Supabase migration push (missing GitHub Secrets: ${list}). See docs/SETUP_SUPABASE_GITHUB.md."
+              echo "ready=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout repository
+        if: steps.check_secrets.outputs.ready == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        if: steps.check_secrets.outputs.ready == 'true'
+        uses: supabase/setup-cli@v3
+        with:
+          version: ^2
+
+      - name: Link Supabase project
+        if: steps.check_secrets.outputs.ready == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: supabase link --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Preview migrations (dry run)
+        if: steps.check_secrets.outputs.ready == 'true' && inputs.dry_run == true
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase db push --include-all --dry-run
+
+      - name: Apply migrations to remote Supabase
+        if: steps.check_secrets.outputs.ready == 'true' && inputs.dry_run != true
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase db push --include-all --yes

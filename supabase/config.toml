@@ -1,0 +1,19 @@
+# Minimal Supabase CLI configuration for Phygital Letter Studio.
+# Used by GitHub Actions (.github/workflows/supabase-migrations.yml) and local `supabase` CLI.
+
+project_id = "phygital-letter-studio"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[db.migrations]
+enabled = true
+schema_paths = []
