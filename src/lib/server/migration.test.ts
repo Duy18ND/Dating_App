@@ -74,3 +74,23 @@ describe("migration", () => {
     await pg.exec("RESET ROLE");
   });
 });
+
+describe("dọn thư quá hạn", () => {
+  it("xóa thư quá hạn thì chỉ ảnh của nó thành mồ côi và bị thu hồi", async () => {
+    const [expired, alive] = [await newLetter("hethan"), await newLetter("conhan")];
+    await pg.exec(
+      `INSERT INTO uploads (object_key, url, created_at) VALUES
+       ('x1','x1', NOW() - INTERVAL '61 days'), ('x2','x2', NOW() - INTERVAL '61 days')`,
+    );
+    await claim(expired, ["x1"]);
+    await claim(alive, ["x2"]);
+    await pg.query("UPDATE letters SET expires_at = NOW() - INTERVAL '1 day' WHERE id = $1", [
+      expired,
+    ]);
+    await pg.exec("DELETE FROM letters WHERE expires_at < NOW()");
+
+    const taken = await pg.query<{ url: string }>("SELECT url FROM take_orphan_uploads(24, 500)");
+    expect(taken.rows.map((r) => r.url)).toEqual(["x1"]);
+    expect(await one("SELECT id FROM uploads WHERE url = 'x2'")).toBeDefined();
+  });
+});

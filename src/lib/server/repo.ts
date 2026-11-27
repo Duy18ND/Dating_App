@@ -108,3 +108,34 @@ export async function insertUpload(row: UploadRow): Promise<void> {
 export async function deleteUpload(objectKey: string): Promise<void> {
   unwrap(await db().from("uploads").delete().eq("object_key", objectKey));
 }
+
+/** Xóa mọi thư có expires_at trước mốc `now`. Trả về số thư đã xóa. */
+export async function deleteExpiredLetters(now: string): Promise<number> {
+  const { count, error } = await db()
+    .from("letters")
+    .delete({ count: "exact" })
+    .lt("expires_at", now);
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return count ?? 0;
+}
+
+export interface OrphanUpload extends UploadRow {
+  id: string;
+  created_at: string;
+  letter_id: string | null;
+}
+
+/** Lấy ra và xóa bản ghi ảnh mồ côi. Nơi gọi chịu trách nhiệm xóa file hoặc ghi lại. */
+export async function takeOrphanUploads(hours: number, limit: number): Promise<OrphanUpload[]> {
+  return unwrap(
+    await db().rpc("take_orphan_uploads", { p_hours: hours, p_limit: limit }),
+  ) as OrphanUpload[];
+}
+
+export async function restoreUploads(rows: OrphanUpload[]): Promise<void> {
+  unwrap(await db().from("uploads").insert(rows));
+}
+
+export async function purgeRateEvents(before: string): Promise<void> {
+  unwrap(await db().from("rate_events").delete().lt("created_at", before));
+}

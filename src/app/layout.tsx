@@ -2,9 +2,16 @@ import type { Metadata } from "next";
 import { fontVariables } from "@/lib/fonts";
 import "./globals.css";
 
+const title = "Phygital Letter Studio";
+const description = "Thiết kế thiệp, in trên giấy và gửi kèm mã QR mở thư có nhạc.";
+
 export const metadata: Metadata = {
-  title: "Phygital Letter Studio",
-  description: "Thiết kế thiệp, in trên giấy và gửi kèm mã QR mở thư có nhạc.",
+  // Ảnh OpenGraph cần URL tuyệt đối thì Messenger và Zalo mới tải được.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  title,
+  description,
+  openGraph: { title, description, siteName: title, locale: "vi_VN", type: "website" },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
