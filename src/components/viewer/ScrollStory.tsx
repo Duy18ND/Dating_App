@@ -12,6 +12,7 @@ import {
 } from "react";
 import { parseLocalDate } from "@/lib/local-date";
 import { cn } from "@/lib/utils";
+import { isSectionEmpty } from "@/lib/web-sections";
 import { cssFontVar, type ResolvedWebStyle } from "@/lib/web-styles";
 import type {
   CounterMode,
@@ -20,7 +21,6 @@ import type {
   WebImage,
   WebIntensity,
   WebPhotoEffect,
-  WebSection,
   WebTextReveal,
 } from "@/types/letter";
 import { AcceptBlock, PollBlock, RsvpBlock } from "./blocks";
@@ -429,28 +429,6 @@ function MemoryCard({
   );
 }
 
-/** Kiểm tra phần bật nhưng để trống thì tự ẩn trên trang người nhận (FR-10). */
-function isSectionEmpty(section: WebSection, hasBlocks: boolean): boolean {
-  switch (section.type) {
-    case "hero":
-      return !section.lead.trim() && !section.image;
-    case "first_day":
-      return !section.text.trim() && !section.image;
-    case "memories":
-      return section.items.every((item) => !item.caption.trim() && !item.image);
-    case "reasons":
-      return section.items.every((item) => !item.trim());
-    case "counter":
-      return !section.date.trim() && !section.label.trim();
-    case "message":
-      return !section.title.trim() && !section.body.trim();
-    case "interact":
-      return !hasBlocks;
-    case "ending":
-      return !section.text.trim() && !section.signature?.trim();
-  }
-}
-
 export function ScrollStory({
   letter,
   recipient,
@@ -526,6 +504,7 @@ export function ScrollStory({
             case "hero":
               return (
                 <section
+                  data-section-id={section.id}
                   key={section.id}
                   className="flex min-h-[78dvh] flex-col items-center justify-center py-8 text-center sm:min-h-[82dvh]"
                 >
@@ -594,7 +573,7 @@ export function ScrollStory({
 
             case "first_day":
               return (
-                <section key={section.id} className="py-2">
+                <section data-section-id={section.id} key={section.id} className="py-2">
                   <Reveal intensity={intensity}>
                     <article
                       className={cn(
@@ -636,7 +615,7 @@ export function ScrollStory({
             case "memories": {
               const items = section.items.filter((it) => it.caption.trim() || it.image);
               return (
-                <section key={section.id} className="space-y-6 py-2">
+                <section data-section-id={section.id} key={section.id} className="space-y-6 py-2">
                   <Reveal intensity={intensity} className="space-y-1 text-center">
                     <p
                       className="text-xs font-medium tracking-widest uppercase"
@@ -667,7 +646,7 @@ export function ScrollStory({
             case "reasons": {
               const items = section.items.filter((r) => r.trim());
               return (
-                <section key={section.id} className="space-y-6 py-2">
+                <section data-section-id={section.id} key={section.id} className="space-y-6 py-2">
                   <Reveal intensity={intensity} className="space-y-1 text-center">
                     <p
                       className="text-xs font-medium tracking-widest uppercase"
@@ -708,7 +687,7 @@ export function ScrollStory({
             case "counter": {
               const count = daysBetween(section.date, section.mode);
               return (
-                <section key={section.id} className="py-2">
+                <section data-section-id={section.id} key={section.id} className="py-2">
                   <Reveal intensity={intensity}>
                     <div
                       className={cn(
@@ -765,7 +744,7 @@ export function ScrollStory({
                 .map((p) => p.trim())
                 .filter(Boolean);
               return (
-                <section key={section.id} className="py-2">
+                <section data-section-id={section.id} key={section.id} className="py-2">
                   <Reveal intensity={intensity}>
                     <article
                       className={cn("space-y-5 p-6 sm:p-10", t.cardClass)}
@@ -794,7 +773,7 @@ export function ScrollStory({
 
             case "interact":
               return (
-                <section key={section.id} className="space-y-5 py-2">
+                <section data-section-id={section.id} key={section.id} className="space-y-5 py-2">
                   <Reveal intensity={intensity} className="space-y-5">
                     {blocks.acceptButton?.enabled && (
                       <AcceptBlock
@@ -828,7 +807,7 @@ export function ScrollStory({
 
             case "ending":
               return (
-                <section key={section.id} className="py-4 text-center">
+                <section data-section-id={section.id} key={section.id} className="py-4 text-center">
                   <Reveal intensity={intensity} className="mx-auto flex max-w-xl flex-col items-center gap-5">
                     <p className="text-pretty text-base leading-relaxed sm:text-lg">
                       {section.text}

@@ -180,59 +180,70 @@ function PollBlock() {
   );
 }
 
-/** Tên người gửi/nhận, màu phong bì, dấu sáp và 3 khối tương tác. */
-export function WebPanel() {
-  const config = useEditorStore((s) => s.doc.web_config);
-  const setWebConfig = useEditorStore((s) => s.setWebConfig);
-  const endCoalesce = useEditorStore((s) => s.endCoalesce);
-  // Báo sớm lỗi mà API sẽ từ chối khi xuất bản.
-  const check = webConfigSchema.safeParse(config);
-  const problems = check.success ? [] : [...new Set(check.error.issues.map((i) => i.message))];
-
+/** Ba khối tương tác của phần "Câu hỏi & Tương tác" (FR-06). */
+export function BlockSettings() {
   return (
     <div className="space-y-6">
-      <Section title="Phong bì">
-        <TextInput
-          label="Tên người nhận"
-          value={config.recipientName}
-          maxLength={LIMITS.maxNameLength}
-          onChange={(recipientName) => setWebConfig({ recipientName }, "recipient")}
-        />
-        <TextInput
-          label="Tên người gửi"
-          value={config.senderName}
-          maxLength={LIMITS.maxNameLength}
-          onChange={(senderName) => setWebConfig({ senderName }, "sender")}
-        />
-        <ColorField
-          label="Màu phong bì"
-          colors={ENVELOPE_COLORS}
-          value={config.envelopeColor}
-          onChange={(envelopeColor, custom) =>
-            setWebConfig({ envelopeColor }, custom ? "envelope" : undefined)
-          }
-          onCommit={endCoalesce}
-        />
-        <ColorField
-          label="Màu dấu sáp"
-          colors={SEAL_COLORS}
-          value={config.waxSealColor}
-          onChange={(waxSealColor, custom) =>
-            setWebConfig({ waxSealColor }, custom ? "seal" : undefined)
-          }
-          onCommit={endCoalesce}
-        />
-      </Section>
       <AcceptBlock />
       <RsvpBlock />
       <PollBlock />
-      {problems.length > 0 && (
-        <ul role="alert" className="space-y-1 text-sm text-destructive">
-          {problems.map((problem) => (
-            <li key={problem}>{problem}</li>
-          ))}
-        </ul>
-      )}
     </div>
+  );
+}
+
+/** Tên người gửi/nhận, màu phong bì và dấu sáp. */
+export function LetterSettings() {
+  const config = useEditorStore((s) => s.doc.web_config);
+  const setWebConfig = useEditorStore((s) => s.setWebConfig);
+  const endCoalesce = useEditorStore((s) => s.endCoalesce);
+
+  return (
+    <Section title="Phong bì">
+      <TextInput
+        label="Tên người nhận"
+        value={config.recipientName}
+        maxLength={LIMITS.maxNameLength}
+        onChange={(recipientName) => setWebConfig({ recipientName }, "recipient")}
+      />
+      <TextInput
+        label="Tên người gửi"
+        value={config.senderName}
+        maxLength={LIMITS.maxNameLength}
+        onChange={(senderName) => setWebConfig({ senderName }, "sender")}
+      />
+      <ColorField
+        label="Màu phong bì"
+        colors={ENVELOPE_COLORS}
+        value={config.envelopeColor}
+        onChange={(envelopeColor, custom) =>
+          setWebConfig({ envelopeColor }, custom ? "envelope" : undefined)
+        }
+        onCommit={endCoalesce}
+      />
+      <ColorField
+        label="Màu dấu sáp"
+        colors={SEAL_COLORS}
+        value={config.waxSealColor}
+        onChange={(waxSealColor, custom) =>
+          setWebConfig({ waxSealColor }, custom ? "seal" : undefined)
+        }
+        onCommit={endCoalesce}
+      />
+    </Section>
+  );
+}
+
+/** Báo sớm lỗi mà API sẽ từ chối khi xuất bản. */
+export function WebProblems() {
+  const config = useEditorStore((s) => s.doc.web_config);
+  const check = webConfigSchema.safeParse(config);
+  const problems = check.success ? [] : [...new Set(check.error.issues.map((i) => i.message))];
+  if (problems.length === 0) return null;
+  return (
+    <ul role="alert" className="space-y-1 text-sm text-destructive">
+      {problems.map((problem) => (
+        <li key={problem}>{problem}</li>
+      ))}
+    </ul>
   );
 }

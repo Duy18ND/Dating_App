@@ -21,7 +21,7 @@
 | Task | Scope | Acceptance Criteria | Owner | Est (h) | After |
 |---|---|---|---|---|---|
 | ~~`T-32`~~ ✅ | Web images (max 8, 20 uploads/hr) | Claim both card + web URLs via `collectUserImageUrls(canvas, web)` into `set_letter_uploads` on create AND PATCH (**even when patching only one side**); reject unknown URLs; tests | **Opus** | 2 | `T-49` |
-| `T-34` | Editor "Trang web" tab | Toggle/reorder sections, text inputs, web image upload + fit/focus, theme & effect pickers, Phone/PC preview toggle, Undo/Redo, mobile usable | **Sonnet** | 5 | `T-32` |
+| ~~`T-34`~~ ✅ | Editor "Trang web" tab | Toggle/reorder sections, text inputs, web image upload + fit/focus, theme & effect pickers, Phone/PC preview toggle, Undo/Redo, mobile usable | **Sonnet** | 5 | `T-32` |
 
 ## Stage 3: Clean 1-Page A4 Print & Physical QA
 | Task | Scope | Acceptance Criteria | Owner | Est (h) | After |

@@ -5,10 +5,10 @@ import {
   Image as ImageIcon,
   LayoutTemplate,
   Mail,
-  Music,
   NotebookPen,
   Palette,
   PenLine,
+  QrCode,
   Redo2,
   Smile,
   Type,
@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import { currentElements, useEditorStore } from "@/lib/editor/store";
 import { cn } from "@/lib/utils";
 import type { ElementType, FaceId } from "@/types/letter";
-import { AudioPanel } from "./AudioPanel";
 import { BackgroundPanel } from "./BackgroundPanel";
 import { EditorCanvas } from "./EditorCanvas";
 import { ElementToolbar } from "./ElementToolbar";
@@ -34,7 +33,7 @@ import { StickerPanel } from "./StickerPanel";
 import { TemplatePanel } from "./TemplatePanel";
 import { AddTextButton, TextPanel } from "./TextPanel";
 import { inputClass } from "./ui";
-import { WebPanel } from "./WebPanel";
+import { WebEditor } from "./web/WebEditor";
 
 type TabId =
   | "template"
@@ -43,7 +42,7 @@ type TabId =
   | "background"
   | "sticker"
   | "draw"
-  | "web"
+  | "qr"
   | "letter"
   | "envelope";
 
@@ -66,18 +65,7 @@ const TABS: { id: TabId; label: string; icon: ComponentType; Panel: ComponentTyp
   { id: "draw", label: "Vẽ tay", icon: PenLine, Panel: HandwritingPanel },
   { id: "letter", label: "Thư", icon: NotebookPen, Panel: LetterPanel },
   { id: "envelope", label: "Phong bì", icon: Mail, Panel: EnvelopePanel },
-  {
-    id: "web",
-    label: "QR & Web",
-    icon: Music,
-    Panel: () => (
-      <div className="space-y-6">
-        <QrPanel />
-        <AudioPanel />
-        <WebPanel />
-      </div>
-    ),
-  },
+  { id: "qr", label: "Mã QR", icon: QrCode, Panel: QrPanel },
 ];
 
 /** Chọn một phần tử trên canvas thì mở đúng tab chỉnh thuộc tính của nó. */
@@ -88,7 +76,7 @@ const TAB_OF: Record<ElementType, TabId> = {
   sticker_img: "sticker",
   handwriting: "draw",
   lined_area: "draw",
-  qr_code: "web",
+  qr_code: "qr",
 };
 
 const DESKTOP = "(min-width: 768px)";
@@ -208,6 +196,33 @@ const FACES: { value: FaceId; label: string }[] = [
   { value: "inside", label: "Lời mời + QR" },
 ];
 
+type Mode = "print" | "web";
+const MODES: { value: Mode; label: string }[] = [
+  { value: "print", label: "Bản in" },
+  { value: "web", label: "Trang web" },
+];
+
+/** Hai tab lớn của trình thiết kế (SRS 2.3). */
+function ModeSwitch({ mode, onChange }: { mode: Mode; onChange: (mode: Mode) => void }) {
+  return (
+    <div role="group" aria-label="Phần đang thiết kế" className="flex border-b bg-card px-3 py-1.5">
+      <div className="mx-auto flex w-full max-w-sm rounded-lg bg-muted p-0.5">
+        {MODES.map(({ value, label }) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={mode === value}
+            onClick={() => onChange(value)}
+            className="flex-1 rounded-md py-1.5 text-sm font-medium aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Chọn mặt thiệp đang thiết kế. */
 function FaceSwitch() {
   const face = useEditorStore((s) => s.face);
@@ -230,6 +245,7 @@ function FaceSwitch() {
 
 export function EditorShell() {
   const desktop = useDesktop();
+  const [mode, setMode] = useState<Mode>("print");
   const [tab, setTab] = useState<TabId>("template");
   const [sheetOpen, setSheetOpen] = useState(false);
   const title = useEditorStore((s) => s.doc.title);
@@ -254,8 +270,16 @@ export function EditorShell() {
     setTab(id);
   }
 
+  function changeMode(next: Mode) {
+    // Bỏ chọn để phím Delete hay mũi tên không sửa vật thể trên canvas đang bị ẩn.
+    useEditorStore.getState().setTool("select");
+    setSheetOpen(false);
+    setMode(next);
+  }
+
   const active = TABS.find((t) => t.id === tab)!;
-  const showPanel = desktop || sheetOpen;
+  const printing = mode === "print";
+  const showPanel = printing && (desktop || sheetOpen);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
@@ -282,7 +306,11 @@ export function EditorShell() {
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
+      <ModeSwitch mode={mode} onChange={changeMode} />
+
+      {!printing && <WebEditor desktop={desktop} />}
+
+      <div className={cn("flex min-h-0 flex-1", !printing && "hidden")}>
         {desktop && (
           <nav
             aria-label="Công cụ"
@@ -343,7 +371,7 @@ export function EditorShell() {
         </main>
       </div>
 
-      {!desktop && (
+      {!desktop && printing && (
         <nav
           aria-label="Công cụ"
           className="flex h-16 shrink-0 items-stretch overflow-x-auto border-t bg-card pb-[env(safe-area-inset-bottom)]"
