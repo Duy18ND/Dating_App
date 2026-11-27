@@ -1,6 +1,6 @@
-# Backlog v1.5 (chốt 27/11/2026)
+# Backlog v1.4 (chốt 27/11/2026)
 
-Nguồn chuẩn là file này và `docs/SRS.md` v1.5. File .xlsx chưa cập nhật. Backlog v1.1 gốc ở cuối file để tra cứu.
+Nguồn chuẩn là file này và `docs/SRS.md` v1.4. File .xlsx chưa cập nhật. Backlog v1.1 gốc ở cuối file để tra cứu.
 
 ## Trạng thái T-01 → T-25
 
@@ -35,8 +35,8 @@ Nguồn chuẩn là file này và `docs/SRS.md` v1.5. File .xlsx chưa cập nh�
 | Task | Nội dung | Tiêu chí hoàn thành | Phụ trách | Giờ | Sau |
 |---|---|---|---|---|---|
 | T-38 | Nền tảng đăng nhập và quyền: Supabase Auth phía server, migration `0003`, API `/api/me/*`, bỏ edit_token | Đọc tài liệu Next trong `node_modules/next/dist/docs/` trước (proxy, cookies); phiên được xác minh với Supabase; mọi API người tạo cần đăng nhập, kiểm tra chủ và Origin; thiệp người khác trả 404; ảnh chỉ gắn được vào thiệp của người tải lên; giới hạn theo tài khoản và IP; trang bắt buộc đăng nhập bị chặn ở server; chuyển hướng sau đăng nhập chỉ nhận đường dẫn nội bộ; test migration chạy trên PGlite; có test API cho trường hợp chưa đăng nhập và sai chủ | **Opus** | 4 | T-02 |
-| T-39 | Màn hình đăng ký, đăng nhập, quên/đặt lại mật khẩu, Google, chính sách riêng tư | Dùng được ở 360px; phát hiện trình duyệt nhúng và hướng dẫn mở bằng Chrome/Safari; lỗi không lộ email đã đăng ký; đăng nhập xong quay lại đúng trang; đăng xuất; sửa câu "Không cần đăng nhập" ở trang chủ (`src/app/page.tsx`) | **Sonnet** | 3 | T-38 |
-| T-40 | Trang Thiệp của tôi và trang chi tiết (thay `/manage/[editToken]`) | Đủ thao tác FR-14 (sửa, xem thử, QR, PDF, link ?to=, phản hồi, xóa, xóa tài khoản); `/editor?id=` mở đúng thiệp; modal xuất bản dẫn về đây; gỡ code cũ dùng edit_token; có trạng thái trống | **Sonnet** | 3.5 | T-38, T-39 |
+| T-39 | Màn hình đăng ký, đăng nhập, quên/đặt lại mật khẩu, Google, chính sách riêng tư | Dùng được ở 360px; phát hiện trình duyệt nhúng và hướng dẫn mở bằng Chrome/Safari; lỗi không lộ email đã đăng ký; đăng nhập xong quay lại đúng trang; đăng xuất; trang chủ và chính sách riêng tư nói rõ QR ngừng hoạt động sau 60 ngày; sửa câu "Không cần đăng nhập" ở trang chủ (`src/app/page.tsx`) | **Sonnet** | 3 | T-38 |
+| T-40 | Trang Thiệp của tôi và trang chi tiết (thay `/manage/[editToken]`) | Đủ thao tác FR-14 (sửa, xem thử, QR, PDF, link ?to=, phản hồi, xóa, xóa tài khoản); `/editor?id=` mở đúng thiệp; modal xuất bản dẫn về đây; gỡ code cũ dùng edit_token; có trạng thái trống; hiện ngày xóa, cảnh báo còn <= 7 ngày, gợi ý quay màn hình; modal xuất bản nói rõ QR ngừng hoạt động sau 60 ngày | **Sonnet** | 3.5 | T-38, T-39 |
 | T-41 | Review bảo mật tài khoản | Thử truy cập chéo hai tài khoản ở mọi API; CSRF; chuyển hướng; khóa bí mật không lọt ra bundle; xóa tài khoản và dọn ảnh đúng; người nhận vẫn mở thư không cần đăng nhập | **Opus** | 1.5 | T-40 |
 
 ## Đợt C: Trang web bày tỏ
@@ -44,20 +44,18 @@ Nguồn chuẩn là file này và `docs/SRS.md` v1.5. File .xlsx chưa cập nh�
 | Task | Nội dung | Tiêu chí hoàn thành | Phụ trách | Giờ | Sau |
 |---|---|---|---|---|---|
 | T-32 | Ảnh cho trang web: tối đa 8, upload 20 ảnh/giờ, gắn ảnh vào thư | URL trong `sections` và hai mặt thiệp cùng được đưa vào `set_letter_uploads` ở cả tạo và sửa, **kể cả khi PATCH chỉ đổi web_config hoặc chỉ canvas_data** (thiếu một bên là cron xóa nhầm ảnh); từ chối URL lạ và ảnh của tài khoản khác; có test | **Opus** | 2 | T-41 |
-| T-33 | Trang web cuộn (FR-10) | Đẹp ở 360px; hiện dần khi cuộn; tôn trọng reduced-motion; phần trống tự ẩn; nhạc không ngắt; "Xem lại tấm thiệp"; thư không có `sections` vẫn hiển thị | **Sonnet** | 4 | T-27 |
+| T-33 | Trang web cuộn (FR-10) | Đẹp ở 360px; hiện dần khi cuộn; tôn trọng reduced-motion; phần trống tự ẩn; nhạc không ngắt; "Xem lại tấm thiệp"; Lời kết gợi ý quay màn hình để lưu kỷ niệm kèm ngày thư bị xóa, có nút xem lại từ đầu; thư không có `sections` vẫn hiển thị | **Sonnet** | 4 | T-27 |
 | T-34 | Tab "Trang web" trong trình thiết kế | Bật/tắt, đổi thứ tự, nhập nội dung, tải ảnh, xem trước cỡ điện thoại; Undo/Redo; dùng được trên mobile | **Sonnet** | 3.5 | T-32, T-33 |
 | T-35 | Phần web mặc định cho 4 mẫu | Nội dung từ Gemini (Prompt 5), đúng thứ tự FR-01, qua validation | **Gemini** soạn → **Sonnet** ghép | 1.5 | T-33 |
-| T-42 | Tạo ZIP bản kỷ niệm (FR-15): dựng `mo-thu.html` tự chứa, thư mục ảnh, hướng dẫn; trường `allowKeepsake` | Mở được bằng `file://` khi tắt mạng; vẫn đọc được khi tắt JavaScript; không còn mã QR trong ảnh; chữ người dùng được thoát HTML (có test với chuỗi tấn công); không có yêu cầu ra ngoài; bản người nhận không có phản hồi; không kèm file nhạc trừ bài được đánh dấu cho phép; tiếng Việt đúng dấu; một ảnh lỗi thì báo rõ | **Sonnet** | 3.5 | T-33 |
-| T-43 | Nút tải và nhắc hạn: trang chi tiết thiệp (chọn kèm phản hồi), nút 'Lưu làm kỷ niệm' ở Lời kết, công tắc cho chủ thiệp, cảnh báo còn <= 7 ngày, câu nói rõ QR hết tác dụng sau 60 ngày | Đủ FR-15; dùng được ở 360px; thư hết hạn không còn nút | **Sonnet** | 1.5 | T-40, T-42 |
-| T-36 | Review đợt C | Chữ người dùng hiển thị an toàn; URL ảnh; dọn rác không xóa nhầm; bản kỷ niệm không lộ phản hồi hay dữ liệu riêng và không chạy được mã chèn vào; thử lại toàn luồng | **Opus** | 1.5 | T-34, T-35, T-43 |
-| T-23B | Thử trên iPhone và Android thật | Đăng ký, đăng nhập (kể cả từ trình duyệt trong Threads/Zalo), nhạc, cuộn, `?to=`, phản hồi, tải PDF và ảnh QR; **tải ZIP, giải nén và mở `mo-thu.html` trên iPhone và Android** | **Chủ dự án** | 1.5 | T-36 |
+| T-36 | Review đợt C | Chữ người dùng hiển thị an toàn; URL ảnh; dọn rác không xóa nhầm; thử lại toàn luồng | **Opus** | 1.5 | T-34, T-35 |
+| T-23B | Thử trên iPhone và Android thật | Đăng ký, đăng nhập (kể cả từ trình duyệt trong Threads/Zalo), nhạc, cuộn, `?to=`, phản hồi, tải PDF và ảnh QR; quay màn hình thử xem có thu được cả tiếng nhạc không | **Chủ dự án** | 1.5 | T-36 |
 
 ## Phân việc còn lại
 
 | Phụ trách | Task | Giờ (ước lượng) |
 |---|---|---|
 | Claude Opus | T-29, T-38, T-41, T-32, T-36 | 12.5 |
-| Claude Sonnet | T-37, T-39, T-40, T-33, T-34, T-35 (ghép), T-42, T-43 | 23 |
+| Claude Sonnet | T-37, T-39, T-40, T-33, T-34, T-35 (ghép) | 18 |
 | Gemini | Nội dung T-35 và kịch bản T-25 đã soạn xong (`docs/gemini-output/`) | — |
 | Chủ dự án | T-02, T-23A, T-23B, T-25 | — |
 
@@ -76,7 +74,7 @@ Nguồn chuẩn là file này và `docs/SRS.md` v1.5. File .xlsx chưa cập nh�
 | 5 | `/model sonnet` | `Làm T-39 và T-40 trong docs/BACKLOG.md. Commit sau mỗi task.` |
 | 6 | `/model opus` | `Làm T-41.` |
 | 7 | `/model opus` | `Làm T-32.` |
-| 8 | `/model sonnet` | `Làm T-33, T-34, T-35, T-42, T-43. Nội dung T-35 ở docs/gemini-output/.` |
+| 8 | `/model sonnet` | `Làm T-33, T-34, T-35. Nội dung T-35 ở docs/gemini-output/.` |
 | 9 | `/model opus` | `Làm T-36.` |
 | 10 | Chủ dự án | T-23B, T-25. |
 

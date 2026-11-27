@@ -1,21 +1,17 @@
-> **SRS v1.5 — nguồn chuẩn hiện hành.** Bản gốc trích từ SRS_Phygital_Letter_Studio_V1.docx (v1.1); các thay đổi sau đó được sửa trực tiếp trong file này. File .docx và .xlsx **chưa cập nhật**, khi lệch thì file .md này là chuẩn. Quyết định bổ sung nằm ở CLAUDE.md.
+> **SRS v1.4 — nguồn chuẩn hiện hành.** Bản gốc trích từ SRS_Phygital_Letter_Studio_V1.docx (v1.1); các thay đổi sau đó được sửa trực tiếp trong file này. File .docx và .xlsx **chưa cập nhật**, khi lệch thì file .md này là chuẩn. Quyết định bổ sung nằm ở CLAUDE.md.
 
-SOFTWARE REQUIREMENTS SPECIFICATION (SRS) — VERSION 1.5  
+SOFTWARE REQUIREMENTS SPECIFICATION (SRS) — VERSION 1.4  
 NỀN TẢNG TẠO THƯ ĐIỆN TỬ LAI THƯ TAY(PHYGITAL LETTER STUDIO)  
 Trình thiết kế bộ quà mini (phong bì C7, thiệp gập có bìa, thư viết tay gấp 3) tự cắt dán tại nhà, kèm trang web bày tỏ dạng cuộn dọc mở bằng mã QR.  
   
 Thông tin tài liệu | Chi tiết  
 Tên sản phẩm | Phygital Letter Studio  
-Phiên bản tài liệu | v1.5 — Tải bản kỷ niệm ZIP, tài khoản bắt buộc cho người tạo, bộ in mini C7 & trang web bày tỏ  
+Phiên bản tài liệu | v1.4 — Tài khoản bắt buộc cho người tạo, bộ in mini C7 & trang web bày tỏ dạng cuộn  
 Ngày cập nhật | 27/11/2026  
 Mô hình vận hành | 100% Miễn phí (Free) + Ủng hộ tự nguyện bằng Ảnh QR Ngân hàng / ZaloPay tĩnh  
 Kênh ra mắt mục tiêu | Threads (clip mở phong bì mini, lật thiệp, quét QR phát nhạc)  
 Kế hoạch thực thi | Sprint 7 ngày (Kiến trúc Gemini + Code Claude Sonnet / Opus / Haiku trong IDE)  
 Công nghệ cốt lõi | Next.js (App Router), TypeScript, Tailwind CSS, React-Konva, Supabase, Cloudflare R2  
-NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.5 (chốt ngày 27/11/2026)  
-1. Chốt: đường dẫn công khai dùng mã ngẫu nhiên; thư **vẫn tự xóa sau 60 ngày**.  
-2. Thêm **Tải bản kỷ niệm (ZIP)** gồm file HTML mở được khi không có mạng và ảnh của thư (FR-15).  
-  
 NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.4 (chốt ngày 27/11/2026)  
 1. **Người tạo thiệp bắt buộc đăng nhập** (email + mật khẩu tự đăng ký, hoặc Google). Mỗi thiệp thuộc về một tài khoản (FR-14).  
 2. Trang **Thiệp của tôi** thay trang quản lý bằng link bí mật. Bỏ hoàn toàn edit_token và /manage/[editToken] (chưa có thư thật nên không cần tương thích).  
@@ -142,26 +138,11 @@ Thiệp của tôi (/thiep-cua-toi): danh sách thiệp của chính tài khoả
 Chủ thiệp xem thử thiệp của mình không làm tăng lượt mở.  
 Tài khoản: đăng xuất; xóa tài khoản (hỏi xác nhận) xóa toàn bộ thiệp và phản hồi, ảnh được cron dọn khỏi R2. Trang /chinh-sach-rieng-tu nêu dữ liệu lưu (email, nội dung thiệp, ảnh, phản hồi người nhận), thời hạn lưu và cách xóa.  
 Quyền truy cập: server lấy người dùng bằng cách **xác minh phiên với Supabase** (không tin dữ liệu người dùng đọc thẳng từ cookie). Mọi truy vấn của chủ thiệp lọc theo owner_id; thiệp không tồn tại và thiệp của người khác cùng trả 404. Ảnh chỉ gắn được vào thiệp nếu do chính chủ thiệp tải lên. API thay đổi dữ liệu kiểm tra header Origin cùng trang (chống CSRF).  
-FR-15 — Tải bản kỷ niệm (ZIP) (v1.5)  
-Mục đích: web xóa thư sau 60 ngày; người dùng tải về để giữ. Chỉ tải được khi thư **còn hạn**; đã xóa thì không khôi phục được.  
-Ai tải được: (1) Chủ thiệp, ở trang chi tiết trong Thiệp của tôi. (2) Người nhận, bằng nút 'Lưu làm kỷ niệm' ở phần Lời kết của /l/[slug]; chủ thiệp tắt được (web_config.allowKeepsake, mặc định bật).  
-Nội dung ZIP (tên file không dấu: ky-niem-<slug>.zip):  
-File | Nội dung  
-mo-thu.html | **Một file tự chứa**: ảnh nhúng sẵn, mở bằng cách bấm đúp, không cần mạng và vẫn đọc được khi trình xem không chạy JavaScript. Gồm lời chào (theo ?to= nếu người nhận tải), hai mặt thiệp và bìa sau, các phần web đang bật theo đúng thứ tự (FR-10), lời kết, ngày tạo và ngày tải.  
-anh/ | Ảnh từng mặt thiệp (bia-truoc, loi-moi, bia-sau) và các ảnh người gửi tải lên, để xem trong thư viện ảnh hoặc in lại.  
-phan-hoi.html | **Chỉ trong bản của chủ thiệp**, và chỉ khi chủ thiệp chọn kèm: danh sách phản hồi và lời chúc. Bản của người nhận không bao giờ chứa phản hồi.  
-HUONG-DAN.txt | Cách giải nén và mở trên máy tính, iPhone, Android.  
-Mã QR: sau khi thư hết hạn, link không còn hoạt động, nên ảnh thiệp trong bản kỷ niệm **thay mã QR bằng hình trang trí**, không để mã chết.  
-Hiệu ứng: HTML có phong bì mở ra bằng CSS (dùng được khi không có JavaScript). Tung hoa, form phản hồi, bản đồ và mọi thứ cần máy chủ không có trong bản kỷ niệm; câu hỏi tương tác hiện dạng chữ.  
-Nhạc nền: **mặc định không đóng gói file nhạc**, chỉ ghi tên bài. Chỉ được nhúng khi giấy phép của bài cho phép phân phối file kèm sản phẩm (đánh dấu từng bài trong danh sách nhạc).  
-An toàn: mọi chữ do người dùng nhập được thoát ký tự HTML; file không chứa script từ dữ liệu người dùng, không tải tài nguyên bên ngoài, không chứa owner_id, email, IP hash. Font: chỉ nhúng font đang dùng (giấy phép mở), nếu không nhúng được thì dùng font hệ thống có dấu tiếng Việt.  
-Tạo file hoàn toàn ở trình duyệt (không tốn máy chủ, không lưu thêm gì). Cần CORS GET của R2 như khi xuất PDF. Lỗi tải một ảnh thì báo rõ, không tạo ZIP thiếu mà không nói.  
-Nhắc hạn: Modal Xuất bản và Thiệp của tôi hiện ngày xóa và nhắc tải bản kỷ niệm; còn <= 7 ngày thì cảnh báo nổi bật kèm nút tải. Không gửi email nhắc ở MVP.  
 4.  YÊU CẦU PHI CHỨC NĂNG & QUẢN TRỊ RỦI RO  
 Hạng mục | Tiêu chuẩn & Ràng buộc Kỹ thuật  
 Hiệu năng & Tương thích | Trang /l/[slug] hiện phong bì dưới 2 giây trên 4G; ảnh phần web tải lười; mở phong bì và cuộn mượt 60fps; iOS Safari 16+, Chrome Android, Chrome/Edge/Safari Desktop.  
 Chi phí hạ tầng (~0đ) | Ảnh WebP <= 200KB; mỗi thư tối đa 4 ảnh thiệp + 8 ảnh web; R2 cho ảnh & nhạc; xuất PDF ở trình duyệt.  
-Tự động dọn rác (60 ngày) | Thư tự hết hạn sau 60 ngày (expires_at). Cron xóa bản ghi quá hạn trên Supabase và file ảnh trên R2. Người dùng giữ kỷ niệm bằng ZIP tải trước hạn (FR-15). Trang chủ, Modal Xuất bản và chính sách riêng tư nói rõ **mã QR trên thiệp giấy ngừng hoạt động sau 60 ngày**. Tài khoản không bị xóa theo thư.  
+Tự động dọn rác (60 ngày) | Thư tự hết hạn sau 60 ngày (expires_at). Cron xóa bản ghi quá hạn trên Supabase và file ảnh trên R2. Trang chủ, Modal Xuất bản và chính sách riêng tư nói rõ **mã QR trên thiệp giấy ngừng hoạt động sau 60 ngày**. Không có chức năng tải bản lưu: Lời kết của trang người nhận và trang chi tiết thiệp gợi ý **quay màn hình để giữ làm kỷ niệm**, kèm ngày thư bị xóa; Thiệp của tôi cảnh báo khi còn <= 7 ngày. Tài khoản không bị xóa theo thư.  
 Bảo mật & Chống Spam | Bắt buộc phiên đăng nhập cho API của người tạo; kiểm tra chủ sở hữu và Origin (FR-14). Turnstile cho upload, tạo thư và đăng ký/đăng nhập. Giới hạn theo **tài khoản và IP**: 5 thư/ngày, 20 ảnh/giờ (IP hash SHA-256). Kiểm tra MIME & <= 500KB phía server; sanitize ?to=; API public không trả owner_id hay IP hash; mọi URL ảnh phải thuộc bảng uploads của đúng thư và đúng chủ.  
 Bản quyền & Pháp lý | Bộ Meme dựng sẵn chỉ dùng doodle/chibi mở hoặc nguồn miễn phí thương mại; đặt ghi chú người dùng tự chịu trách nhiệm với ảnh cá nhân tải lên.  
 5.  KIẾN TRÚC HỆ THỐNG, DỮ LIỆU & ĐẶC TẢ API  
