@@ -3,10 +3,9 @@
 import { ImagePlus } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { currentElements, useEditorStore } from "@/lib/editor/store";
+import { currentElements, currentHeight, useEditorStore } from "@/lib/editor/store";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { defaultImageBorder } from "@/lib/render/image-frame";
-import { LIMITS } from "@/lib/validation";
 import type { ImageFilter, ImageFrame } from "@/types/letter";
 import { FocusPicker } from "./FocusPicker";
 import { Choice, Section } from "./ui";
@@ -37,7 +36,7 @@ const INITIAL_SIZE = 600;
 /** Chọn ảnh, nén WebP, tải lên R2 rồi thêm vào canvas (tối đa 4 ảnh mỗi thư, tính cả ảnh nền). */
 export function ImagePanel() {
   const input = useRef<HTMLInputElement>(null);
-  const { upload, busy, error, used, full } = useImageUpload();
+  const { upload, busy, error, used, max, full, scope } = useImageUpload();
   const addElement = useEditorStore((s) => s.addElement);
   const update = useEditorStore((s) => s.updateElement);
   const endCoalesce = useEditorStore((s) => s.endCoalesce);
@@ -63,7 +62,7 @@ export function ImagePanel() {
             addElement({
               type: "image",
               x: Math.round((PRINT_CONFIG.CANVAS.width - w) / 2),
-              y: Math.round((PRINT_CONFIG.CANVAS.height - height * scale) / 2),
+              y: Math.round((currentHeight(useEditorStore.getState()) - height * scale) / 2),
               width: w,
               height: Math.round(height * scale),
               src: url,
@@ -82,7 +81,7 @@ export function ImagePanel() {
         <ImagePlus /> {busy ? "Đang tải ảnh..." : "Thêm ảnh"}
       </Button>
       <p className="text-xs text-muted-foreground">
-        Đã dùng {used}/{LIMITS.maxUserImages} ảnh (tính cả ảnh nền).
+        {scope === "web" ? "Trang web" : "Thiệp"} đã dùng {used}/{max} ảnh (tính cả ảnh nền).
         {full && " Hãy xóa bớt để thêm ảnh mới."}
         <br />
         Bạn tự chịu trách nhiệm với ảnh mình tải lên.

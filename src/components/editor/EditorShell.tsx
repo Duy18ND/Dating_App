@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Check,
   ChevronDown,
   Image as ImageIcon,
   LayoutTemplate,
@@ -61,6 +62,8 @@ const TABS: { id: TabId; label: string; icon: ComponentType; Panel: ComponentTyp
   { id: "draw", label: "Vẽ tay", icon: PenLine, Panel: HandwritingPanel },
   { id: "qr", label: "Mã QR", icon: QrCode, Panel: QrPanel },
 ];
+
+const BOARD_TOOLS: TabId[] = ["text", "image", "background", "sticker", "draw"];
 
 /** Chọn một phần tử trên canvas thì mở đúng tab chỉnh thuộc tính của nó. */
 const TAB_OF: Record<ElementType, TabId> = {
@@ -257,6 +260,7 @@ export function EditorShell() {
   const printView: PrintView = extraView ?? face;
   const [tab, setTab] = useState<TabId>("template");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const boardId = useEditorStore((s) => s.boardId);
   const title = useEditorStore((s) => s.doc.title);
   const selectedType = useEditorStore(
     (s) => currentElements(s).find((el) => el.id === s.selectedId)?.type,
@@ -300,9 +304,12 @@ export function EditorShell() {
     }
   }
 
-  const active = TABS.find((t) => t.id === tab)!;
-  const printing = mode === "print";
-  const onCard = printing && extraView === null;
+  // Thiết kế khung tự do dùng lại chính trình soạn thiệp, bỏ công cụ chỉ dành cho bản in.
+  const designing = boardId !== null;
+  const tools = designing ? TABS.filter((t) => BOARD_TOOLS.includes(t.id)) : TABS;
+  const active = tools.find((t) => t.id === tab) ?? tools[0];
+  const printing = mode === "print" && !designing;
+  const onCard = designing || (printing && extraView === null);
   const showPanel = onCard && (desktop || sheetOpen);
 
   return (
@@ -330,9 +337,31 @@ export function EditorShell() {
         </div>
       </header>
 
-      <ModeSwitch mode={mode} onChange={changeMode} />
+      {designing ? (
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b bg-accent px-3 py-1.5">
+          <p className="text-sm font-medium">Đang thiết kế khung tự do của trang web</p>
+          <Button
+            type="button"
+            size="sm"
+            className="h-9"
+            onClick={() => {
+              setSheetOpen(false);
+              useEditorStore.getState().setBoard(null);
+            }}
+          >
+            <Check /> Xong
+          </Button>
+        </div>
+      ) : (
+        <ModeSwitch mode={mode} onChange={changeMode} />
+      )}
 
-      {!printing && <WebEditor desktop={desktop} />}
+      {/* Giữ nguyên tab Trang web khi vào màn thiết kế khung, để quay lại đúng chỗ. */}
+      {mode === "web" && (
+        <div className={cn("flex min-h-0 flex-1 flex-col", designing && "hidden")}>
+          <WebEditor desktop={desktop} />
+        </div>
+      )}
       {printing && <PrintViewSwitch view={printView} onChange={changeView} />}
       {printing && extraView === "kit" && <KitPreview />}
       {printing && extraView === "envelope" && (
@@ -349,11 +378,11 @@ export function EditorShell() {
             aria-label="Công cụ"
             className="flex w-20 shrink-0 flex-col gap-1 border-r bg-card p-2"
           >
-            {TABS.map(({ id, label, icon: Icon }) => (
+            {tools.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
-                aria-pressed={tab === id}
+                aria-pressed={active.id === id}
                 onClick={() => openTab(id)}
                 className="flex flex-col items-center gap-1 rounded-md px-1 py-2 text-xs hover:bg-accent aria-pressed:bg-accent aria-pressed:text-primary"
               >
@@ -410,11 +439,11 @@ export function EditorShell() {
           aria-label="Công cụ"
           className="flex h-16 shrink-0 items-stretch border-t bg-card pb-[env(safe-area-inset-bottom)]"
         >
-          {TABS.map(({ id, label, icon: Icon }) => (
+          {tools.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
-              aria-pressed={sheetOpen && tab === id}
+              aria-pressed={sheetOpen && active.id === id}
               onClick={() => openTab(id)}
               className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] whitespace-nowrap aria-pressed:text-primary"
             >

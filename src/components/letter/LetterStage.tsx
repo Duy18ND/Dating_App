@@ -19,6 +19,8 @@ export interface LetterStageProps {
   scale: number;
   qrUrl: string;
   hideBackground?: boolean;
+  /** Chiều cao hệ tọa độ; mặc định là mặt thiệp. Khung tự do trên web dùng chiều cao riêng. */
+  height?: number;
   hiddenElementId?: string | null;
   stageRef?: Ref<Konva.Stage>;
   onSelect?: (id: string | null) => void;
@@ -33,7 +35,7 @@ export interface LetterStageProps {
 /** Bộ vẽ lá thư dùng chung cho editor và trang người nhận. */
 export default function LetterStage(props: LetterStageProps) {
   const { face, scale, qrUrl, stageRef, hideBackground, hiddenElementId, onSelect, onEdit } = props;
-  const { onChange, listening = true, children } = props;
+  const { onChange, listening = true, height = H, children } = props;
   const texts = face.elements.filter((el) => el.type === "text");
   const fontsKey = useFontsKey(
     texts.map((el) => el.fontFamily ?? "Be Vietnam Pro"),
@@ -44,13 +46,13 @@ export default function LetterStage(props: LetterStageProps) {
     <Stage
       ref={stageRef}
       width={W * scale}
-      height={H * scale}
+      height={height * scale}
       scaleX={scale}
       scaleY={scale}
       onClick={(event) => event.target === event.target.getStage() && onSelect?.(null)}
       onTap={(event) => event.target === event.target.getStage() && onSelect?.(null)}
     >
-      <BackgroundLayer background={face.background} hidden={hideBackground} />
+      <BackgroundLayer background={face.background} hidden={hideBackground} height={height} />
       <Layer name="content" listening={listening}>
         {sortByLayer(face.elements).map((element) => (
           <ElementNode

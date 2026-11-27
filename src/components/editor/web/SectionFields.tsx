@@ -9,6 +9,7 @@ import type { CounterMode, MemoryItem, WebSection, WebSectionType } from "@/type
 import { TextArea, TextInput } from "../TextInput";
 import { BlockSettings } from "../WebPanel";
 import { Choice } from "../ui";
+import { BoardFields } from "./BoardFields";
 import { WebImageField } from "./WebImageField";
 
 type Of<T extends WebSectionType> = Extract<WebSection, { type: T }>;
@@ -308,5 +309,7 @@ export function SectionFields({ section }: { section: WebSection }) {
       return <BlockSettings />;
     case "ending":
       return <EndingFields section={section} />;
+    case "board":
+      return <BoardFields section={section} />;
   }
 }

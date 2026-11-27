@@ -137,8 +137,16 @@ export const WEB_SECTION_TYPES = [
   "message",
   "interact",
   "ending",
+  "board",
 ] as const;
 export type WebSectionType = (typeof WEB_SECTION_TYPES)[number];
+
+/**
+ * Chiều cao khung tự do trên trang web (chiều ngang luôn 1760 như mặt thiệp, nên cỡ chữ và
+ * đường gióng dùng chung): banner 2:1, khung ngang như thiệp, khung đứng 4:5.
+ */
+export const BOARD_HEIGHTS = [880, 1240, 2200] as const;
+export type BoardHeight = (typeof BOARD_HEIGHTS)[number];
 
 export const COUNTER_MODES = ["since", "until"] as const;
 export type CounterMode = (typeof COUNTER_MODES)[number];
@@ -159,7 +167,18 @@ export type WebSection =
   | { id: string; type: "counter"; enabled: boolean; date: string; label: string; mode: CounterMode }
   | { id: string; type: "message"; enabled: boolean; title: string; body: string }
   | { id: string; type: "interact"; enabled: boolean }
-  | { id: string; type: "ending"; enabled: boolean; text: string; signature?: string };
+  | { id: string; type: "ending"; enabled: boolean; text: string; signature?: string }
+  /** Khung kéo thả tự do (banner, collage ảnh, sticker, chữ). Cùng dạng với một mặt thiệp. */
+  | {
+      id: string;
+      type: "board";
+      enabled: boolean;
+      height: BoardHeight;
+      background: BackgroundConfig;
+      elements: CanvasElement[];
+    };
+
+export type BoardSection = Extract<WebSection, { type: "board" }>;
 
 export const WEB_THEMES = ["warm_letter", "starry_night", "pastel", "doodle"] as const;
 export type WebThemeId = (typeof WEB_THEMES)[number];

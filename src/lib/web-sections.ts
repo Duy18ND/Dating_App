@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { LIMITS } from "@/lib/validation";
 import { WEB_SECTION_TYPES, type WebSection, type WebSectionType } from "@/types/letter";
 
 export const SECTION_LABELS: Record<WebSectionType, string> = {
@@ -10,6 +11,7 @@ export const SECTION_LABELS: Record<WebSectionType, string> = {
   message: "Lời bày tỏ / Lời chúc",
   interact: "Câu hỏi & Tương tác",
   ending: "Lời kết",
+  board: "Khung tự do (banner)",
 };
 
 /** Phần bật nhưng để trống thì tự ẩn trên trang người nhận (FR-10). */
@@ -31,6 +33,8 @@ export function isSectionEmpty(section: WebSection, hasBlocks: boolean): boolean
       return !hasBlocks;
     case "ending":
       return !section.text.trim() && !section.signature?.trim();
+    case "board":
+      return section.elements.length === 0 && section.background.type !== "image";
   }
 }
 
@@ -54,12 +58,23 @@ export function newSection(type: WebSectionType): WebSection {
       return { ...base, type };
     case "ending":
       return { ...base, type, text: "" };
+    case "board":
+      return {
+        ...base,
+        type,
+        height: 880,
+        background: { type: "color", value: "#FFFDF9", overlayOpacity: 0 },
+        elements: [],
+      };
   }
 }
 
-/** Mỗi loại phần chỉ cần một lần: trả về các loại trang chưa có. */
+/** Các loại có thể thêm: mỗi loại một lần, riêng khung tự do được thêm tới `maxBoards`. */
 export const missingSectionTypes = (sections: WebSection[]): WebSectionType[] =>
-  WEB_SECTION_TYPES.filter((type) => !sections.some((s) => s.type === type));
+  WEB_SECTION_TYPES.filter((type) => {
+    const count = sections.filter((s) => s.type === type).length;
+    return type === "board" ? count < LIMITS.maxBoards : count === 0;
+  });
 
 /** Chèn phần mới trước Lời kết (nếu có) để lời kết vẫn ở cuối. */
 export function insertSection(sections: WebSection[], section: WebSection): WebSection[] {

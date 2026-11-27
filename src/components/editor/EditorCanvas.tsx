@@ -2,20 +2,21 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { useEditorStore } from "@/lib/editor/store";
+import { currentHeight, useEditorStore } from "@/lib/editor/store";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { TextEditOverlay } from "./TextEditOverlay";
 
 // Konva cần window nên không render phía server.
 const EditorStage = dynamic(() => import("./EditorStage"), { ssr: false });
 
-const { width: W, height: H } = PRINT_CONFIG.CANVAS;
+const { width: W } = PRINT_CONFIG.CANVAS;
 
 /** Khung chứa canvas: tự tính scale để tờ thư vừa cả chiều ngang lẫn chiều dọc. */
 export function EditorCanvas() {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0);
   const tool = useEditorStore((s) => s.tool);
+  const H = useEditorStore(currentHeight);
 
   useEffect(() => {
     const element = ref.current!;
@@ -25,7 +26,7 @@ export function EditorCanvas() {
     });
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [H]);
 
   return (
     <div

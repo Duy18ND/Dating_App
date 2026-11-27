@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { currentElements, useEditorStore } from "@/lib/editor/store";
+import { currentElements, currentHeight, useEditorStore } from "@/lib/editor/store";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { centerOnCanvas } from "./centerElement";
 import { cn } from "@/lib/utils";
@@ -64,7 +64,10 @@ export function ElementToolbar({
   const id = element.id;
   const locked = !!element.locked;
   const center = (axis: "x" | "y") => {
-    const patch = centerOnCanvas(id, axis, PRINT_CONFIG.CANVAS);
+    const patch = centerOnCanvas(id, axis, {
+      width: PRINT_CONFIG.CANVAS.width,
+      height: currentHeight(useEditorStore.getState()),
+    });
     if (patch) updateElement(id, patch);
   };
 

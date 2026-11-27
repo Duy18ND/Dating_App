@@ -3,7 +3,7 @@
 import { ImagePlus } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { useEditorStore } from "@/lib/editor/store";
+import { currentBackground, useEditorStore } from "@/lib/editor/store";
 import { PRESET_STYLES } from "@/lib/render/presets";
 import { cn } from "@/lib/utils";
 import { BACKGROUND_PRESETS, type BackgroundConfig } from "@/types/letter";
@@ -22,7 +22,8 @@ const MODES: { value: BackgroundConfig["type"]; label: string }[] = [
 
 /** Panel nền 3 lớp: mẫu giấy, màu tự chọn, ảnh nền kèm lớp phủ và làm mờ. */
 export function BackgroundPanel() {
-  const background = useEditorStore((s) => s.doc.canvas_data.faces[s.face].background);
+  const background = useEditorStore(currentBackground);
+  const onBoard = useEditorStore((s) => s.boardId !== null);
   const hideForPrint = useEditorStore((s) => s.printHideBackground);
   const setHideForPrint = useEditorStore((s) => s.setPrintHideBackground);
   const setBackground = useEditorStore((s) => s.setBackground);
@@ -153,11 +154,13 @@ export function BackgroundPanel() {
         </>
       )}
 
-      <Toggle
+      {!onBoard && (
+        <Toggle
         label="Ẩn nền khi in (giấy Kraft hoặc giấy màu)"
         checked={hideForPrint}
         onChange={setHideForPrint}
       />
+      )}
     </Section>
   );
 }

@@ -11,7 +11,10 @@ import { collectUserImageUrls, collectWebImageUrls, LIMITS } from "@/lib/validat
  * - `card`: ảnh trên 2 mặt thiệp, tối đa `LIMITS.maxUserImages`.
  * - `web`: ảnh trong các phần trang web cuộn, tối đa `LIMITS.maxWebImages`.
  */
-export function useImageUpload(scope: "card" | "web" = "card") {
+export function useImageUpload(fixed?: "card" | "web") {
+  // Không chỉ định thì theo nơi đang vẽ: khung tự do tính vào ảnh trang web.
+  const onBoard = useEditorStore((s) => s.boardId !== null);
+  const scope = fixed ?? (onBoard ? "web" : "card");
   const canvas = useEditorStore((s) => s.doc.canvas_data);
   const web = useEditorStore((s) => s.doc.web_config);
   const [busy, setBusy] = useState(false);
@@ -36,5 +39,5 @@ export function useImageUpload(scope: "card" | "web" = "card") {
     }
   }
 
-  return { upload, busy, error, used, max, full: used >= max };
+  return { upload, busy, error, used, max, scope, full: used >= max };
 }

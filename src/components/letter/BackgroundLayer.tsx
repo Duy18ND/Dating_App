@@ -10,9 +10,9 @@ import type { BackgroundConfig, BackgroundPreset } from "@/types/letter";
 import { PENDING } from "./ElementNode";
 import { useImage } from "./hooks";
 
-const { width: W, height: H } = PRINT_CONFIG.CANVAS;
+const { width: W, height: CARD_H } = PRINT_CONFIG.CANVAS;
 
-function PresetBackground({ preset }: { preset: BackgroundPreset }) {
+function PresetBackground({ preset, height: H }: { preset: BackgroundPreset; height: number }) {
   const style = PRESET_STYLES[preset];
   return (
     <>
@@ -44,13 +44,13 @@ function PresetBackground({ preset }: { preset: BackgroundPreset }) {
   );
 }
 
-function PhotoBackground({ background }: { background: BackgroundConfig }) {
+function PhotoBackground({ background, height: H }: { background: BackgroundConfig; height: number }) {
   const image = useImage(background.value);
   const ref = useRef<Konva.Image>(null);
   const blur = background.blur ?? 0;
   const crop = useMemo(
     () => image && coverCrop(image.naturalWidth, image.naturalHeight, W, H),
-    [image],
+    [image, H],
   );
 
   // Bộ lọc của Konva chỉ chạy trên node đã cache. pixelRatio 1 đủ cho ảnh đã làm mờ.
@@ -84,17 +84,19 @@ function PhotoBackground({ background }: { background: BackgroundConfig }) {
 export function BackgroundLayer({
   background,
   hidden,
+  height: H = CARD_H,
 }: {
   background: BackgroundConfig;
   hidden?: boolean;
+  height?: number;
 }) {
   return (
     <Layer name="background" visible={!hidden} listening={false}>
       {background.type === "preset" && (
-        <PresetBackground preset={background.value as BackgroundPreset} />
+        <PresetBackground preset={background.value as BackgroundPreset} height={H} />
       )}
       {background.type === "color" && <Rect width={W} height={H} fill={background.value} />}
-      {background.type === "image" && <PhotoBackground background={background} />}
+      {background.type === "image" && <PhotoBackground background={background} height={H} />}
       {background.overlayOpacity > 0 && (
         <Rect
           width={W}

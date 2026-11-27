@@ -6,8 +6,10 @@ import { defaultWebStyle } from "@/lib/web-styles";
 import {
   FACE_IDS,
   type BackgroundConfig,
+  type BoardSection,
   type CanvasData,
   type CanvasElement,
+  type CardFace,
   type EnvelopeDecor,
   type FaceId,
   type LetterPayload,
@@ -42,6 +44,8 @@ interface EditorState {
   // Trạng thái giao diện tạm thời, không vào lịch sử.
   /** Mặt thiệp đang sửa. Thêm, chọn, đổi nền đều tác động lên mặt này. */
   face: FaceId;
+  /** Đang thiết kế một khung tự do của trang web (id phần); khi đó nó thay cho mặt thiệp. */
+  boardId: string | null;
   selectedId: string | null;
   editingTextId: string | null;
   printHideBackground: boolean;
@@ -60,6 +64,7 @@ interface EditorState {
   setEditingText: (id: string | null) => void;
   setPrintHideBackground: (hide: boolean) => void;
   setFace: (face: FaceId) => void;
+  setBoard: (boardId: string | null) => void;
 
   /**
    * Mọi thay đổi tài liệu đi qua đây. Các lần gọi liên tiếp cùng `key`
@@ -88,38 +93,91 @@ interface EditorState {
   setTitle: (title: string, key?: string) => void;
 }
 
+type SurfaceState = { doc: LetterPayload; face: FaceId; boardId?: string | null };
+/** Nơi chứa phần tử: một mặt thiệp, hoặc một khung tự do trên trang web. */
+type SurfaceRef = { face: FaceId } | { board: string };
+
+const NO_ELEMENTS: CanvasElement[] = [];
+
+export const findBoard = (doc: LetterPayload, id: string | null | undefined) =>
+  id
+    ? doc.web_config.sections?.find((s): s is BoardSection => s.type === "board" && s.id === id)
+    : undefined;
+
+const boards = (doc: LetterPayload) =>
+  doc.web_config.sections?.filter((s): s is BoardSection => s.type === "board") ?? [];
+
+const refOf = (s: SurfaceState): SurfaceRef =>
+  s.boardId ? { board: s.boardId } : { face: s.face };
+
+const surfaceAt = (doc: LetterPayload, ref: SurfaceRef): CardFace | BoardSection | undefined =>
+  "board" in ref ? findBoard(doc, ref.board) : doc.canvas_data.faces[ref.face];
+
+const elementsAt = (doc: LetterPayload, ref: SurfaceRef) =>
+  surfaceAt(doc, ref)?.elements ?? NO_ELEMENTS;
+
 /** Phần tử của mặt đang sửa. Dùng làm selector: useEditorStore(currentElements). */
-export const currentElements = (s: { doc: LetterPayload; face: FaceId }) =>
-  s.doc.canvas_data.faces[s.face].elements;
+export const currentElements = (s: SurfaceState) => elementsAt(s.doc, refOf(s));
+
+/** Nền của mặt đang sửa. */
+export const currentBackground = (s: SurfaceState) =>
+  (surfaceAt(s.doc, refOf(s)) ?? s.doc.canvas_data.faces[s.face]).background;
+
+/** Chiều cao hệ tọa độ của mặt đang sửa (chiều ngang luôn là PRINT_CONFIG.CANVAS.width). */
+export const currentHeight = (s: SurfaceState): number =>
+  findBoard(s.doc, s.boardId)?.height ?? PRINT_CONFIG.CANVAS.height;
 
 /** Phần tử đang chọn (trên mặt đang sửa). */
-export const selectedElement = (s: {
-  doc: LetterPayload;
-  face: FaceId;
-  selectedId: string | null;
-}) => currentElements(s).find((el) => el.id === s.selectedId);
+export const selectedElement = (s: SurfaceState & { selectedId: string | null }) =>
+  currentElements(s).find((el) => el.id === s.selectedId);
 
-/** Mặt chứa phần tử `id`, hoặc undefined. */
-const faceOf = (canvas: CanvasData, id: string) =>
-  FACE_IDS.find((face) => canvas.faces[face].elements.some((el) => el.id === id));
+/** Mặt hoặc khung chứa phần tử `id`, hoặc undefined. */
+const surfaceOfElement = (doc: LetterPayload, id: string): SurfaceRef | undefined => {
+  const has = (elements: CanvasElement[]) => elements.some((el) => el.id === id);
+  const face = FACE_IDS.find((f) => has(doc.canvas_data.faces[f].elements));
+  if (face) return { face };
+  const board = boards(doc).find((b) => has(b.elements));
+  return board ? { board: board.id } : undefined;
+};
 
 const withCanvas = (doc: LetterPayload, patch: Partial<CanvasData>): LetterPayload => ({
   ...doc,
   canvas_data: { ...doc.canvas_data, ...patch },
 });
 
+/** Thay nền hoặc phần tử của một mặt/khung. */
+const withSurface = (
+  doc: LetterPayload,
+  ref: SurfaceRef,
+  patch: Partial<CardFace>,
+): LetterPayload => {
+  if ("face" in ref) {
+    const current = doc.canvas_data.faces[ref.face];
+    return withCanvas(doc, {
+      faces: { ...doc.canvas_data.faces, [ref.face]: { ...current, ...patch } },
+    });
+  }
+  return {
+    ...doc,
+    web_config: {
+      ...doc.web_config,
+      sections: doc.web_config.sections?.map((s) =>
+        s.type === "board" && s.id === ref.board ? { ...s, ...patch } : s,
+      ),
+    },
+  };
+};
+
 const withElements = (
   doc: LetterPayload,
-  face: FaceId | undefined,
+  ref: SurfaceRef | undefined,
   recipe: (elements: CanvasElement[]) => CanvasElement[],
 ): LetterPayload => {
-  if (!face) return doc;
-  const current = doc.canvas_data.faces[face];
+  const current = ref && surfaceAt(doc, ref);
+  if (!ref || !current) return doc;
   const elements = recipe(current.elements);
   if (elements === current.elements) return doc;
-  return withCanvas(doc, {
-    faces: { ...doc.canvas_data.faces, [face]: { ...current, elements } },
-  });
+  return withSurface(doc, ref, { elements });
 };
 
 export const sortByLayer = (elements: CanvasElement[]) =>
@@ -158,8 +216,29 @@ const changedFace = (a: LetterPayload, b: LetterPayload) =>
   FACE_IDS.find((face) => a.canvas_data.faces[face] !== b.canvas_data.faces[face]);
 
 /** Bỏ chọn nếu phần tử không còn sau khi undo/redo/xóa. */
-const keepSelection = (doc: LetterPayload, face: FaceId, id: string | null) =>
-  doc.canvas_data.faces[face].elements.some((el) => el.id === id) ? id : null;
+const keepSelection = (doc: LetterPayload, ref: SurfaceRef, id: string | null) =>
+  elementsAt(doc, ref).some((el) => el.id === id) ? id : null;
+
+/**
+ * Sau Undo/Redo: chuyển tới mặt thiệp vừa thay đổi để người dùng thấy. Đang vẽ khung tự do thì
+ * ở lại khung đó, trừ khi chính nó biến mất.
+ */
+function afterHistory(
+  from: LetterPayload,
+  to: LetterPayload,
+  state: { face: FaceId; boardId: string | null; selectedId: string | null },
+) {
+  const boardId = findBoard(to, state.boardId) ? state.boardId : null;
+  const face = boardId ? state.face : (changedFace(from, to) ?? state.face);
+  const ref = refOf({ doc: to, face, boardId });
+  const sameSurface = face === state.face && boardId === state.boardId;
+  return {
+    face,
+    boardId,
+    selectedId: sameSurface ? keepSelection(to, ref, state.selectedId) : null,
+    editingTextId: null,
+  };
+}
 
 export const useEditorStore = create<EditorState>()((set, get) => ({
   doc: blankLetter(),
@@ -167,6 +246,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   future: [],
   coalesceKey: null,
   face: "front",
+  boardId: null,
   selectedId: null,
   editingTextId: null,
   printHideBackground: false,
@@ -182,6 +262,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       savedDoc: doc,
       tool: "select",
       face: "front",
+      boardId: null,
       printHideBackground: false,
       past: [],
       future: [],
@@ -197,6 +278,8 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   select: (selectedId) => set({ selectedId, coalesceKey: null }),
   setEditingText: (editingTextId) => set({ editingTextId, coalesceKey: null }),
   setPrintHideBackground: (printHideBackground) => set({ printHideBackground }),
+  setBoard: (boardId) =>
+    set({ boardId, tool: "select", selectedId: null, editingTextId: null, coalesceKey: null }),
   setFace: (face) => {
     if (get().face !== face) {
       set({ face, selectedId: null, editingTextId: null, coalesceKey: null });
@@ -218,40 +301,35 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   endCoalesce: () => set({ coalesceKey: null }),
 
   undo: () => {
-    const { doc, past, future, selectedId, face } = get();
-    const previous = past.at(-1);
+    const state = get();
+    const previous = state.past.at(-1);
     if (!previous) return;
-    const target = changedFace(doc, previous) ?? face;
     set({
       doc: previous,
-      past: past.slice(0, -1),
-      future: [doc, ...future],
+      past: state.past.slice(0, -1),
+      future: [state.doc, ...state.future],
       coalesceKey: null,
-      face: target,
-      selectedId: target === face ? keepSelection(previous, face, selectedId) : null,
-      editingTextId: null,
+      ...afterHistory(state.doc, previous, state),
     });
   },
   redo: () => {
-    const { doc, past, future, selectedId, face } = get();
-    const [next, ...rest] = future;
+    const state = get();
+    const [next, ...rest] = state.future;
     if (!next) return;
-    const target = changedFace(doc, next) ?? face;
     set({
       doc: next,
-      past: [...past, doc],
+      past: [...state.past, state.doc],
       future: rest,
       coalesceKey: null,
-      face: target,
-      selectedId: target === face ? keepSelection(next, face, selectedId) : null,
-      editingTextId: null,
+      ...afterHistory(state.doc, next, state),
     });
   },
 
   addElement: (element) => {
     const id = nanoid(10);
+    const ref = refOf(get());
     get().commit((doc) =>
-      withElements(doc, get().face, (elements) => {
+      withElements(doc, ref, (elements) => {
         const zIndex = elements.reduce((max, el) => Math.max(max, el.zIndex + 1), 0);
         return [...elements, { rotation: 0, ...element, id, zIndex }];
       }),
@@ -262,7 +340,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   updateElement: (id, patch, key) =>
     get().commit(
       (doc) =>
-        withElements(doc, faceOf(doc.canvas_data, id), (elements) =>
+        withElements(doc, surfaceOfElement(doc, id), (elements) =>
           elements.some((el) => el.id === id)
             ? elements.map((el) => (el.id === id ? lockQrSize({ ...el, ...patch, id }) : el))
             : elements,
@@ -271,7 +349,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     ),
   removeElement: (id) => {
     get().commit((doc) =>
-      withElements(doc, faceOf(doc.canvas_data, id), (elements) => {
+      withElements(doc, surfaceOfElement(doc, id), (elements) => {
         const rest = elements.filter((el) => el.id !== id);
         return rest.length === elements.length ? elements : renumber(sortByLayer(rest));
       }),
@@ -285,19 +363,16 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   },
   moveLayer: (id, move) =>
     get().commit((doc) =>
-      withElements(doc, faceOf(doc.canvas_data, id), (elements) => reorder(elements, id, move)),
+      withElements(doc, surfaceOfElement(doc, id), (elements) => reorder(elements, id, move)),
     ),
 
   setBackground: (patch, key) => {
-    const face = get().face;
+    const ref = refOf(get());
     get().commit((doc) => {
-      const current = doc.canvas_data.faces[face];
-      return withCanvas(doc, {
-        faces: {
-          ...doc.canvas_data.faces,
-          [face]: { ...current, background: { ...current.background, ...patch } },
-        },
-      });
+      const current = surfaceAt(doc, ref);
+      return current
+        ? withSurface(doc, ref, { background: { ...current.background, ...patch } })
+        : doc;
     }, key);
   },
   setWritingPage: (patch, key) =>

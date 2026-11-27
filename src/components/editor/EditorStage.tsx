@@ -5,14 +5,19 @@ import { useEffect, useRef } from "react";
 import { Group, Layer, Line, Rect, Transformer } from "react-konva";
 import type { NodeChange } from "@/components/letter/ElementNode";
 import LetterStage from "@/components/letter/LetterStage";
-import { currentElements, useEditorStore } from "@/lib/editor/store";
+import {
+  currentElements,
+  currentHeight,
+  findBoard,
+  useEditorStore,
+} from "@/lib/editor/store";
 import { normalizeAngle, pinchPatch, scalePatch } from "@/lib/editor/transform";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { LIMITS } from "@/lib/validation";
 import type { CanvasElement } from "@/types/letter";
 import { useSnapping } from "./useSnapping";
 
-const { width: W, height: H, safeMarginPx: M } = PRINT_CONFIG.CANVAS;
+const { width: W, safeMarginPx: M } = PRINT_CONFIG.CANVAS;
 const UI_COLOR = "#8E2424";
 /** Mỗi nét tối đa chừng này số; dài hơn thì tự tách thành nét mới. */
 const MAX_STROKE_NUMBERS = LIMITS.maxPointNumbers;
@@ -194,7 +199,11 @@ function usePinch(stageRef: React.RefObject<Konva.Stage | null>, active: boolean
 
 /** Canvas của trình thiết kế. Chỉ chạy phía trình duyệt (import qua next/dynamic, ssr: false). */
 export default function EditorStage({ scale }: { scale: number }) {
-  const face = useEditorStore((s) => s.doc.canvas_data.faces[s.face]);
+  // Mặt thiệp, hoặc khung tự do đang thiết kế (cùng dạng nền + phần tử).
+  const face = useEditorStore(
+    (s) => findBoard(s.doc, s.boardId) ?? s.doc.canvas_data.faces[s.face],
+  );
+  const H = useEditorStore(currentHeight);
   const selectedId = useEditorStore((s) => s.selectedId);
   const editingTextId = useEditorStore((s) => s.editingTextId);
   const tool = useEditorStore((s) => s.tool);
@@ -220,7 +229,7 @@ export default function EditorStage({ scale }: { scale: number }) {
 
   usePen(stageRef, liveRef, tool === "pen", pen.color, pen.width);
   usePinch(stageRef, selecting);
-  const snapAnchor = useSnapping(stageRef, guideRef, transformerRef, scale);
+  const snapAnchor = useSnapping(stageRef, guideRef, transformerRef, scale, H);
 
   function handleChange(id: string, change: NodeChange) {
     const state = useEditorStore.getState();
@@ -265,6 +274,7 @@ export default function EditorStage({ scale }: { scale: number }) {
     <LetterStage
       stageRef={stageRef}
       face={face}
+      height={H}
       scale={scale}
       qrUrl={`${typeof window === "undefined" ? "" : window.location.origin}/l/xemthu`}
       hiddenElementId={editingTextId}

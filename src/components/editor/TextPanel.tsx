@@ -2,7 +2,7 @@
 
 import { AlignCenter, AlignLeft, AlignRight, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { currentElements, useEditorStore } from "@/lib/editor/store";
+import { currentElements, currentHeight, useEditorStore } from "@/lib/editor/store";
 import { FONT_NAMES, type FontName } from "@/lib/font-names";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { TEXT_DEFAULTS } from "@/lib/render/text";
@@ -10,7 +10,7 @@ import { ColorField } from "./ColorField";
 import { Field, inputClass, Section, Slider } from "./ui";
 
 export const INK_COLORS = ["#2B2623", "#5A4636", "#8E2424", "#2F4A3A", "#243B5A", "#FFFFFF"];
-const { width: CANVAS_W, height: CANVAS_H, safeMarginPx, minFontPx } = PRINT_CONFIG.CANVAS;
+const { width: CANVAS_W, safeMarginPx, minFontPx } = PRINT_CONFIG.CANVAS;
 const MAX_WIDTH = CANVAS_W - safeMarginPx * 2;
 const ALIGNS = [
   ["left", AlignLeft, "Căn trái"],
@@ -32,7 +32,11 @@ export function AddTextButton() {
           addElement({
             type: "text",
             x: (CANVAS_W - width) / 2,
-            y: Math.round((CANVAS_H - TEXT_DEFAULTS.fontSize * TEXT_DEFAULTS.lineHeight) / 2),
+            y: Math.round(
+              (currentHeight(useEditorStore.getState()) -
+                TEXT_DEFAULTS.fontSize * TEXT_DEFAULTS.lineHeight) /
+                2,
+            ),
             width,
             text: "Nhập lời nhắn của bạn",
             fontFamily: "Be Vietnam Pro",

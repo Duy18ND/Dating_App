@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { currentElements, useEditorStore } from "@/lib/editor/store";
+import { currentElements, currentHeight, useEditorStore } from "@/lib/editor/store";
 import { findIcon, ICON_CATEGORIES, ICON_VIEWBOX, ICONS, type LetterIcon } from "@/lib/icons";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { DEFAULT_STICKER_TAB, MEMES, STICKER_SIZE_PX, type StickerTab } from "@/lib/stickers";
@@ -17,7 +17,7 @@ const TABS: { value: StickerTab; label: string }[] = [
 
 const centered = (size: number) => ({
   x: (PRINT_CONFIG.CANVAS.width - size) / 2,
-  y: (PRINT_CONFIG.CANVAS.height - size) / 2,
+  y: (currentHeight(useEditorStore.getState()) - size) / 2,
   width: size,
   height: size,
 });

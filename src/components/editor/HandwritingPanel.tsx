@@ -2,14 +2,14 @@
 
 import { Eraser, MousePointer2, PenLine, Rows3, Grip } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { currentElements, useEditorStore, type Tool } from "@/lib/editor/store";
+import { currentElements, currentHeight, useEditorStore, type Tool } from "@/lib/editor/store";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { LIMITS } from "@/lib/validation";
 import { ColorField } from "./ColorField";
 import { INK_COLORS } from "./TextPanel";
 import { Section, Slider } from "./ui";
 
-const { width: W, height: H, safeMarginPx: M } = PRINT_CONFIG.CANVAS;
+const { width: W, safeMarginPx: M } = PRINT_CONFIG.CANVAS;
 const AREA_HEIGHT = 520;
 
 const TOOLS: [Tool, typeof PenLine, string][] = [
@@ -33,7 +33,8 @@ export function HandwritingPanel() {
   const selectedArea = useEditorStore((s) =>
     currentElements(s).find((el) => el.id === s.selectedId && el.type === "lined_area"),
   );
-  const full = count >= LIMITS.maxElements;
+  const onBoard = useEditorStore((s) => s.boardId !== null);
+  const full = count >= (onBoard ? LIMITS.maxBoardElements : LIMITS.maxElements);
 
   const addArea = (lineStyle: "ruled" | "dot_grid") => {
     setTool("select");
@@ -41,7 +42,7 @@ export function HandwritingPanel() {
       type: "lined_area",
       lineStyle,
       x: M,
-      y: Math.round((H - AREA_HEIGHT) / 2),
+      y: Math.round((currentHeight(useEditorStore.getState()) - AREA_HEIGHT) / 2),
       width: W - M * 2,
       height: AREA_HEIGHT,
       fill: "#7A7067",
@@ -50,30 +51,33 @@ export function HandwritingPanel() {
 
   return (
     <div className="space-y-6">
-      <Section title="Vùng viết tay khi in">
-        <p className="text-xs text-muted-foreground">In ra rồi viết bằng bút mực thật và ký tên.</p>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" disabled={full} onClick={() => addArea("ruled")}>
-            <Rows3 /> Dòng kẻ
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={full}
-            onClick={() => addArea("dot_grid")}
-          >
-            <Grip /> Chấm bi
-          </Button>
-        </div>
-        {selectedArea && (
-          <ColorField
-            label="Màu dòng kẻ"
-            colors={["#7A7067", "#C8A882", "#8E2424", "#243B5A"]}
-            value={selectedArea.fill ?? "#7A7067"}
-            onChange={(fill) => update(selectedArea.id, { fill })}
-          />
-        )}
-      </Section>
+      {/* Dòng kẻ để viết bút thật chỉ có ý nghĩa trên bản in. */}
+      {!onBoard && (
+        <Section title="Vùng viết tay khi in">
+          <p className="text-xs text-muted-foreground">In ra rồi viết bằng bút mực thật và ký tên.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" disabled={full} onClick={() => addArea("ruled")}>
+              <Rows3 /> Dòng kẻ
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={full}
+              onClick={() => addArea("dot_grid")}
+            >
+              <Grip /> Chấm bi
+            </Button>
+          </div>
+          {selectedArea && (
+            <ColorField
+              label="Màu dòng kẻ"
+              colors={["#7A7067", "#C8A882", "#8E2424", "#243B5A"]}
+              value={selectedArea.fill ?? "#7A7067"}
+              onChange={(fill) => update(selectedArea.id, { fill })}
+            />
+          )}
+        </Section>
+      )}
 
       <Section title="Bút vẽ tay">
         <div className="flex gap-2" role="group" aria-label="Công cụ">

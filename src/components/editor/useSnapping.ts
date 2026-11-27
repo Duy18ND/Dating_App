@@ -2,11 +2,10 @@
 
 import Konva from "konva";
 import { useCallback, useEffect, useRef } from "react";
-import { computeSnap, snapResizePoint, type Box, type Guide, type SnapSpace } from "@/lib/editor/snap";
+import { computeSnap, snapResizePoint, type Box, type Guide } from "@/lib/editor/snap";
 import { PRINT_CONFIG } from "@/lib/print-config";
 
-const { width, height, safeMarginPx } = PRINT_CONFIG.CANVAS;
-const SPACE: SnapSpace = { width, height, margin: safeMarginPx };
+const { width, safeMarginPx } = PRINT_CONFIG.CANVAS;
 /** Khoảng hút tính theo điểm ảnh trên màn hình, để cảm giác như nhau ở mọi mức thu phóng. */
 const SNAP_SCREEN_PX = 7;
 const GUIDE_COLOR = "#E0367C";
@@ -32,6 +31,7 @@ export function useSnapping(
   guideRef: React.RefObject<Konva.Group | null>,
   transformerRef: React.RefObject<Konva.Transformer | null>,
   scale: number,
+  height: number,
 ) {
   /** Khung lúc bắt đầu kéo giãn, để giữ tỷ lệ khi hút nút góc. */
   const resizeStart = useRef<Box | null>(null);
@@ -87,7 +87,7 @@ export function useSnapping(
       const result = computeSnap(
         rectOf(node),
         otherBoxes(stage, node),
-        SPACE,
+        { width, height, margin: safeMarginPx },
         SNAP_SCREEN_PX / scale,
       );
       node.position({ x: node.x() + result.dx, y: node.y() + result.dy });
@@ -98,7 +98,7 @@ export function useSnapping(
       stage.off(".snap");
       clear();
     };
-  }, [stageRef, draw, scale]);
+  }, [stageRef, draw, scale, height]);
 
   /** Cho Transformer: vị trí nút kéo giãn tính theo điểm ảnh màn hình. */
   return useCallback(
@@ -119,12 +119,12 @@ export function useSnapping(
         resizeStart.current,
         transformer.keepRatio(),
         otherBoxes(stage, node),
-        SPACE,
+        { width, height, margin: safeMarginPx },
         SNAP_SCREEN_PX / scale,
       );
       draw(result.guides);
       return { x: result.x * scale + origin.x, y: result.y * scale + origin.y };
     },
-    [stageRef, transformerRef, draw, scale],
+    [stageRef, transformerRef, draw, scale, height],
   );
 }

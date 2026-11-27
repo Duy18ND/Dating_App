@@ -3,6 +3,7 @@ import { FONT_NAMES } from "@/lib/font-names";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import {
   BACKGROUND_PRESETS,
+  BOARD_HEIGHTS,
   COUNTER_MODES,
   ELEMENT_TYPES,
   FACE_IDS,
@@ -39,6 +40,8 @@ export const LIMITS = {
   maxWebSections: 16,
   maxMemories: 8,
   maxReasons: 8,
+  maxBoards: 3,
+  maxBoardElements: 60,
   maxHeroLead: 200,
   maxFirstDayText: 500,
   maxMemoryCaption: 200,
@@ -141,7 +144,10 @@ export const elementSchema = z
 
 const allElements = (canvas: CanvasData) => FACE_IDS.flatMap((face) => canvas.faces[face].elements);
 
-/** Các URL ảnh người dùng tải lên trên trang web cuộn (hero, first_day, memories), đã bỏ trùng. */
+/**
+ * Các URL ảnh người dùng tải lên trên trang web cuộn (hero, first_day, memories và khung tự do),
+ * đã bỏ trùng. THIẾU một chỗ ở đây thì ảnh không được gắn với thư và cron sẽ xóa mất.
+ */
 export function collectWebImageUrls(web?: Pick<WebConfig, "sections">): string[] {
   if (!web?.sections) return [];
   const urls: string[] = [];
@@ -151,6 +157,11 @@ export function collectWebImageUrls(web?: Pick<WebConfig, "sections">): string[]
     } else if (section.type === "memories") {
       for (const item of section.items) {
         if (item.image?.src) urls.push(item.image.src);
+      }
+    } else if (section.type === "board") {
+      if (section.background.type === "image") urls.push(section.background.value);
+      for (const element of section.elements) {
+        if (element.type === "image" && element.src) urls.push(element.src);
       }
     }
   }
@@ -343,6 +354,16 @@ export const webSectionSchema = z.discriminatedUnion("type", [
     text: shortText(LIMITS.maxEndingText),
     signature: shortText(LIMITS.maxLetterLine).optional(),
   }),
+  z.strictObject({
+    id: sectionId,
+    type: z.literal("board"),
+    enabled: z.boolean(),
+    height: z.union(BOARD_HEIGHTS.map((height) => z.literal(height))),
+    background: backgroundSchema,
+    elements: z
+      .array(elementSchema)
+      .max(LIMITS.maxBoardElements, `Mỗi khung tối đa ${LIMITS.maxBoardElements} thành phần`),
+  }),
 ]);
 
 export const webStyleSchema = z.strictObject({
@@ -382,6 +403,25 @@ export const webConfigSchema = z
     if (!web.sections) return;
     if (new Set(web.sections.map((s) => s.id)).size !== web.sections.length) {
       ctx.addIssue({ code: "custom", path: ["sections"], message: "Trùng id phần trang web" });
+    }
+    const boards = web.sections.filter((s) => s.type === "board");
+    if (boards.length > LIMITS.maxBoards) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["sections"],
+        message: `Tối đa ${LIMITS.maxBoards} khung tự do`,
+      });
+    }
+    const boardElements = boards.flatMap((board) => board.elements);
+    if (new Set(boardElements.map((el) => el.id)).size !== boardElements.length) {
+      ctx.addIssue({ code: "custom", path: ["sections"], message: "Trùng id trong khung tự do" });
+    }
+    if (boardElements.some((el) => el.type === "qr_code")) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["sections"],
+        message: "Khung tự do không đặt mã QR",
+      });
     }
     if (collectWebImageUrls(web).length > LIMITS.maxWebImages) {
       ctx.addIssue({

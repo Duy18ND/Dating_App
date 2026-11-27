@@ -26,6 +26,7 @@ import type {
 import { AcceptBlock, PollBlock, RsvpBlock } from "./blocks";
 import { CardZoomModal } from "./CardZoomModal";
 import { ParticleLayer } from "./ParticleLayer";
+import { StoryBoard } from "./StoryBoard";
 
 function subscribeReducedMotion(cb: () => void) {
   const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -801,6 +802,15 @@ export function ScrollStory({
                         block={blocks.poll}
                       />
                     )}
+                  </Reveal>
+                </section>
+              );
+
+            case "board":
+              return (
+                <section data-section-id={section.id} key={section.id} className="py-2">
+                  <Reveal intensity={intensity}>
+                    <StoryBoard section={section} />
                   </Reveal>
                 </section>
               );

@@ -16,7 +16,7 @@ type Props = Omit<LetterStageProps, "scale"> & {
 };
 
 /** Tự tính scale theo bề rộng khung chứa. */
-export function LetterView({ overlay, ...stage }: Props) {
+export function LetterView({ overlay, height = H, ...stage }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0);
 
@@ -28,10 +28,10 @@ export function LetterView({ overlay, ...stage }: Props) {
   }, []);
 
   return (
-    <div ref={ref} className="relative w-full" style={{ aspectRatio: `${W} / ${H}` }}>
+    <div ref={ref} className="relative w-full" style={{ aspectRatio: `${W} / ${height}` }}>
       {scale > 0 && (
         <>
-          <LetterStage {...stage} scale={scale} />
+          <LetterStage {...stage} height={height} scale={scale} />
           {overlay?.(scale)}
         </>
       )}
