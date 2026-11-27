@@ -1,17 +1,23 @@
-> **SRS v1.4 — nguồn chuẩn hiện hành.** Bản gốc trích từ SRS_Phygital_Letter_Studio_V1.docx (v1.1); các thay đổi sau đó được sửa trực tiếp trong file này. File .docx và .xlsx **chưa cập nhật**, khi lệch thì file .md này là chuẩn. Quyết định bổ sung nằm ở CLAUDE.md.
+> **SRS v1.6 — nguồn chuẩn hiện hành** (không dùng số 1.5: bản đó đã hủy). Bản gốc trích từ SRS_Phygital_Letter_Studio_V1.docx (v1.1); các thay đổi sau đó được sửa trực tiếp trong file này. File .docx và .xlsx **chưa cập nhật**, khi lệch thì file .md này là chuẩn. Quyết định bổ sung nằm ở CLAUDE.md.
 
-SOFTWARE REQUIREMENTS SPECIFICATION (SRS) — VERSION 1.4  
+SOFTWARE REQUIREMENTS SPECIFICATION (SRS) — VERSION 1.6  
 NỀN TẢNG TẠO THƯ ĐIỆN TỬ LAI THƯ TAY(PHYGITAL LETTER STUDIO)  
 Trình thiết kế bộ quà mini (phong bì C7, thiệp gập có bìa, thư viết tay gấp 3) tự cắt dán tại nhà, kèm trang web bày tỏ dạng cuộn dọc mở bằng mã QR.  
   
 Thông tin tài liệu | Chi tiết  
 Tên sản phẩm | Phygital Letter Studio  
-Phiên bản tài liệu | v1.4 — Tài khoản bắt buộc cho người tạo, bộ in mini C7 & trang web bày tỏ dạng cuộn  
+Phiên bản tài liệu | v1.6 — Làm web trước; bộ phong cách & hiệu ứng; hiển thị nhất quán PC và điện thoại  
 Ngày cập nhật | 27/11/2026  
 Mô hình vận hành | 100% Miễn phí (Free) + Ủng hộ tự nguyện bằng Ảnh QR Ngân hàng / ZaloPay tĩnh  
 Kênh ra mắt mục tiêu | Threads (clip mở phong bì mini, lật thiệp, quét QR phát nhạc)  
 Kế hoạch thực thi | Sprint 7 ngày (Kiến trúc Gemini + Code Claude Sonnet / Opus / Haiku trong IDE)  
 Công nghệ cốt lõi | Next.js (App Router), TypeScript, Tailwind CSS, React-Konva, Supabase, Cloudflare R2  
+NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.6 (chốt ngày 27/11/2026)  
+1. **Làm bản web trước** (trang người nhận), thử trên PC và điện thoại đạt rồi mới tới thiết kế/xuất/in thiệp, sau đó tài khoản và ra mắt.  
+2. Trang web có **bộ phong cách và hiệu ứng** tùy chỉnh (FR-15). Đợt đầu: 4 phong cách, thiết kế để thêm dần tới 8.  
+3. Quy tắc **hiển thị nhất quán PC và điện thoại** (FR-16). Cuộn tự do, chưa làm kiểu từng màn.  
+4. Hiệu ứng hạt (tim, sao, cánh hoa) vào MVP.  
+  
 NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.4 (chốt ngày 27/11/2026)  
 1. **Người tạo thiệp bắt buộc đăng nhập** (email + mật khẩu tự đăng ký, hoặc Google). Mỗi thiệp thuộc về một tài khoản (FR-14).  
 2. Trang **Thiệp của tôi** thay trang quản lý bằng link bí mật. Bỏ hoàn toàn edit_token và /manage/[editToken] (chưa có thư thật nên không cần tương thích).  
@@ -25,7 +31,7 @@ NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.3 (chốt ngày 27/11/2026)
 5. Một màu phong bì dùng chung cho web và bản in; xem trước cả bộ trên màn hình.  
 6. Không còn hỗ trợ thiệp đứng cỡ cũ (chưa có thư thật nào được phát hành).  
   
-Giữ từ v1.2: tách bản in và trang web; trang web cuộn dọc (FR-10) với tối đa 8 ảnh riêng; upload 20 ảnh/IP/giờ; hoa/tuyết rơi để V2. Giữ từ v1.1: ?to=..., ảnh QR Donate tĩnh.  
+Giữ từ v1.2: tách bản in và trang web; trang web cuộn dọc (FR-10) với tối đa 8 ảnh riêng; upload 20 ảnh/IP/giờ; (hiệu ứng nền: xem FR-15). Giữ từ v1.1: ?to=..., ảnh QR Donate tĩnh.  
 1.  TỔNG QUAN DỰ ÁN & PHẠM VI SẢN PHẨM  
 1.1. Mục đích & Giá trị Cốt lõi  
 Tài liệu này là nguồn chuẩn duy nhất (Single Source of Truth) đặc tả toàn bộ yêu cầu chức năng, phi chức năng, hệ thống giao diện (UI/UX), chuẩn kích thước in ấn, kiến trúc cơ sở dữ liệu và API cho phiên bản MVP V1.1 của Phygital Letter Studio. Sản phẩm kết hợp sự ấm áp của tấm thiệp nhỏ gọn cầm tay trong phong bì giấy Kraft đóng dấu sáp với trải nghiệm web tương tác phát nhạc khi quét mã QR.  
@@ -39,7 +45,7 @@ Hệ sinh thái mẫu | 4 mẫu dựng sẵn, mỗi mẫu gồm bìa trước, t
 Cá nhân hóa (Customize) | Mini-Canva Responsive PC & Mobile; Custom Background (Preset/Màu/Ảnh + Blur/Overlay), Ảnh WebP (khung Polaroid/Tem/Tròn/Đám mây + filter), 20 Icon SVG đổi màu, 25 Sticker Meme WebP, Ghi tay 2 chế độ, đổi màu phong bì/dấu sáp/QR. | AI tự động tách nền ảnh tải lên, hiệu ứng chữ uốn cong/3D, upload font cá nhân.  
 Cá nhân hóa người nhận | Nhập tên người gửi/nhận mặc định + hỗ trợ đổi tên từng khách qua tham số URL (?to=Ten-Khach) kèm ô tạo nhanh link theo tên. | Mail Merge tạo hàng loạt hàng trăm thiệp PDF từ file Excel/CSV.  
 Xuất bản & In ấn | Mã QR động (/l/[slug]); PDF 3 trang A4 (phong bì C7, thiệp gập, thư gấp 3) có đường cắt, đường gấp, vùng dán; tắt nền để in giấy màu. | Mô phỏng gấp 3D, các khổ khác, in hai mặt.  
-Trải nghiệm Web & Nhạc | Bóc dấu sáp phát nhạc, trang cuộn dọc kể chuyện (FR-10), Block tương tác (Đồng ý, RSVP + Maps, Poll). | Hiệu ứng hoa/tuyết rơi, thẻ cào, hồi âm hai chiều, upload MP3 riêng, kéo thả tự do trên trang web.  
+Trải nghiệm Web & Nhạc | Bóc dấu sáp phát nhạc, trang cuộn dọc kể chuyện (FR-10), Block tương tác (Đồng ý, RSVP + Maps, Poll). | Thẻ cào, câu đố mở khóa, ghi âm giọng nói, cuộn kiểu từng màn (story), hồi âm hai chiều, upload MP3 riêng, kéo thả tự do trên trang web.  
 Quản lý & Vận hành | Tài khoản bắt buộc cho người tạo (email + mật khẩu, Google); trang Thiệp của tôi; Free + Donate ảnh QR tĩnh; thư tự hết hạn sau 60 ngày. | Dashboard thống kê chi tiết, gói trả phí (lưu vĩnh viễn/bỏ credit), đăng nhập mạng xã hội khác, nhiều người cùng sửa một thiệp.  
 2.  HỆ THỐNG THIẾT KẾ (UI/UX) & CHUẨN KÍCH THƯỚC IN ẤN  
 2.1. Định hướng thẩm mỹ & Design Tokens  
@@ -138,6 +144,26 @@ Thiệp của tôi (/thiep-cua-toi): danh sách thiệp của chính tài khoả
 Chủ thiệp xem thử thiệp của mình không làm tăng lượt mở.  
 Tài khoản: đăng xuất; xóa tài khoản (hỏi xác nhận) xóa toàn bộ thiệp và phản hồi, ảnh được cron dọn khỏi R2. Trang /chinh-sach-rieng-tu nêu dữ liệu lưu (email, nội dung thiệp, ảnh, phản hồi người nhận), thời hạn lưu và cách xóa.  
 Quyền truy cập: server lấy người dùng bằng cách **xác minh phiên với Supabase** (không tin dữ liệu người dùng đọc thẳng từ cookie). Mọi truy vấn của chủ thiệp lọc theo owner_id; thiệp không tồn tại và thiệp của người khác cùng trả 404. Ảnh chỉ gắn được vào thiệp nếu do chính chủ thiệp tải lên. API thay đổi dữ liệu kiểm tra header Origin cùng trang (chống CSRF).  
+FR-15 — Bộ phong cách & hiệu ứng của trang web (v1.6)  
+Hai tầng: chọn một **phong cách** là đủ bộ màu, phông, nền, khung ảnh và hiệu ứng hợp nhau; sau đó đổi riêng từng mục nếu muốn. Có nút **Gợi ý ngẫu nhiên**. Chỉ áp dụng cho trang web; chọn phong cách thì gợi ý màu phong bì in (không tự đổi nếu người dùng đã tự chọn màu).  
+Phong cách đợt 1 | warm_letter 'Thư tay ấm áp' (mặc định tỏ tình, cưới); starry_night 'Đêm sao'; pastel 'Pastel ngọt ngào' (mặc định sinh nhật); doodle 'Doodle vui nhộn' (mặc định mời ăn).  
+Phong cách đợt 2 (sau Cửa 1) | Phim cũ; Vườn hoa (khi có thì làm mặc định cưới); Tối giản thanh lịch; Lễ hội.  
+Mục tùy chỉnh | Lựa chọn đợt 1 | Thêm ở đợt 2  
+Mở thư (open) | wax_seal Bóc dấu sáp; ribbon Kéo nơ; hold_heart Nhấn giữ tim | Vuốt xé mép phong bì  
+Chữ xuất hiện (textReveal) | slide Trượt nhẹ; typewriter Gõ từng chữ; lines Hiện từng dòng | Mờ rồi rõ  
+Ảnh (photo) | polaroid Polaroid nghiêng; flip Lật xem lời nhắn; drop Thả xuống bàn | Dải phim ngang  
+Hiệu ứng nền (particle) | none; hearts Tim bay; stars Sao; petals Cánh hoa | Tuyết, đom đóm, bong bóng  
+Con số (counter) | count_up Đếm tăng; flip_calendar Lịch lật | Vòng tròn chạy  
+Khi bấm Đồng ý (celebrate) | confetti Hoa giấy; fireworks Pháo hoa; heart_rain Mưa tim | —  
+Màu & phông | Màu nhấn tự chọn (phải đủ tương phản với nền), 6 phông tiếng Việt | —  
+Độ sôi động (intensity) | light Nhẹ; medium Vừa (mặc định); rich Rực rỡ — chỉnh cùng lúc số hạt và cường độ chuyển động | —  
+Dữ liệu: web_config.style = { theme; intensity; accent?; font?; open?; textReveal?; photo?; particle?; counter?; celebrate? }. Mục để trống thì theo phong cách. Giá trị chỉ nhận trong danh sách trên; thư không có style dùng warm_letter.  
+Hiệu năng & dễ dùng: mỗi lúc tối đa một lớp hạt, tạm dừng khi tab ẩn; số hạt trên điện thoại ít hơn; ưu tiên transform/opacity; không dùng 3D nặng; mượt trên điện thoại tầm trung. prefers-reduced-motion: tắt hạt, gõ chữ và chuyển động, nội dung hiện ngay. Hiệu ứng không được che nút bấm hay cản việc đọc; chữ gõ dần vẫn đọc được đầy đủ bằng trình đọc màn hình. Cách 'Nhấn giữ' và 'Kéo nơ' phải có cách bấm thay thế bằng bàn phím. Mọi cách mở thư đều phải gọi phát nhạc ngay trong thao tác chạm của người dùng (iOS).  
+FR-16 — Hiển thị nhất quán PC & điện thoại (v1.6)  
+Thiệp: mặt thiệp là khung cố định 1760 x 1240, mọi máy chỉ phóng/thu đều cả khung. Mọi thành phần trừ vùng dòng kẻ **giữ tỷ lệ khi kéo giãn** (chữ, ảnh, sticker, icon, QR, nét vẽ không bị bóp méo). Ảnh trong khung được cắt cho vừa chứ không kéo giãn; người dùng **chọn điểm cần giữ** (focus x, y từ 0 đến 1, mặc định giữa). Trang người nhận cho **chạm để phóng to thiệp**.  
+Trang web: bố cục tự xếp lại theo màn hình, không dùng khung cố định. Điện thoại một cột; PC cột nội dung ở giữa, có thể đặt ảnh cạnh chữ, nền và hiệu ứng phủ toàn màn hình. Ảnh không bao giờ bị kéo méo; **mặc định hiện trọn ảnh**; chỗ cần phủ kín khung (ảnh bìa) thì cắt theo điểm giữ đã chọn. Chữ tự xuống dòng, không thu nhỏ cả trang. Tránh tai thỏ và thanh trình duyệt (safe-area, đơn vị dvh).  
+Trình thiết kế tab Trang web có nút xem thử **Điện thoại | PC**.  
+Nghiệm thu ở bề ngang 360, 390, 768, 1366, 1920 px, và trên iPhone (Safari) cùng Android (Chrome) thật.  
 4.  YÊU CẦU PHI CHỨC NĂNG & QUẢN TRỊ RỦI RO  
 Hạng mục | Tiêu chuẩn & Ràng buộc Kỹ thuật  
 Hiệu năng & Tương thích | Trang /l/[slug] hiện phong bì dưới 2 giây trên 4G; ảnh phần web tải lười; mở phong bì và cuộn mượt 60fps; iOS Safari 16+, Chrome Android, Chrome/Edge/Safari Desktop.  
@@ -157,6 +183,7 @@ export interface BackgroundConfig {  type: 'preset' | 'color' | 'image';  value:
 canvas_data = { version: 2; width: 1760; height: 1240; faces: { front: { background, elements }; inside: { background, elements } }; writingPage: { paper: 'ruled'|'dot_grid'|'plain'; color }; letter: { paper; greeting; signature; fontFamily; inkColor; paperColor; decorIconId? }; envelope: { monogram; line; fontFamily } }. Không còn defaultPrintSize.  
 Giới hạn: tổng phần tử hai mặt <= 300; ảnh hai mặt <= 4; id không trùng giữa hai mặt; QR chỉ ở faces.inside và tối đa 1.  
 web_config: thêm sections?: Array<{ id; type: 'hero'|'first_day'|'memories'|'reasons'|'counter'|'message'|'interact'|'ending'; enabled; ...trường riêng theo type }>. Không có sections thì hiển thị thiệp + các Block.  
+**v1.6:** web_config thêm style? (FR-15); mỗi ảnh trong sections có fit: 'contain'|'cover' và focus: { x, y }; phần tử ảnh trên thiệp thêm focus?. Mọi trường đều tùy chọn để thư tạo trước đó vẫn hợp lệ.  
 5.4. Đặc tả API Routes (Next.js App Router)  
 Method | Endpoint | Bảo vệ / Guard | Mô tả xử lý  
 POST | /api/upload | Đăng nhập + Origin + Turnstile + 20 ảnh/giờ (tài khoản & IP) | Nhận ảnh WebP (<=500KB), kiểm tra MIME, đẩy lên R2, ghi owner_id -> trả về { url }.  
@@ -185,5 +212,5 @@ Ngày 4 | 4 Mẫu sẵn, Nhạc & PDF A6/C6 | Landing Gallery + 4 mẫu JSON (A6
 Ngày 5 | Trang Người nhận & Quản lý | Màn hình /l/[slug] hỗ trợ ?to=..., bóc dấu sáp phát nhạc + 3 Block; Modal Xuất bản + Ảnh QR Donate tĩnh + trang /manage/[editToken].  
 Ngày 6 | Kiểm thử Thực tế & In giấy A6 | Test nhạc iOS Safari/Android Chrome; in thử PDF ra giấy thật cắt gấp phong bì C6 + thiệp A6 & quét QR; bật cron 60 ngày.  
 Ngày 7 | Deploy & Ra mắt Threads | Deploy Vercel, kiểm tra rate limit & ảnh Donate QR; quay clip 15–20s mở phong bì giấy Kraft + thiệp A6 + quét QR đăng Threads.  
-Bổ sung v1.4: làm theo ba đợt: A (bộ in mini, kết thúc bằng in thử cắt dán), B (tài khoản), C (trang web cuộn), sau đó mới deploy và ra mắt. Chi tiết ở docs/BACKLOG.md.  
+Bổ sung v1.6: 4 chặng: (1) bản web chạy thử, Cửa 1 duyệt trên PC và điện thoại; (2) tự soạn nội dung web; (3) thiệp, xuất file và in, Cửa 2 in thử; (4) tài khoản và ra mắt. Chi tiết ở docs/BACKLOG.md.  
 4 QUY TẮC VÀNG CHỐNG VỠ TIẾN ĐỘ KHI CODE CÙNG CLAUDE IDE1. Xuất PDF qua ảnh chụp Stage (pixelRatio: 2, đã ẩn Transformer & Safe Margin) dán vào jsPDF — tuyệt đối không dùng pdf.text() cho nội dung thiệp.2. Khóa cứng tọa độ logic 1760 x 1240 px và dùng duy nhất hằng số PRINT_CONFIG (mặt thiệp 105x74mm, thư 105x222mm, phong bì C7 trải phẳng 144x188mm).3. Dùng ảnh QR Ngân hàng/ZaloPay tĩnh (public/donate-qr-*.webp) kèm nút Lưu ảnh & Copy STK — không code API thanh toán.4. Git commit ngay sau mỗi task (T-01 -> T-25) và mở khung chat mới mỗi khi chuyển Epic để giữ context Claude sạch nhất.  
