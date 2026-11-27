@@ -23,7 +23,9 @@ const claim = async (letterId: string, urls: string[]) =>
 beforeAll(async () => {
   // Các role có sẵn trên Supabase.
   await pg.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS;");
-  await pg.exec(readFileSync("supabase/migrations/0001_init.sql", "utf8"));
+  for (const file of ["0001_init.sql", "0002_upload_orphaned_at.sql"]) {
+    await pg.exec(readFileSync(`supabase/migrations/${file}`, "utf8"));
+  }
 }, 60_000);
 
 describe("migration", () => {
@@ -54,7 +56,9 @@ describe("migration", () => {
       (await pg.query<{ url: string }>("SELECT url FROM take_orphan_uploads(48, 100)")).rows;
     expect(await take()).toEqual([]);
     await pg.exec("DELETE FROM letters WHERE slug = 'aaaaaa'");
-    await pg.exec("UPDATE uploads SET created_at = NOW() - INTERVAL '3 days'");
+    await pg.exec(
+      "UPDATE uploads SET created_at = NOW() - INTERVAL '3 days', orphaned_at = NOW() - INTERVAL '3 days'",
+    );
     expect((await take()).map((r) => r.url).sort()).toEqual(["u1", "u2", "u3"]);
   });
 
@@ -92,5 +96,20 @@ describe("dọn thư quá hạn", () => {
     const taken = await pg.query<{ url: string }>("SELECT url FROM take_orphan_uploads(24, 500)");
     expect(taken.rows.map((r) => r.url)).toEqual(["x1"]);
     expect(await one("SELECT id FROM uploads WHERE url = 'x2'")).toBeDefined();
+  });
+});
+
+describe("ảnh vừa bị gỡ khỏi thư", () => {
+  it("được giữ 24 giờ kể từ lúc gỡ, dù đã tải lên từ lâu", async () => {
+    const letter = await newLetter("gogiu1");
+    await pg.exec(
+      "INSERT INTO uploads (object_key, url, created_at) VALUES ('old1','old1', NOW() - INTERVAL '30 days')",
+    );
+    await claim(letter, ["old1"]);
+    await claim(letter, []); // người dùng bỏ ảnh rồi lưu
+    const taken = await pg.query<{ url: string }>("SELECT url FROM take_orphan_uploads(24, 500)");
+    expect(taken.rows.map((r) => r.url)).not.toContain("old1");
+    // Hoàn tác và lưu lại vẫn được.
+    expect(await claim(letter, ["old1"])).toBe(true);
   });
 });
