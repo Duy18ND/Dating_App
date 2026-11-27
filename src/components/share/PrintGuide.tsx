@@ -1,5 +1,6 @@
-import { ChevronDown, FileText, Printer, Scissors, ShoppingBag } from "lucide-react";
+import { ChevronDown, FileText, Printer, Ruler, Scissors, ShoppingBag } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
+import { PrintSizes } from "./PrintSizes";
 
 /** Một mục thu gọn được, để hướng dẫn dài không đẩy phần xem trước đi quá xa. */
 function Topic({
@@ -41,6 +42,10 @@ const Name = ({ children }: { children: ReactNode }) => (
 export function PrintGuide() {
   return (
     <div className="space-y-2">
+      <Topic icon={Ruler} title="Kích thước">
+        <PrintSizes />
+      </Topic>
+
       <Topic icon={FileText} title="Chọn giấy">
         <p>
           Cả bộ in trên <Name>1 tờ A4, hai mặt</Name>. Hãy chọn giấy <Name>180–200 gsm</Name>: đủ

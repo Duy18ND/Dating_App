@@ -119,6 +119,7 @@ Kho nhạc & Chọn điệp khúc: 6–8 bài MP3 nén nhẹ (128kbps) lưu trê
 Vượt chặn Autoplay trên iOS/Android: Gọi HTMLAudioElement.play() trực tiếp trong sự kiện click/tap khi người nhận chạm vào con dấu sáp mở phong bì. Kèm nút đĩa nhạc xoay góc trên phải để tắt/bật.  
 3 Block lắp ghép: (1) AcceptButton (câu hỏi + nút Đồng ý tung hoa + nút Từ chối tùy chọn né chuột), (2) RSVP & LocationMap (thời gian, địa điểm, Google Maps, form xác nhận số người & lời chúc), (3) Poll (bình chọn món ăn/giờ hẹn tối đa 4 lựa chọn).  
 FR-07 — Xuất bản, Mã QR Động & Xuất PDF Bộ in Mini (1 tờ A4 hai mặt)  
+Bấm tải PDF phải hiện **hộp thoại hướng dẫn in** (cài đặt máy in, cách đo lại thiệp 105 x 74 mm, bảng kích thước lấy từ PRINT_CONFIG) rồi mới tải; file PDF đặt sẵn ViewerPreferences PrintScaling=None và Duplex=DuplexFlipLongEdge (trình xem có thể bỏ qua). Hướng dẫn không in lên giấy.  
 Mã QR Động: Sinh slug 6 ký tự duy nhất (/l/[slug]) lưu JSON vào Supabase; cho phép quay lại sửa nội dung web mà không cần in lại mã QR trên tờ thiệp giấy.  
 Xuất PDF **2 trang = 2 mặt của 1 tờ A4** theo bảng 2.2: trang 1 phong bì C7 + mặt trước thiệp; trang 2 mặt sau thiệp. PDF **luôn vẽ lại từ thiết kế đã lưu** tại lúc bấm: đổi màu, chữ, ảnh thì bản in đổi theo; đường cắt, gấp, dán cố định theo PRINT_CONFIG. Ảnh chụp mặt thiệp phải ẩn Transformer và khung lề. Có công tắc ẩn nền khi in.  
 FR-08 — Trang Người nhận (/l/[slug]) & Cá nhân hóa theo URL (?to=...)  

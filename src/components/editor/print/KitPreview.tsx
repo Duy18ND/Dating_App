@@ -1,10 +1,9 @@
 "use client";
 
-import { FileText } from "lucide-react";
-import { useCallback, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { LetterView } from "@/components/letter/LetterView";
+import { PrintDialog } from "@/components/share/PrintDialog";
 import { PrintGuide } from "@/components/share/PrintGuide";
-import { Button } from "@/components/ui/button";
 import type { SheetSide } from "@/lib/client/export-pdf";
 import { useEditorStore } from "@/lib/editor/store";
 import { PRINT_CONFIG } from "@/lib/print-config";
@@ -47,9 +46,6 @@ export function KitPreview() {
     () => "",
   );
   const qrUrl = draftQrUrl(origin, template);
-  const [exporting, setExporting] = useState(false);
-  const [error, setError] = useState<string>();
-
   // Hai mặt giấy dùng chung một lần vẽ các lớp ảnh.
   const kit = useMemo(() => {
     let pending: Promise<(side: SheetSide) => HTMLCanvasElement> | undefined;
@@ -67,34 +63,22 @@ export function KitPreview() {
   const drawFront = useCallback(async () => (await kit())("front"), [kit]);
   const drawBack = useCallback(async () => (await kit())("back"), [kit]);
 
-  async function downloadDraft() {
-    setExporting(true);
-    setError(undefined);
-    try {
-      const { exportLetterPdf } = await import("@/lib/client/export-pdf");
-      await exportLetterPdf({
-        canvas,
-        qrUrl,
-        envelopeColor,
-        recipientName,
-        background: !hideBackground,
-        fileName: "ban-in-thu.pdf",
-      });
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Không xuất được PDF.");
-    } finally {
-      setExporting(false);
-    }
-  }
-
   return (
     <div className="min-h-0 flex-1 overflow-y-auto bg-canvas p-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-6">
       <div className="mx-auto grid max-w-5xl items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
           <div className="space-y-3 rounded-lg border bg-card p-3">
-            <Button type="button" disabled={exporting} onClick={downloadDraft}>
-              <FileText /> {exporting ? "Đang tạo PDF..." : "Tải PDF thử"}
-            </Button>
+            <PrintDialog
+              label="Tải PDF thử"
+              fileName="ban-in-thu.pdf"
+              input={{
+                canvas,
+                qrUrl,
+                envelopeColor,
+                recipientName,
+                background: !hideBackground,
+              }}
+            />
             <p className="rounded-md bg-accent p-2 text-xs">
               <strong>Bản thử để kiểm tra khổ giấy:</strong> mã QR mở trang mẫu, chưa phải thư của
               bạn. Muốn tặng thật, hãy bấm Xuất bản rồi tải PDF ở cửa sổ hiện ra.
@@ -104,11 +88,6 @@ export function KitPreview() {
               checked={hideBackground}
               onChange={setHideBackground}
             />
-            {error && (
-              <p role="alert" className="text-sm text-destructive">
-                {error}
-              </p>
-            )}
             <PrintGuide />
           </div>
           <Part title="Trang 1: mặt trước tờ giấy (phong bì và mặt trước thiệp)">

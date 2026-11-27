@@ -212,6 +212,9 @@ export function composeSheetCanvas(
 export async function exportLetterPdf(options: PrintKitInput & { fileName: string }) {
   const [{ jsPDF }, kit] = await Promise.all([import("jspdf"), renderPrintKit(options)]);
   const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
+  // Gợi ý cho hộp thoại in: không co giãn trang, in 2 mặt lật theo cạnh dài. Trình xem PDF có
+  // thể bỏ qua, nên giao diện vẫn nhắc người dùng kiểm tra.
+  pdf.viewerPreferences({ PrintScaling: "None", Duplex: "DuplexFlipLongEdge" });
 
   // Lớp ảnh: phôi phong bì (nền + vùng keo + chữ nắp) và thiệp đã có tràn màu.
   const env = kit.envelope.area;
