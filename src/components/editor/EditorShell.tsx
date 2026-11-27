@@ -5,6 +5,7 @@ import {
   Image as ImageIcon,
   LayoutTemplate,
   Music,
+  NotebookPen,
   Palette,
   PenLine,
   Redo2,
@@ -25,6 +26,7 @@ import { EditorCanvas } from "./EditorCanvas";
 import { ElementToolbar } from "./ElementToolbar";
 import { HandwritingPanel } from "./HandwritingPanel";
 import { ImagePanel } from "./ImagePanel";
+import { LetterPanel } from "./LetterPanel";
 import { QrPanel } from "./QrPanel";
 import { StickerPanel } from "./StickerPanel";
 import { TemplatePanel } from "./TemplatePanel";
@@ -32,7 +34,15 @@ import { AddTextButton, TextPanel } from "./TextPanel";
 import { inputClass } from "./ui";
 import { WebPanel } from "./WebPanel";
 
-type TabId = "template" | "text" | "image" | "background" | "sticker" | "draw" | "web";
+type TabId =
+  | "template"
+  | "text"
+  | "image"
+  | "background"
+  | "sticker"
+  | "draw"
+  | "web"
+  | "letter";
 
 const TABS: { id: TabId; label: string; icon: ComponentType; Panel: ComponentType }[] = [
   { id: "template", label: "Mẫu", icon: LayoutTemplate, Panel: TemplatePanel },
@@ -51,6 +61,7 @@ const TABS: { id: TabId; label: string; icon: ComponentType; Panel: ComponentTyp
   { id: "background", label: "Nền", icon: Palette, Panel: BackgroundPanel },
   { id: "sticker", label: "Sticker", icon: Smile, Panel: StickerPanel },
   { id: "draw", label: "Vẽ tay", icon: PenLine, Panel: HandwritingPanel },
+  { id: "letter", label: "Thư", icon: NotebookPen, Panel: LetterPanel },
   {
     id: "web",
     label: "QR & Web",

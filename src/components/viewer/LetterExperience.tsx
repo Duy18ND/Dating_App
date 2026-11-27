@@ -4,18 +4,13 @@ import { Disc3, Heart } from "lucide-react";
 import { useRef, useState, type CSSProperties } from "react";
 import { trackUrl } from "@/lib/audio-tracks";
 import { recordView } from "@/lib/client/api";
+import { inkOn } from "@/lib/render/ink";
 import { cn } from "@/lib/utils";
 import type { PublicLetter } from "@/types/letter";
 import { LetterContent } from "./LetterContent";
 
 type Step = "sealed" | "opening" | "open";
 const OPEN_MS = 1700;
-
-/** Chữ trắng trên phong bì tối, chữ mực trên phong bì sáng. */
-function inkOn(hex: string) {
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  return 0.299 * r + 0.587 * g + 0.114 * b < 140 ? "#FFFFFF" : "#2B2623";
-}
 
 function MusicButton({ onToggle, playing }: { onToggle: () => void; playing: boolean }) {
   return (
