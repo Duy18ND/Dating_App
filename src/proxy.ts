@@ -45,5 +45,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/editor/:path*", "/thiep-cua-toi/:path*"],
+  matcher: ["/editor/:path*", "/thiep-cua-toi/:path*", "/doi-mat-khau"],
 };

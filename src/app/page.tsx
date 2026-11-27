@@ -6,7 +6,7 @@ import { TEMPLATES } from "@/lib/templates";
 const STEPS = [
   [
     "Thiết kế",
-    "Chọn mẫu, trang trí bìa thiệp và trang lời mời, thêm nhạc nền. Không cần đăng nhập.",
+    "Đăng nhập bằng email hoặc Google, chọn mẫu, trang trí thiệp và trang web, thêm nhạc nền. Người nhận không cần tài khoản.",
   ],
   [
     "In và cắt dán",
@@ -18,7 +18,12 @@ const STEPS = [
 export default function Home() {
   return (
     <main className="flex-1">
-      <section className="mx-auto max-w-3xl px-4 pt-16 pb-12 text-center">
+      <nav aria-label="Tài khoản" className="mx-auto flex max-w-6xl justify-end gap-2 px-4 pt-4">
+        <Link href="/thiep-cua-toi" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+          Thiệp của tôi
+        </Link>
+      </nav>
+      <section className="mx-auto max-w-3xl px-4 pt-10 pb-12 text-center">
         <h1 className="font-playfair text-4xl leading-tight text-primary sm:text-5xl">
           Thư giấy cầm trên tay, lời nhắn sống trên màn hình
         </h1>
@@ -64,7 +69,11 @@ export default function Home() {
           ))}
         </ol>
         <p className="mt-10 text-center text-sm text-muted-foreground">
-          Thư được lưu 60 ngày. Bạn tự chịu trách nhiệm với ảnh cá nhân mình tải lên.
+          Mỗi thiệp được lưu 60 ngày, sau đó <strong>mã QR trên thiệp giấy ngừng hoạt động</strong>.
+          Bạn tự chịu trách nhiệm với ảnh cá nhân mình tải lên.{" "}
+          <Link href="/chinh-sach-rieng-tu" className="underline">
+            Chính sách riêng tư
+          </Link>
         </p>
       </section>
     </main>
