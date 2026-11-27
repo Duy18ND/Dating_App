@@ -2,8 +2,16 @@
 
 Mỗi prompt dán nguyên khối vào Gemini. Kết quả Gemini trả về thì gửi lại cho Claude (Sonnet) để ghép vào code và chạy test.
 
-| # | Task | Gemini làm gì | File sẽ thay |
+| # | Task | Gemini làm gì | Khi nào gửi |
 |---|---|---|---|
+| 1 | T-28 | 4 thiệp **nằm ngang** (nội dung + bố cục) | Ngay bây giờ |
+| 5 | T-35 | Nội dung mặc định cho trang web cuộn | Trước T-35 |
+| 4 | T-25 | Kịch bản clip và caption Threads | Trước khi ra mắt |
+| 2, 3 | T-13 | Icon SVG và sticker | Không cần gửi lại: repo đang có thay đổi icon và sticker mới chưa commit, kiểm tra rồi commit nếu ưng |
+
+> Cập nhật v1.2 (27/11/2026): Prompt 1 đã viết lại cho thiệp ngang. Bản cũ cho thiệp đứng không còn dùng.
+
+---|---|---|---|
 | 1 | T-17 | Viết lại nội dung chữ và bố cục 4 mẫu thiệp A6 | `src/lib/templates.ts` |
 | 2 | T-13 | Vẽ lại 20 icon SVG đẹp hơn | `src/lib/icons.ts` |
 | 3 | T-13 (tùy chọn) | Vẽ 25 sticker meme thay bộ tạm | `public/stickers/memes/*.webp` |
@@ -11,48 +19,42 @@ Mỗi prompt dán nguyên khối vào Gemini. Kết quả Gemini trả về thì
 
 ---
 
-## Prompt 1: Nội dung và bố cục 4 mẫu thiệp A6 (T-17)
+## Prompt 1: 4 thiệp nằm ngang (T-28)
+
+Mẹo: dán kèm nội dung file `src/lib/templates.ts` hiện tại để Gemini giữ lại phần chữ bạn đã ưng.
 
 ```
-Bạn là copywriter và designer cho "Phygital Letter Studio": web tạo thiệp giấy khổ A6 (105 x 148 mm), in ra, bỏ vào phong bì Kraft đóng dấu sáp; trên thiệp có mã QR mở bản web có nhạc. Người dùng là Gen Z Việt Nam 18–28 tuổi.
+Bạn là copywriter và designer cho "Phygital Letter Studio". Bộ quà in ra gồm: phong bì C6, một THIỆP NẰM NGANG 148 x 105 mm có mã QR, và một tờ thư riêng để viết tay cảm xúc. Quét QR trên thiệp sẽ mở trang web có nhạc để người nhận lướt xem. Người dùng là Gen Z Việt Nam 18–28 tuổi.
 
-Hãy soạn 4 mẫu thiệp, viết bằng tiếng Việt có dấu, tự nhiên, ấm áp, không sến, không dùng tên người thật:
-1. confession – Tỏ tình / Kỷ niệm. Bố cục: 35% trên là tiêu đề (hoặc chỗ dán ảnh Polaroid), 45% giữa là 6–8 dòng kẻ để viết tay, 20% dưới là mã QR + một câu nhắn quét mã.
-2. wedding – Mời cưới / Đính hôn. Trang trọng, tông kem và đỏ rượu vang (#6E1F2A), có tên cô dâu chú rể, thời gian, địa điểm (dùng tên ví dụ rõ ràng là ví dụ, ví dụ "Tên cô dâu & Tên chú rể").
-3. dinner – Vé mời ăn / Hẹn hò. Vui nhộn, dạng vé (ticket), có chỗ cho 2 sticker meme.
-4. holiday – Sinh nhật / Giáng sinh. Dạng bưu thiếp, có vùng chấm bi để viết lời chúc, có 1 sticker.
+Vì lời tâm sự dài nằm ở thư viết tay và trang web, THIỆP chỉ là lời mời ngắn, thoáng, nhiều khoảng trống, mời người nhận quét mã. Tiếng Việt có dấu, tự nhiên, ấm áp, không sến, không dùng tên người thật.
 
-RÀNG BUỘC KỸ THUẬT (bắt buộc đúng, code sẽ chạy test tự động):
-- Canvas logic 1240 x 1754 px, gốc (0,0) ở góc trên trái. Lề an toàn 94 px: mọi phần tử phải nằm trong khung x từ 94 đến 1146, y từ 94 đến 1660.
-- Chữ: chiều cao ước tính = số dòng x fontSize x 1.35. Xuống dòng bằng "\n". Chữ căn giữa trong khung rộng mặc định x=94, width=1052.
-- Font chỉ được dùng: "Be Vietnam Pro", "Cormorant Garamond", "Playfair Display", "Charm", "Dancing Script", "Mali". Màu chữ dạng "#RRGGBB".
-- Icon chỉ được dùng các id: heart, heart-line, rings, star, sparkle, envelope, toast, flower, leaf, branch, tulip, wax-seal, wreath, squiggle, scribble-circle, arrow, underline, smile, crown, music-note.
-- Sticker chỉ được dùng các id: yeu-qua, nho-ban, di-an-hong, chot-keo, chuc-mung, sinh-nhat, doi-qua, met-xiu, ngu-day, bat-ngo, ngau, gian-roi, xin-loi, cam-on, thuong-lam, nho-den-nha, khong-gap-khong-ve, iu-iu, hong-be-oi, dong-y-di, hehe, xinh-xiu, qua-da, buon-nhe, giang-sinh. Sticker vuông, cạnh tối đa 400 px.
-- Mỗi mẫu có đúng 1 mã QR, cạnh từ 240 đến 300 px. QR có viền trắng phụ thêm ra ngoài 10% cạnh (tối thiểu 12 px) mỗi phía, viền này cũng phải nằm trong lề an toàn. Màu QR phải đậm (tương phản cao trên nền trắng).
-- Vùng viết tay: lined_area với lineStyle "ruled" (dòng kẻ, cách nhau 80 px) hoặc "dot_grid" (chấm bi, cách 46 px).
-- Nền: preset ("kraft" | "cream" | "grid" | "plaid") hoặc màu "#RRGGBB".
-- Khối web: acceptButton { question, yesText (≤40 ký tự), noText (≤40), dodgeNo }, rsvp { eventDate "YYYY-MM-DDTHH:mm", locationName, mapsUrl "" }, poll { question, options: 2–4 phương án khác nhau }.
+Soạn 4 mẫu:
+1. confession – Tỏ tình / Kỷ niệm: tiêu đề ngắn, vài hình trang trí, QR đặt một bên kèm câu mời quét.
+2. wedding – Mời cưới: trang trọng, tông kem và đỏ rượu vang (#6E1F2A), "Tên cô dâu & Tên chú rể" (ví dụ rõ ràng), thời gian, địa điểm, QR.
+3. dinner – Vé mời đi ăn / hẹn hò: bố cục như tấm vé ngang, QR ở phần "cuống vé" bên phải, 1–2 sticker.
+4. holiday – Sinh nhật / Giáng sinh: bưu thiếp ngang, lời chúc ngắn, 1 sticker, QR.
 
-ĐỊNH DẠNG TRẢ VỀ: chỉ trả một khối TypeScript, giữ đúng các hàm trợ giúp sau (đã có sẵn trong code):
-  text(y, "nội dung", fontSize, "Font", "#màu", { x, width }?)
+RÀNG BUỘC KỸ THUẬT (code có test tự động):
+- Canvas 1754 x 1240 px (NGANG), gốc (0,0) góc trên trái. Lề an toàn 94 px: mọi phần tử nằm trong x từ 94 đến 1660, y từ 94 đến 1146.
+- Chữ: chiều cao ước tính = số dòng x fontSize x 1.35, xuống dòng bằng "
+". Phải ghi rõ x và width cho từng khối chữ. Cỡ chữ nhỏ nhất 32 px (nhỏ hơn in ra khó đọc). Mỗi dòng phải đủ ngắn để không tự xuống dòng ngoài ý muốn.
+- Font: "Be Vietnam Pro", "Cormorant Garamond", "Playfair Display", "Charm", "Dancing Script", "Mali". Màu "#RRGGBB".
+- Icon id: heart, heart-line, rings, star, sparkle, envelope, toast, flower, leaf, branch, tulip, wax-seal, wreath, squiggle, scribble-circle, arrow, underline, smile, crown, music-note.
+- Sticker id: yeu-qua, nho-ban, di-an-hong, chot-keo, chuc-mung, sinh-nhat, doi-qua, met-xiu, ngu-day, bat-ngo, ngau, gian-roi, xin-loi, cam-on, thuong-lam, nho-den-nha, khong-gap-khong-ve, iu-iu, hong-be-oi, dong-y-di, hehe, xinh-xiu, qua-da, buon-nhe, giang-sinh. Sticker vuông, tối đa 400 px.
+- Đúng 1 mã QR mỗi mẫu, cạnh 240–320 px. Viền trắng quanh QR rộng thêm 10% cạnh mỗi phía, viền cũng phải nằm trong lề an toàn. Màu QR đậm.
+- Không phần tử nào đè lên nhau.
+- Nền: preset ("kraft" | "cream" | "grid" | "plaid") hoặc "#RRGGBB".
+- Khối web: acceptButton { question, yesText ≤40, noText ≤40, dodgeNo }, rsvp { eventDate "YYYY-MM-DDTHH:mm", locationName, mapsUrl "" }, poll { question, options 2–4 phương án khác nhau }.
+
+TRẢ VỀ: một khối TypeScript dùng các hàm có sẵn:
+  text(y, "nội dung", fontSize, "Font", "#màu", { x, width })
   icon("id", x, y, size, "#màu")
   sticker("id", x, y, size, rotation?)
   qr(x, y, size, "#màu", "iconId giữa mã"?)
-  { type: "lined_area", x, y, width, height, lineStyle: "ruled" | "dot_grid" }
+export const TEMPLATES: Template[] = [ { type, name, description (≤90 ký tự), title, background: { type, value, overlayOpacity: 0 }, elements: [...], web: { audio: { enabled: false, trackId, startTime: 0, volume: 0.4 }, blocks: {...} } }, ... ]
+trackId lần lượt: romantic-1, wedding-1, fun-1, festive-1.
 
-Dạng:
-export const TEMPLATES: Template[] = [
-  {
-    type: "confession",
-    name: "...", description: "...(≤ 90 ký tự)", title: "...",
-    background: { type: "preset", value: "cream", overlayOpacity: 0 },
-    elements: [ ...các lời gọi hàm ở trên, theo thứ tự từ dưới lên trên ],
-    web: { audio: { enabled: false, trackId: "romantic-1", startTime: 0, volume: 0.4 }, blocks: { ... } },
-  },
-  ...3 mẫu còn lại (trackId lần lượt: wedding-1, fun-1, festive-1)
-];
-
-Sau khối code, liệt kê ngắn cho từng phần tử: y bắt đầu, chiều cao ước tính, y kết thúc, để chứng minh không chồng lấn và nằm trong lề an toàn.
+Sau code, lập bảng cho từng phần tử: x, y, rộng, cao ước tính, mép phải, mép dưới, để chứng minh nằm trong lề an toàn và không chồng nhau.
 ```
 
 ---
@@ -116,3 +118,25 @@ Trả về:
 4. 1 bình luận ghim kèm link demo (để chỗ trống [LINK]).
 5. Mẹo để mã QR trên thiệp quét được ngay trong clip (khoảng cách, ánh sáng, tránh lóa).
 ```
+
+---
+
+## Prompt 5: Nội dung mặc định cho trang web cuộn (T-35)
+
+```
+Bạn là copywriter cho "Phygital Letter Studio". Người nhận quét mã QR trên thiệp, bóc dấu sáp, nhạc phát, rồi LƯỚT DỌC một trang web trên điện thoại để nghe người gửi bày tỏ. Thư viết tay trên giấy là phần riêng tư, nên web KHÔNG lặp lại một bức thư mà dẫn người nhận đi qua kỷ niệm rồi đến câu hỏi. Người dùng là Gen Z Việt Nam.
+
+Viết nội dung gợi ý (người tạo sẽ sửa lại) cho 4 mẫu, đúng thứ tự phần:
+- confession: hero → first_day → memories (3 mục) → reasons (5 câu) → counter → message → interact → ending
+- wedding: hero → counter (đếm ngược) → memories (3 mục chuyện tình) → interact → ending
+- dinner: hero → counter → interact → ending
+- holiday: hero → message → memories (4 mục) → ending
+
+Giới hạn ký tự: hero.lead ≤ 200; first_day.text ≤ 500; memories[].caption ≤ 200; reasons[] ≤ 200, tối đa 8 câu; message.title ≤ 100, message.body ≤ 5000 (viết khoảng 400–600, chia đoạn bằng dòng trống); counter.label ≤ 80; ending.text ≤ 200.
+
+Quy tắc giọng văn: gần gũi, thật, không sáo rỗng, câu ngắn dễ đọc trên điện thoại. Chỗ người tạo phải tự thay thì viết trong ngoặc vuông, ví dụ "[tên quán]". Không dùng tên người thật, không trích lời bài hát hay thơ có bản quyền.
+
+Trả về JSON: { "confession": [ { "type": "hero", "lead": "..." }, { "type": "first_day", "text": "..." }, { "type": "memories", "items": [ { "caption": "..." } ] }, { "type": "reasons", "items": ["..."] }, { "type": "counter", "label": "...", "mode": "since" | "until" }, { "type": "message", "title": "...", "body": "..." }, { "type": "interact" }, { "type": "ending", "text": "..." } ], "wedding": [...], "dinner": [...], "holiday": [...] }
+Tên trường có thể được lập trình viên đổi cho khớp code; hãy giữ nguyên cấu trúc.
+```
+

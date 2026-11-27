@@ -1,3 +1,78 @@
+# Backlog v1.2 (cập nhật 27/11/2026)
+
+Nguồn chuẩn là file này và `docs/SRS.md` v1.2. File .xlsx chưa cập nhật. Backlog v1.1 gốc nằm ở cuối file để tra cứu.
+
+## Trạng thái T-01 → T-25
+
+| Task | Trạng thái |
+|---|---|
+| T-01, T-03 → T-16, T-18, T-21, T-22, T-24 | Đã có code (nhánh `feat/opus-tasks`), chưa thử với Supabase/R2 thật và thiết bị thật. T-09, T-10, T-14, T-16 phải chỉnh lại cho canvas ngang (T-27). |
+| T-17 | Có code; 4 bố cục đứng được thay ở T-28. |
+| T-19 | Có code PDF 2 trang; được thay bằng T-29. |
+| T-20 | Phong bì + nhạc xong; phần hiện sau phong bì được thay bằng T-33. |
+| T-02 | Chủ dự án. Chạy thêm `supabase/migrations/0002_upload_orphaned_at.sql`; thêm nhạc và ảnh QR donate. |
+| T-23 | Chủ dự án, mở rộng (xem T-23A, T-23B). |
+| T-25 | Chủ dự án, làm cuối cùng. |
+
+## Task mới
+
+### Đợt A: Bộ in (làm trước)
+
+| Task | Nội dung | Tiêu chí hoàn thành | Phụ trách | Giờ | Sau |
+|---|---|---|---|---|---|
+| T-26 | Hợp đồng dữ liệu v1.2: types, `PRINT_CONFIG`, Zod cho canvas ngang, `letterSheet`, `envelope`, `web_config.sections` | Thư đứng cũ vẫn qua validation; thư mới là 1754x1240; mọi trường mới có giới hạn theo FR-10/11/12; có test | **Opus** | 2 | — |
+| T-27 | Trình thiết kế & trang xem hỗ trợ canvas ngang | Hướng lấy từ canvas_data; bỏ mọi số 1240/1754 viết cứng (store, panel, stage, preview, sticker); chữ/QR mới đặt đúng giữa; PC và mobile (canvas ngang trên màn dọc vẫn thao tác được); thư đứng cũ sửa được | **Opus** | 2.5 | T-26 |
+| T-28 | 4 bố cục thiệp ngang | Nội dung và tọa độ từ Gemini (Prompt 1); test lề an toàn đạt; trang chủ hiển thị đúng | **Gemini** soạn → **Sonnet** ghép | 2 | T-27 |
+| T-30 | Thư viết tay (FR-11): hàm vẽ tờ A5 và panel tùy chỉnh có xem trước | Giữa để trống; dòng kẻ không đè vạch gấp; chữ tiếng Việt đúng font; xuất được ảnh >= 300 DPI cho T-29 | **Sonnet** | 2.5 | T-26 |
+| T-31 | Trang trí phong bì (FR-12): panel chữ lồng, câu ngắn, màu và xem trước | Xem trước giống bản in; tắt được màu nền | **Sonnet** | 1.5 | T-26 |
+| T-29 | PDF 3 trang: phong bì có vùng dán và nắp bo tròn, thiệp ngang, thư A5 | Đúng số đo SRS 2.2; chữ trên nắp xoay 180°; vùng "Bôi keo" bị nắp đáy che hết khi gấp (có test hình học); không dùng `pdf.text()` cho chữ người dùng; thư đứng cũ vẫn in được | **Opus** | 3 | T-27, T-30, T-31 |
+| T-23A | In thử trên giấy thật | In 100%, cắt, gấp, dán; thiệp và thư rút ra dễ; chữ trên nắp đọc xuôi; không lộ vùng keo; quét được QR | **Chủ dự án** | 1.5 | T-28, T-29 |
+
+### Đợt B: Trang web bày tỏ
+
+| Task | Nội dung | Tiêu chí hoàn thành | Phụ trách | Giờ | Sau |
+|---|---|---|---|---|---|
+| T-32 | Ảnh cho trang web: tối đa 8 ảnh, upload 20 ảnh/giờ, gắn ảnh vào thư | URL trong `sections` được đưa vào `set_letter_uploads` ở cả tạo và sửa, **kể cả khi PATCH chỉ đổi web_config hoặc chỉ canvas_data** (thiếu một bên là cron xóa nhầm ảnh); từ chối URL lạ; có test | **Opus** | 2 | T-26 |
+| T-33 | Trang web cuộn (FR-10): các phần, hiệu ứng hiện khi cuộn, đếm ngày, xem lại thiệp | Đẹp ở 360px; tôn trọng reduced-motion; phần trống tự ẩn; nhạc không ngắt khi cuộn; thư không có `sections` hiển thị như cũ | **Sonnet** | 4 | T-26 |
+| T-34 | Tab "Trang web" trong trình thiết kế | Bật/tắt, đổi thứ tự, nhập nội dung, tải ảnh, xem trước cỡ điện thoại; Undo/Redo hoạt động; dùng được trên mobile | **Sonnet** | 3.5 | T-32, T-33 |
+| T-35 | Phần web mặc định cho 4 mẫu | Nội dung từ Gemini (Prompt 5), đúng thứ tự FR-01, qua validation | **Gemini** soạn → **Sonnet** ghép | 1.5 | T-33 |
+| T-36 | Review đợt B | Hiển thị chữ người dùng an toàn; URL ảnh; lệnh xóa/dọn rác với ảnh web; thư cũ không hỏng; thử lại luồng đầy đủ | **Opus** | 1.5 | T-34, T-35 |
+| T-23B | Thử trên iPhone và Android thật | Nhạc, cuộn mượt, `?to=`, phản hồi, tải PDF và ảnh QR | **Chủ dự án** | 1.5 | T-36 |
+
+## Tổng theo người phụ trách
+
+| Phụ trách | Task | Giờ (ước lượng) |
+|---|---|---|
+| Claude Opus | T-26, T-27, T-29, T-32, T-36 | 11 |
+| Claude Sonnet | T-30, T-31, T-33, T-34 + phần ghép của T-28, T-35 | 15 |
+| Gemini (kèm Sonnet ghép) | Nội dung cho T-28, T-35 | tính trong T-28, T-35 |
+| Chủ dự án | T-02, T-23A, T-23B, T-25 | — |
+
+## Thứ tự làm
+
+1. **Opus:** T-26, rồi T-27.
+2. **Sonnet:** T-30, T-31. Song song, **chủ dự án** gửi Prompt 1 cho Gemini.
+3. **Sonnet:** T-28 (ghép kết quả Gemini). **Opus:** T-29.
+4. **Chủ dự án:** T-23A. In thử đạt mới sang đợt B.
+5. **Opus:** T-32. **Sonnet:** T-33, T-34, T-35.
+6. **Opus:** T-36. **Chủ dự án:** T-23B, T-25.
+
+## Câu lệnh giao việc
+
+Đổi model bằng `/model`, rồi gửi:
+
+- Lượt 1 (`/model opus`): `Làm T-26 và T-27 trong docs/BACKLOG.md theo docs/SRS.md v1.2. Commit sau mỗi task.`
+- Lượt 2 (`/model sonnet`): `Làm T-30 và T-31 trong docs/BACKLOG.md. Commit sau mỗi task.`
+- Lượt 3a (`/model sonnet`, sau khi dán kết quả Gemini): `Ghép kết quả Gemini này cho T-28.`
+- Lượt 3b (`/model opus`): `Làm T-29 trong docs/BACKLOG.md.`
+- Lượt 5a (`/model opus`): `Làm T-32.`
+- Lượt 5b (`/model sonnet`): `Làm T-33, T-34, T-35 trong docs/BACKLOG.md.`
+- Lượt 6 (`/model opus`): `Làm T-36.`
+
+---
+
+# Phụ lục: Backlog v1.1 gốc (lịch sử, số đo đã cũ)
+
 > Bản trích tự động từ Base_Task_Backlog_Phygital_Letter.xlsx. Mỗi dòng là một hàng; chữ cái là cột.
 
 === Dashboard  
