@@ -45,6 +45,6 @@
 - **Claude Opus**: Stage 4 done (`T-38`, `T-41`, `T-36`)
 - **Claude Sonnet**: Stage 4 done (`T-39`, `T-40`)
 - **Post-Launch V1.8 (after MVP launch — do not block Stage 1–4)**:
-  - **Canva-style Smart Snap Guides** in `EditorStage` (center X/Y & safe-margin magnetic alignment lines).
+  - ~~**Canva-style Smart Snap Guides**~~ ✅ done early on owner request (27/11/2026): `lib/editor/snap.ts` + `useSnapping` (drag, resize handles, equal spacing, Ctrl to bypass) and centre buttons in the toolbar.
   - **Hybrid Freeform Web Block (`scrapbook`, fixed `4:5` Konva canvas)** inside scrollable web pages so users can freely drag/rotate photos, stickers, and doodles while keeping text/forms 100% responsive across 360px Mobile, Tablet, and PC.
 - **Next (owner)**: configure Supabase per `docs/REVIEW_OPUS.md` (T-41), run `0003_accounts.sql`, set `NEXT_PUBLIC_SUPABASE_*`, then `T-23A`, `T-23B` (real sign-in flows), `T-25`.

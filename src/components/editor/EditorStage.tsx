@@ -2,7 +2,7 @@
 
 import type Konva from "konva";
 import { useEffect, useRef } from "react";
-import { Layer, Line, Rect, Transformer } from "react-konva";
+import { Group, Layer, Line, Rect, Transformer } from "react-konva";
 import type { NodeChange } from "@/components/letter/ElementNode";
 import LetterStage from "@/components/letter/LetterStage";
 import { currentElements, useEditorStore } from "@/lib/editor/store";
@@ -10,6 +10,7 @@ import { normalizeAngle, pinchPatch, scalePatch } from "@/lib/editor/transform";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { LIMITS } from "@/lib/validation";
 import type { CanvasElement } from "@/types/letter";
+import { useSnapping } from "./useSnapping";
 
 const { width: W, height: H, safeMarginPx: M } = PRINT_CONFIG.CANVAS;
 const UI_COLOR = "#8E2424";
@@ -201,6 +202,7 @@ export default function EditorStage({ scale }: { scale: number }) {
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const liveRef = useRef<Konva.Line>(null);
+  const guideRef = useRef<Konva.Group>(null);
 
   const selected = face.elements.find((el) => el.id === selectedId);
   const selecting = tool === "select";
@@ -218,6 +220,7 @@ export default function EditorStage({ scale }: { scale: number }) {
 
   usePen(stageRef, liveRef, tool === "pen", pen.color, pen.width);
   usePinch(stageRef, selecting);
+  const snapAnchor = useSnapping(stageRef, guideRef, transformerRef, scale);
 
   function handleChange(id: string, change: NodeChange) {
     const state = useEditorStore.getState();
@@ -283,6 +286,8 @@ export default function EditorStage({ scale }: { scale: number }) {
           opacity={0.45}
         />
         <Line ref={liveRef} lineCap="round" lineJoin="round" tension={0.3} />
+        {/* Đường gióng khi kéo: chỉ trên trình thiết kế, không vào bản in. */}
+        <Group ref={guideRef} />
       </Layer>
       <Layer name="editor-transformer">
         <Transformer
@@ -301,6 +306,7 @@ export default function EditorStage({ scale }: { scale: number }) {
           borderDash={locked ? [6, 4] : undefined}
           rotateAnchorOffset={coarse ? 36 : 28}
           ignoreStroke
+          anchorDragBoundFunc={snapAnchor}
           boundBoxFunc={(oldBox, newBox) =>
             Math.abs(newBox.width) < 12 || Math.abs(newBox.height) < 12 ? oldBox : newBox
           }

@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  AlignCenterHorizontal,
+  AlignCenterVertical,
   ArrowDown,
   ArrowDownToLine,
   ArrowUp,
@@ -14,6 +16,8 @@ import {
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { currentElements, useEditorStore } from "@/lib/editor/store";
+import { PRINT_CONFIG } from "@/lib/print-config";
+import { centerOnCanvas } from "./centerElement";
 import { cn } from "@/lib/utils";
 
 function Action({
@@ -59,6 +63,10 @@ export function ElementToolbar({
   if (!element) return null;
   const id = element.id;
   const locked = !!element.locked;
+  const center = (axis: "x" | "y") => {
+    const patch = centerOnCanvas(id, axis, PRINT_CONFIG.CANVAS);
+    if (patch) updateElement(id, patch);
+  };
 
   return (
     <div
@@ -71,6 +79,12 @@ export function ElementToolbar({
           <SlidersHorizontal />
         </Action>
       )}
+      <Action label="Căn giữa ngang" disabled={locked} onClick={() => center("x")}>
+        <AlignCenterVertical />
+      </Action>
+      <Action label="Căn giữa dọc" disabled={locked} onClick={() => center("y")}>
+        <AlignCenterHorizontal />
+      </Action>
       <Action label="Đưa lên trên cùng" onClick={() => moveLayer(id, "front")}>
         <ArrowUpToLine />
       </Action>
