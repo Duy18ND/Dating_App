@@ -34,9 +34,9 @@ export default function PrivacyPage() {
       <Part title="1. Dữ liệu chúng tôi lưu">
         <ul className="list-disc space-y-1 pl-5">
           <li>
-            <strong>Tài khoản người tạo thiệp:</strong> email và mật khẩu (mật khẩu do Supabase
-            Auth lưu dạng băm, chúng tôi không đọc được), hoặc thông tin cơ bản từ Google nếu bạn
-            đăng nhập bằng Google.
+            <strong>Tài khoản người tạo thiệp:</strong> tên đăng nhập hoặc email và mật khẩu (mật
+            khẩu do Supabase Auth lưu dạng băm, chúng tôi không đọc được), hoặc thông tin cơ bản từ
+            Google nếu bạn đăng nhập bằng Google.
           </li>
           <li>
             <strong>Nội dung thiệp:</strong> chữ, thiết kế, tên người gửi và người nhận, nhạc đã

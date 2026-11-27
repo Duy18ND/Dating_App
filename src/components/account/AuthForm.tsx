@@ -8,12 +8,14 @@ import { CopyButton } from "@/components/share/CopyButton";
 import { inputClass } from "@/components/editor/ui";
 import { Button } from "@/components/ui/button";
 import { getTurnstileToken } from "@/lib/client/turnstile";
+import { parseAccountIdentifier } from "@/lib/auth-account";
 import { isInAppBrowser } from "@/lib/in-app-browser";
 import { safeNext } from "@/lib/safe-redirect";
 import { authBrowser, callbackUrl } from "@/lib/supabase/browser";
 
 type Mode = "login" | "signup" | "forgot";
 const MIN_PASSWORD = 8;
+const GOOGLE_ENABLED = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";
 
 const TITLES: Record<Mode, string> = {
   login: "Đăng nhập",
@@ -44,7 +46,7 @@ function InAppNotice() {
       <p>
         Google không cho đăng nhập ở đây. Hãy bấm nút ⋯ ở góc màn hình và chọn{" "}
         <strong>Mở bằng trình duyệt</strong> (Chrome hoặc Safari), hoặc sao chép link dưới đây
-        rồi dán vào trình duyệt. Đăng nhập bằng email vẫn dùng được ngay tại đây.
+        rồi dán vào trình duyệt. Đăng nhập bằng tài khoản thường vẫn dùng được ngay tại đây.
       </p>
       <div className="flex items-center gap-2">
         <input className={inputClass} readOnly value={href} aria-label="Link trang đăng nhập" />
@@ -54,8 +56,8 @@ function InAppNotice() {
   );
 }
 
-/** Lỗi đăng nhập không cho biết email đã có tài khoản hay chưa (FR-14). */
-function friendly(message: string, mode: Mode): string {
+/** Lỗi đăng nhập không cho biết tài khoản email đã tồn tại hay chưa (FR-14). */
+function friendly(message: string, mode: Mode, kind: "username" | "email"): string {
   const text = message.toLowerCase();
   if (text.includes("captcha")) return "Xác thực chống spam thất bại, hãy thử lại.";
   if (text.includes("rate limit") || text.includes("too many")) {
@@ -64,11 +66,14 @@ function friendly(message: string, mode: Mode): string {
   if (text.includes("password") && mode === "signup") {
     return `Mật khẩu cần ít nhất ${MIN_PASSWORD} ký tự và khó đoán hơn.`;
   }
+  if (mode === "signup" && kind === "username" && text.includes("already")) {
+    return "Tên đăng nhập này đã có người dùng, hãy chọn tên khác.";
+  }
   if (text.includes("not confirmed")) {
-    return "Email chưa được xác nhận. Hãy mở link trong hộp thư (kể cả mục Spam).";
+    return "Tài khoản chưa được xác nhận. Hãy mở link trong email (nếu đăng ký bằng email) hoặc tắt Confirm email trên Supabase.";
   }
   return mode === "login"
-    ? "Email hoặc mật khẩu không đúng."
+    ? "Tên đăng nhập hoặc mật khẩu không đúng."
     : "Chưa thực hiện được, hãy thử lại sau ít phút.";
 }
 
@@ -78,7 +83,7 @@ export function AuthForm() {
   const linkFailed = query.get("loi") === "lien-ket";
   const inApp = useInAppBrowser();
   const [mode, setMode] = useState<Mode>(query.get("che-do") === "dang-ky" ? "signup" : "login");
-  const [email, setEmail] = useState("");
+  const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -93,15 +98,26 @@ export function AuthForm() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (busy) return;
-    setBusy(true);
     setError(undefined);
     setNotice(undefined);
+
+    const parsed = parseAccountIdentifier(account);
+    if (!parsed.ok) {
+      setError(parsed.error);
+      return;
+    }
+    if (mode === "forgot" && parsed.kind === "username") {
+      setError("Tài khoản tên thường không có email khôi phục mật khẩu. Chỉ dùng được với email thật.");
+      return;
+    }
+
+    setBusy(true);
     try {
       const supabase = authBrowser();
       const captchaToken = (await getTurnstileToken()) ?? undefined;
       if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: parsed.authEmail,
           password,
           options: { captchaToken },
         });
@@ -111,18 +127,33 @@ export function AuthForm() {
         return;
       }
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
+        const { data, error } = await supabase.auth.signUp({
+          email: parsed.authEmail,
           password,
-          options: { emailRedirectTo: callbackUrl(next), captchaToken },
+          options: {
+            ...(parsed.kind === "email" ? { emailRedirectTo: callbackUrl(next) } : {}),
+            data: parsed.kind === "username" ? { username: parsed.display } : undefined,
+            captchaToken,
+          },
         });
         if (error) throw error;
+        if (data.session) {
+          // Khi Confirm email = OFF trên Supabase, đăng nhập thẳng ngay sau khi tạo tài khoản.
+          window.location.assign(next);
+          return;
+        }
+        if (parsed.kind === "username") {
+          setNotice(
+            "Đã tạo tài khoản nhưng Supabase đang bật xác nhận email. Hãy tắt Confirm email trong Supabase Auth rồi đăng nhập lại.",
+          );
+          return;
+        }
         // Cùng một câu cho cả email đã có tài khoản: không lộ ai đã đăng ký.
         setNotice(
           "Nếu email hợp lệ, chúng tôi đã gửi link xác nhận. Mở hộp thư (kể cả mục Spam) và bấm link để bắt đầu.",
         );
       } else {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await supabase.auth.resetPasswordForEmail(parsed.authEmail, {
           redirectTo: callbackUrl("/doi-mat-khau"),
           captchaToken,
         });
@@ -131,7 +162,11 @@ export function AuthForm() {
       }
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "";
-      setError(message.includes("NEXT_PUBLIC_SUPABASE") ? message : friendly(message, mode));
+      setError(
+        message.includes("NEXT_PUBLIC_SUPABASE")
+          ? message
+          : friendly(message, mode, parsed.kind),
+      );
     } finally {
       setBusy(false);
     }
@@ -143,7 +178,7 @@ export function AuthForm() {
       provider: "google",
       options: { redirectTo: callbackUrl(next) },
     });
-    if (error) setError("Không mở được đăng nhập Google, hãy thử lại.");
+    if (error) setError("Đăng nhập Google chưa được bật. Hãy dùng tài khoản thường.");
   }
 
   return (
@@ -155,7 +190,8 @@ export function AuthForm() {
         </p>
       )}
 
-      {mode !== "forgot" &&
+      {GOOGLE_ENABLED &&
+        mode !== "forgot" &&
         (inApp ? (
           <InAppNotice />
         ) : (
@@ -163,23 +199,33 @@ export function AuthForm() {
             <Button type="button" variant="outline" className="w-full" onClick={google}>
               <ExternalLink /> Tiếp tục với Google
             </Button>
-            <p className="text-center text-xs text-muted-foreground">hoặc dùng email</p>
+            <p className="text-center text-xs text-muted-foreground">hoặc dùng tài khoản</p>
           </>
         ))}
 
       <form className="space-y-3" onSubmit={submit}>
         <label className="block space-y-1">
-          <span className="text-sm font-medium">Email</span>
+          <span className="text-sm font-medium">
+            {mode === "forgot" ? "Email đã đăng ký" : "Tên đăng nhập hoặc email"}
+          </span>
           <input
             className={inputClass}
-            type="email"
-            autoComplete="email"
-            inputMode="email"
+            type={mode === "forgot" ? "email" : "text"}
+            autoComplete={mode === "forgot" ? "email" : "username"}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder={mode === "forgot" ? "ban@gmail.com" : "duy18nd hoặc ban@gmail.com"}
             required
             maxLength={254}
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            value={account}
+            onChange={(event) => setAccount(event.target.value)}
           />
+          {mode === "signup" && (
+            <span className="block text-xs text-muted-foreground">
+              Gõ tên đăng nhập thường (3–32 ký tự chữ không dấu, số, `.`, `_`, `-`) hoặc email.
+            </span>
+          )}
         </label>
         {mode !== "forgot" && (
           <label className="block space-y-1">

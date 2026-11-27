@@ -25,7 +25,7 @@ NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.6 (chốt ngày 27/11/2026)
 4. Hiệu ứng hạt (tim, sao, cánh hoa) vào MVP.  
   
 NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.4 (chốt ngày 27/11/2026)  
-1. **Người tạo thiệp bắt buộc đăng nhập** (email + mật khẩu tự đăng ký, hoặc Google). Mỗi thiệp thuộc về một tài khoản (FR-14).  
+1. **Người tạo thiệp bắt buộc đăng nhập** (tên đăng nhập ký tự thường hoặc email + mật khẩu tối thiểu 8 ký tự; tùy chọn bật Google qua `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`). Mỗi thiệp thuộc về một tài khoản (FR-14).  
 2. Trang **Thiệp của tôi** thay trang quản lý bằng link bí mật. Bỏ hoàn toàn edit_token và /manage/[editToken] (chưa có thư thật nên không cần tương thích).  
 3. **Người nhận không cần đăng nhập.** Đường dẫn công khai giữ mã ngẫu nhiên /l/[slug], không dùng số thứ tự đoán được.  
   
@@ -93,7 +93,7 @@ Mời cưới / Đính hôn (wedding) | Bìa: tên hai người, nhẫn, tông k
 Mời ăn / Hẹn hò (dinner) | Bìa: 'Vé mời' + sticker. Trong: thời gian, địa điểm, QR. | Mở đầu → Đếm ngược → Quán & bản đồ → Bình chọn món/giờ → 'Chốt kèo' → Lời kết.  
 Sinh nhật / Giáng sinh (holiday) | Bìa: lời chúc ngắn + sticker. Trong: một câu, QR. | Mở đầu → Lời chúc → Album kỷ niệm → Lời kết.  
 FR-02 — Lõi Trình thiết kế Mini-Canva (Cá nhân hóa tự do)  
-Quản lý đối tượng & Lịch sử: Chọn, di chuyển, resize, xoay, nhân bản, khóa vị trí (lock), đổi thứ tự lớp (z-index) và Undo/Redo tối thiểu 20 bước qua Zustand. Hiện khung lề an toàn 94 px mờ trên Canvas.  
+Quản lý đối tượng & Lịch sử: Chọn, di chuyển, resize, xoay, nhân bản, khóa vị trí (lock), đổi thứ tự lớp (z-index) và Undo/Redo tối thiểu 20 bước qua Zustand. Hiện khung lề an toàn 84 px mờ trên Canvas.  
 Công cụ Chữ (Text): Double-click sửa trực tiếp tiếng Việt, đổi font, cỡ chữ, màu mực, căn lề và độ rộng khung chữ.  
 Công cụ Ảnh cá nhân (Image): Thiệp tối đa 4 ảnh cho cả hai mặt thiết kế (tính cả ảnh nền). Trang web có hạn mức riêng 8 ảnh (FR-10). Nén phía client sang WebP (<= 200KB, cạnh dài tối đa 1200px) trước khi tải lên R2. 6 kiểu khung và 3 bộ lọc.  
 FR-03 — Tùy chỉnh Nền (Custom Background) & Hàng rào An toàn UX  
@@ -144,7 +144,7 @@ Một màn hình hiện tờ A4 sẽ in, phong bì sau khi gấp, mặt in và m
 Có nút **Tải PDF thử** ngay trên màn hình này để in kiểm tra khổ giấy mà chưa cần xuất bản. Mã QR của bản thử mở trang xem thử của mẫu đang dùng (/xem-thu/[mẫu], nội dung mẫu), nên màn hình cảnh báo không dùng bản này để tặng.  
 FR-14 — Tài khoản & Thiệp của tôi (v1.4)  
 Phạm vi bắt buộc đăng nhập: trình thiết kế (/editor), Thiệp của tôi và mọi API tạo, sửa, xóa, tải ảnh, xem phản hồi. **Không** cần đăng nhập: trang chủ, trang người nhận /l/[slug], gửi phản hồi, ghi lượt mở, trang đăng nhập, chính sách riêng tư. Chưa đăng nhập mà vào trang bắt buộc thì chuyển tới /dang-nhap, đăng nhập xong quay lại đúng trang (chỉ nhận đường dẫn nội bộ bắt đầu bằng một dấu '/', chặn chuyển hướng ra ngoài).  
-Cách đăng nhập (Supabase Auth): (1) Đăng ký bằng email + mật khẩu (tối thiểu 8 ký tự), xác nhận email, quên và đặt lại mật khẩu; (2) Đăng nhập Google. Chống bot khi đăng ký/đăng nhập bằng captcha Turnstile của Supabase. Thông báo lỗi đăng nhập không tiết lộ email đã tồn tại hay chưa. Production phải cấu hình SMTP riêng để gửi email xác nhận và đặt lại mật khẩu.  
+Cách đăng nhập (Supabase Auth): (1) Đăng ký bằng tên đăng nhập thường (`3–32` ký tự, ánh xạ nội bộ sang `@user.phygital.app` với **Confirm email = OFF** trên Supabase) hoặc email + mật khẩu (tối thiểu 8 ký tự), quên/đặt lại mật khẩu cho tài khoản dùng email thật; (2) Đăng nhập Google (bật bằng `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true` khi đã gắn Client ID/Secret). Chống bot khi đăng ký/đăng nhập bằng captcha Turnstile của Supabase. Thông báo lỗi đăng nhập không tiết lộ tài khoản đã tồn tại hay chưa. Nếu dùng email thật ở production có thể bật Confirm email kèm SMTP riêng.  
 Trình duyệt nhúng (Threads, Messenger, Instagram, Zalo...): Google thường chặn đăng nhập. Khi phát hiện, ẩn hoặc tắt nút Google, hướng dẫn 'Mở bằng Chrome/Safari' kèm nút sao chép link; đăng nhập email vẫn dùng được.  
 Thiệp của tôi (/thiep-cua-toi): danh sách thiệp của chính tài khoản, mới nhất trước. Mỗi thiệp có tên (hoặc 'Thiệp N' theo thứ tự tạo), ảnh bìa trước, ngày tạo, ngày hết hạn, lượt mở, số phản hồi. Thao tác: Sửa (/editor?id=<id>), Xem thử, Xem & tải mã QR (PNG), Tải PDF bộ in, Chia sẻ link ?to=, Xóa (hỏi xác nhận). Trang chi tiết /thiep-cua-toi/[id] có danh sách phản hồi và lời chúc. Sửa thiệp **không đổi slug**, mã QR đã in vẫn dùng được.  
 Chủ thiệp xem thử thiệp của mình không làm tăng lượt mở.  

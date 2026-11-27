@@ -32,9 +32,10 @@ Tài liệu này hướng dẫn từng bước để kết nối **Supabase**, c
 
 > **Bảo mật:** Tuyệt đối không commit `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_PASSWORD`, hay `SUPABASE_ACCESS_TOKEN` vào Git. Khóa `anon` chỉ dùng cho đăng nhập Supabase Auth ở trình duyệt; mọi bảng dữ liệu vẫn khóa bằng RLS, chỉ server (`service_role`) được đọc/ghi.
 
-4. **Bật đăng nhập trong Supabase Auth** (cho tính năng tài khoản ở `0003_accounts.sql`):
-   - Vào **Authentication → URL Configuration**: đặt **Site URL** là domain app (ví dụ `https://your-app.vercel.app`) và thêm `http://localhost:3000/**` cùng `https://your-app.vercel.app/**` vào **Redirect URLs**.
-   - Vào **Authentication → Providers**: bật Email / Google (nếu dùng OAuth Google).
+4. **Cấu hình đăng nhập trong Supabase Auth** (cho tính năng tài khoản ở `0003_accounts.sql`):
+   - Vào **Authentication → URL Configuration**: đặt **Site URL** là domain app (ví dụ `http://localhost:3000` khi dev, hoặc `https://your-app.vercel.app`) và thêm `http://localhost:3000/auth/callback` (cùng `http://localhost:3000/auth/callback?*`) và `https://your-app.vercel.app/auth/callback` vào **Redirect URLs**.
+   - Vào **Authentication → Providers → Email**: **bật** provider Email, **tắt `Confirm email`** để người dùng đăng ký bằng tên đăng nhập thường (không cần email) dùng được ngay, và đặt mật khẩu tối thiểu **8 ký tự**.
+   - *(Khi nào muốn bật thêm Google)*: vào **Authentication → Providers → Google**, nhập Client ID/Secret, rồi đặt `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true` trong `.env.local` và Vercel.
 
 ---
 

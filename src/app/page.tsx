@@ -6,7 +6,7 @@ import { TEMPLATES } from "@/lib/templates";
 const STEPS = [
   [
     "Thiết kế",
-    "Đăng nhập bằng email hoặc Google, chọn mẫu, trang trí thiệp và trang web, thêm nhạc nền. Người nhận không cần tài khoản.",
+    "Đăng nhập bằng tài khoản (tên đăng nhập hoặc email), chọn mẫu, trang trí thiệp và trang web, thêm nhạc nền. Người nhận không cần tài khoản.",
   ],
   [
     "In và cắt dán",

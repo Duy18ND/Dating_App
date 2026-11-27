@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import { inputClass } from "@/components/editor/ui";
 import { Button } from "@/components/ui/button";
 import { deleteAccount } from "@/lib/client/api";
+import { formatAccountLabel } from "@/lib/auth-account";
 import { DELETE_ACCOUNT_CONFIRM } from "@/lib/my-letters";
 import { authBrowser } from "@/lib/supabase/browser";
 import { SignOutButton } from "./SignOutButton";
 
-/** Email đang đăng nhập, đăng xuất và xóa tài khoản (hỏi xác nhận bằng cách gõ chữ). */
+/** Tài khoản đang đăng nhập, đăng xuất và xóa tài khoản (hỏi xác nhận bằng cách gõ chữ). */
 export function AccountPanel() {
-  const [email, setEmail] = useState<string>();
+  const [account, setAccount] = useState<string>();
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
@@ -20,7 +21,7 @@ export function AccountPanel() {
     let active = true;
     authBrowser()
       .auth.getUser()
-      .then(({ data }) => active && setEmail(data.user?.email ?? undefined))
+      .then(({ data }) => active && setAccount(formatAccountLabel(data.user?.email)))
       .catch(() => {});
     return () => {
       active = false;
@@ -48,7 +49,7 @@ export function AccountPanel() {
         </h2>
         <SignOutButton />
       </div>
-      {email && <p className="text-sm text-muted-foreground">Đang đăng nhập: {email}</p>}
+      {account && <p className="text-sm text-muted-foreground">Đang đăng nhập: {account}</p>}
       {!open ? (
         <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => setOpen(true)}>
           Xóa tài khoản

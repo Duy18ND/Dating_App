@@ -142,9 +142,6 @@ export function SharePanel({
           </p>
         )}
       </div>
-      <p className="text-xs text-muted-foreground">
-        Mẹo in: thiệp 150–180 gsm (dán 2 lớp), thư 80–100 gsm, phong bì 120–150 gsm.
-      </p>
     </div>
   );
 }
