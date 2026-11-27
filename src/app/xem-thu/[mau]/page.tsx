@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { PreviewSandbox } from "@/components/viewer/PreviewSandbox";
 import { buildPreviewLetter, resolvePreviewTemplate } from "@/lib/preview-samples";
 import { sanitizeRecipient } from "@/lib/recipient";
+import { TEMPLATE_TYPES } from "@/types/letter";
 
-interface PageProps {
-  params: Promise<{ mau: string }>;
-  searchParams: Promise<{ to?: string | string[] }>;
+// 4 mẫu biết trước lúc build: dựng sẵn khung tĩnh, chỉ phần đọc ?to= chạy lúc có request.
+export function generateStaticParams() {
+  return TEMPLATE_TYPES.map((mau) => ({ mau }));
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/xem-thu/[mau]">): Promise<Metadata> {
   const { mau } = await params;
   const type = resolvePreviewTemplate(mau);
   if (!type) return { title: "Không tìm thấy mẫu xem thử" };
@@ -20,14 +22,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function PreviewTemplatePage({ params, searchParams }: PageProps) {
-  const { mau } = await params;
+export default function PreviewTemplatePage(props: PageProps<"/xem-thu/[mau]">) {
+  return (
+    <Suspense fallback={<p className="p-8 text-center text-muted-foreground">Đang mở thư...</p>}>
+      <Preview {...props} />
+    </Suspense>
+  );
+}
+
+async function Preview({ params, searchParams }: PageProps<"/xem-thu/[mau]">) {
+  const [{ mau }, query] = await Promise.all([params, searchParams]);
   const type = resolvePreviewTemplate(mau);
   if (!type) notFound();
 
-  const { to } = await searchParams;
-  const recipient = sanitizeRecipient(Array.isArray(to) ? to[0] : to);
+  const recipient = sanitizeRecipient(query.to);
   const letter = buildPreviewLetter(type);
-
-  return <PreviewSandbox letter={letter} templateType={type} recipient={recipient} />;
+  // key: đổi mẫu thì làm mới phong cách đang chọn, không mang theo phong cách của mẫu trước.
+  return <PreviewSandbox key={type} letter={letter} templateType={type} recipient={recipient} />;
 }

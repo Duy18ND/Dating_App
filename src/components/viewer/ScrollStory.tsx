@@ -10,6 +10,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import { parseLocalDate } from "@/lib/local-date";
 import { cn } from "@/lib/utils";
 import { cssFontVar, type ResolvedWebStyle } from "@/lib/web-styles";
 import type {
@@ -40,7 +41,12 @@ function useReducedMotion(): boolean {
   );
 }
 
-function useInViewOnce(threshold = 0.14) {
+/**
+ * Hiện khi phần tử đi vào khung nhìn. Dùng rootMargin thay cho threshold theo tỉ lệ:
+ * một đoạn thư rất dài trên điện thoại 360px có thể cao gấp 8 lần màn hình, khi đó
+ * tỉ lệ giao nhau không bao giờ đạt 14% và nội dung sẽ vô hình mãi mãi.
+ */
+function useInViewOnce(bottomInsetPct = 12) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
   const [seen, setSeen] = useState(false);
@@ -56,11 +62,11 @@ function useInViewOnce(threshold = 0.14) {
           observer.disconnect();
         }
       },
-      { threshold },
+      { threshold: 0, rootMargin: `0px 0px -${bottomInsetPct}% 0px` },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [threshold, reduced]);
+  }, [bottomInsetPct, reduced]);
 
   return { ref, visible: reduced || seen };
 }
@@ -121,7 +127,7 @@ function AnimatedLead({
   className?: string;
   style?: CSSProperties;
 }) {
-  const { ref, visible } = useInViewOnce(0.2);
+  const { ref, visible } = useInViewOnce(18);
   const reduced = useReducedMotion();
   const chars = [...text];
   const [shownCount, setShownCount] = useState(0);
@@ -213,9 +219,8 @@ function StoryPhoto({
 }
 
 function daysBetween(dateIso: string, mode: CounterMode): number | null {
-  if (!dateIso) return null;
-  const target = new Date(dateIso);
-  if (Number.isNaN(target.getTime())) return null;
+  const target = parseLocalDate(dateIso);
+  if (!target) return null;
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const startOfTarget = new Date(
@@ -229,8 +234,8 @@ function daysBetween(dateIso: string, mode: CounterMode): number | null {
 
 function formatDateVi(dateIso?: string): string {
   if (!dateIso) return "";
-  const parsed = new Date(dateIso);
-  if (Number.isNaN(parsed.getTime())) return dateIso;
+  const parsed = parseLocalDate(dateIso);
+  if (!parsed) return dateIso;
   return new Intl.DateTimeFormat("vi-VN", {
     day: "2-digit",
     month: "2-digit",
@@ -239,7 +244,7 @@ function formatDateVi(dateIso?: string): string {
 }
 
 function AnimatedNumber({ target }: { target: number }) {
-  const { ref, visible } = useInViewOnce(0.25);
+  const { ref, visible } = useInViewOnce(20);
   const reduced = useReducedMotion();
   const [value, setValue] = useState(0);
 
@@ -872,6 +877,30 @@ export function ScrollStory({
               );
           }
         })}
+
+        {/* Phần kết bị tắt hoặc để trống: vẫn giữ nút xem thiệp và chân trang. */}
+        {!visibleSections.some((s) => s.type === "ending") && (
+          <footer
+            className="flex flex-col items-center gap-4 border-t pt-6 text-center text-xs"
+            style={{ borderColor: t.border, color: t.muted }}
+          >
+            <button
+              type="button"
+              onClick={() => setCardModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-90"
+              style={{ borderColor: accent, backgroundColor: t.surface, color: accent }}
+            >
+              <MailOpen className="size-4" />
+              Xem lại tấm thiệp
+            </button>
+            <p>
+              Tạo bằng Phygital Letter Studio ·{" "}
+              <Link href="/" className="font-medium underline underline-offset-4" style={{ color: accent }}>
+                Làm một lá thư miễn phí
+              </Link>
+            </p>
+          </footer>
+        )}
       </main>
 
       <CardZoomModal

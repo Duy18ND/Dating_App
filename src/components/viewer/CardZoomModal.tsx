@@ -1,7 +1,7 @@
 "use client";
 
 import { X, ZoomIn, ZoomOut } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LetterView } from "@/components/letter/LetterView";
 import { cn } from "@/lib/utils";
 import type { FaceId, PublicLetter } from "@/types/letter";
@@ -24,21 +24,53 @@ function ModalBody({
 }) {
   const [face, setFace] = useState<FaceId>(initialFace);
   const [zoomed, setZoomed] = useState(false);
-
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  // Chuyển focus vào hộp thoại, khóa cuộn nền, giữ Tab bên trong và trả focus khi đóng.
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>("button:not([disabled])");
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+      previous?.focus?.();
+    };
+  }, []);
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label="Xem phóng to tấm thiệp"
-      className="fixed inset-0 z-50 flex flex-col bg-black/80 p-3 backdrop-blur-sm sm:p-6"
+      className="fixed inset-0 z-50 flex flex-col overscroll-contain bg-black/85 p-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-6"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -50,6 +82,7 @@ function ModalBody({
               key={id}
               type="button"
               onClick={() => setFace(id)}
+              aria-pressed={face === id}
               className={cn(
                 "rounded-full px-3 py-1.5 text-xs font-medium transition sm:text-sm",
                 face === id ? "bg-white text-[#2B2623]" : "text-white/85 hover:bg-white/10",
@@ -70,6 +103,7 @@ function ModalBody({
             {zoomed ? "Vừa khung" : "Phóng to"}
           </button>
           <button
+            ref={closeRef}
             type="button"
             onClick={onClose}
             aria-label="Đóng xem phóng to"

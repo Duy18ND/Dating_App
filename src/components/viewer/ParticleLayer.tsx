@@ -89,6 +89,17 @@ export function ParticleLayer({
     };
     resize();
 
+    // Thanh địa chỉ iOS/Android co giãn khi cuộn bắn rất nhiều sự kiện resize: gom về
+    // 1 lần mỗi khung hình, vì mỗi lần gán canvas.width là cấp phát lại bộ nhớ đệm.
+    let resizeRaf = 0;
+    const onResize = () => {
+      if (resizeRaf) return;
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = 0;
+        if (window.innerWidth !== width || window.innerHeight !== height) resize();
+      });
+    };
+
     const isMobile = width < 768;
     const count = isMobile ? COUNT_BY_INTENSITY[intensity].mobile : COUNT_BY_INTENSITY[intensity].desktop;
     const speed = SPEED_BY_INTENSITY[intensity];
@@ -156,12 +167,13 @@ export function ParticleLayer({
     };
 
     if (!paused) rafId = requestAnimationFrame(tick);
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", onResize);
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", resize);
+      cancelAnimationFrame(resizeRaf);
+      window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [kind, intensity, color]);

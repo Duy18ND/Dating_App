@@ -14,6 +14,8 @@ const ALIASES: Record<string, TemplateType> = {
   "sinh-nhat": "holiday",
 };
 
+const PREVIEW_EXPIRES_AT = "2099-12-31T00:00:00.000Z";
+
 export function resolvePreviewTemplate(slug: string): TemplateType | null {
   return ALIASES[slug.toLowerCase()] ?? null;
 }
@@ -24,7 +26,8 @@ export function buildPreviewLetter(type: TemplateType): PublicLetter {
   return {
     ...payload,
     slug: `xemthu-${type}`,
-    expires_at: new Date(Date.now() + 60 * 86_400_000).toISOString(),
+    // Hằng số: Cache Components cấm Date.now() khi prerender. Bản xem thử không hiện hạn xóa.
+    expires_at: PREVIEW_EXPIRES_AT,
     web_config: {
       ...payload.web_config,
       recipientName: type === "wedding" ? "Bạn thân mến" : "Minh Anh",

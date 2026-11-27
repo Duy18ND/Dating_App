@@ -22,7 +22,7 @@ function MusicButton({ onToggle, playing }: { onToggle: () => void; playing: boo
       aria-label={playing ? "Tắt nhạc" : "Bật nhạc"}
       aria-pressed={playing}
       onClick={onToggle}
-      className="fixed top-3 right-3 z-40 flex size-11 items-center justify-center rounded-full border bg-card/90 text-primary shadow-md backdrop-blur"
+      className="fixed top-[max(0.75rem,env(safe-area-inset-top))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 flex size-11 items-center justify-center rounded-full border bg-card/90 text-primary shadow-md backdrop-blur"
     >
       <Disc3
         className={cn("size-6", playing && "animate-spin motion-reduce:animate-none")}
@@ -52,11 +52,18 @@ export function LetterExperience({
   const audioRef = useRef<HTMLAudioElement>(null);
   const seeked = useRef(false);
   const [step, setStep] = useState<Step>(initialStep);
+  const openedRef = useRef(initialStep !== "sealed");
   const [playing, setPlaying] = useState(false);
 
   // Trạng thái cho kiểu mở ribbon (kéo nơ) và hold_heart (nhấn giữ tim)
   const [ribbonPull, setRibbonPull] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const ribbonStartX = useRef<number | null>(null);
+  /** Quãng kéo xa nhất của lần chạm hiện tại: phân biệt chạm nhanh với kéo dở rồi thả. */
+  const ribbonMaxDrag = useRef(0);
+  /** Đã mở khi ngón tay còn giữ: thử phát nhạc lại lúc nhấc tay (pointerup). */
+  const audioPendingRelease = useRef(false);
+  const openTimer = useRef<number | null>(null);
   const [holdProgress, setHoldProgress] = useState(0);
   const holdTimer = useRef<number | null>(null);
   const holdStart = useRef<number>(0);
@@ -76,28 +83,43 @@ export function LetterExperience({
     audio.play().catch(() => {});
   }
 
-  function open() {
-    if (step !== "sealed") return;
+  /**
+   * `fromGesture = false` khi mở từ pointermove (kéo nơ) hoặc requestAnimationFrame (giữ tim).
+   * Trên màn cảm ứng các sự kiện đó không phải "user activation", nên play() có thể bị chặn:
+   * khi đó nhạc được phát lại ở pointerup, sự kiện cảm ứng duy nhất mở khóa được phát nhạc.
+   */
+  function open(fromGesture = true) {
+    if (openedRef.current) return;
+    openedRef.current = true;
     startAudioSync();
+    if (!fromGesture) audioPendingRelease.current = true;
     if (!preview) recordView(letter.slug);
     setStep("opening");
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.setTimeout(() => setStep("open"), reduce ? 0 : OPEN_MS);
+    openTimer.current = window.setTimeout(() => setStep("open"), reduce ? 0 : OPEN_MS);
   }
 
-  function cancelHold(pauseIfStillSealed = true) {
+  function resumeAudioOnRelease() {
+    if (!audioPendingRelease.current) return;
+    audioPendingRelease.current = false;
+    if (audioRef.current?.paused) startAudioSync();
+  }
+
+  function cancelHold() {
     if (holdTimer.current !== null) {
       cancelAnimationFrame(holdTimer.current);
       holdTimer.current = null;
     }
-    setHoldProgress(0);
-    if (pauseIfStillSealed && step === "sealed") {
-      audioRef.current?.pause();
+    if (openedRef.current) {
+      resumeAudioOnRelease();
+      return;
     }
+    setHoldProgress(0);
+    audioRef.current?.pause();
   }
 
   function beginHold() {
-    if (step !== "sealed") return;
+    if (openedRef.current || holdTimer.current !== null) return;
     // Mở khóa audio ngay trên pointerdown (trong user gesture) để iOS Safari phát nhạc chắc chắn.
     startAudioSync();
     holdStart.current = performance.now();
@@ -106,7 +128,7 @@ export function LetterExperience({
       setHoldProgress(ratio);
       if (ratio >= 1) {
         holdTimer.current = null;
-        open();
+        open(false);
       } else {
         holdTimer.current = requestAnimationFrame(tick);
       }
@@ -117,6 +139,7 @@ export function LetterExperience({
   useEffect(() => {
     return () => {
       if (holdTimer.current !== null) cancelAnimationFrame(holdTimer.current);
+      if (openTimer.current !== null) window.clearTimeout(openTimer.current);
     };
   }, []);
 
@@ -231,7 +254,7 @@ export function LetterExperience({
             {openMode === "wax_seal" && (
               <button
                 type="button"
-                onClick={open}
+                onClick={() => open()}
                 disabled={opening}
                 aria-label="Bóc dấu sáp để mở thư"
                 className={cn(
@@ -256,7 +279,7 @@ export function LetterExperience({
                   )}
                   style={{
                     backgroundColor: sealBg,
-                    opacity: Math.max(0.2, 1 - ribbonPull / (RIBBON_THRESHOLD * 1.4)),
+                    opacity: opening ? 0 : Math.max(0.2, 1 - ribbonPull / (RIBBON_THRESHOLD * 1.4)),
                   }}
                 />
                 <button
@@ -267,27 +290,35 @@ export function LetterExperience({
                     if (opening) return;
                     event.currentTarget.setPointerCapture(event.pointerId);
                     ribbonStartX.current = event.clientX;
+                    ribbonMaxDrag.current = 0;
+                    setDragging(true);
                   }}
                   onPointerMove={(event) => {
                     if (ribbonStartX.current === null || opening) return;
                     const dx = Math.max(0, Math.min(110, event.clientX - ribbonStartX.current));
+                    ribbonMaxDrag.current = Math.max(ribbonMaxDrag.current, dx);
                     setRibbonPull(dx);
                     if (dx >= RIBBON_THRESHOLD) {
                       ribbonStartX.current = null;
-                      open();
+                      open(false);
                     }
                   }}
                   onPointerUp={() => {
                     ribbonStartX.current = null;
-                    if (ribbonPull < RIBBON_THRESHOLD) setRibbonPull(0);
+                    setDragging(false);
+                    if (openedRef.current) resumeAudioOnRelease();
+                    else setRibbonPull(0);
                   }}
                   onPointerCancel={() => {
                     ribbonStartX.current = null;
-                    setRibbonPull(0);
+                    setDragging(false);
+                    if (!openedRef.current) setRibbonPull(0);
                   }}
                   onClick={() => {
-                    // Hỗ trợ bàn phím & chạm nhanh nếu không kéo.
-                    if (ribbonPull < 12) open();
+                    // Bàn phím (không có pointerdown) và chạm nhanh không kéo: mở luôn.
+                    // Kéo dở rồi thả thì không mở.
+                    if (ribbonMaxDrag.current < 12) open();
+                    ribbonMaxDrag.current = 0;
                   }}
                   style={{
                     backgroundColor: sealBg,
@@ -295,7 +326,9 @@ export function LetterExperience({
                     transform: `translate(calc(-50% + ${ribbonPull}px), -50%)`,
                   }}
                   className={cn(
-                    "absolute top-[56%] left-1/2 z-40 flex h-12 touch-none items-center gap-2 rounded-full px-5 text-xs font-semibold shadow-lg ring-4 ring-white/40 transition-opacity duration-300 focus-visible:ring-ring sm:text-sm",
+                    "absolute top-[56%] left-1/2 z-40 flex h-12 touch-none items-center gap-2 rounded-full px-5 text-xs font-semibold shadow-lg ring-4 ring-white/40 duration-300 select-none focus-visible:ring-ring sm:text-sm [-webkit-touch-callout:none]",
+                    // Theo ngón tay 1:1 khi kéo; thả tay thì nơ trượt êm về chỗ cũ.
+                    dragging ? "transition-opacity" : "transition-[opacity,transform,scale]",
                     opening && "scale-75 opacity-0",
                   )}
                 >
@@ -312,9 +345,14 @@ export function LetterExperience({
                 disabled={opening}
                 aria-label="Nhấn giữ trái tim để mở thư, hoặc nhấn Enter để mở ngay"
                 onPointerDown={beginHold}
-                onPointerUp={() => cancelHold(true)}
-                onPointerLeave={() => cancelHold(true)}
-                onPointerCancel={() => cancelHold(true)}
+                onPointerUp={cancelHold}
+                onPointerLeave={cancelHold}
+                onPointerCancel={cancelHold}
+                onContextMenu={(event) => event.preventDefault()}
+                onClick={(event) => {
+                  // detail = 0: kích hoạt từ trình đọc màn hình (VoiceOver/TalkBack), không có thao tác giữ.
+                  if (event.detail === 0) open();
+                }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
@@ -323,7 +361,7 @@ export function LetterExperience({
                 }}
                 style={{ backgroundColor: sealBg, color: sealInk }}
                 className={cn(
-                  "absolute top-[60%] left-1/2 z-40 flex size-20 -translate-x-1/2 -translate-y-1/2 touch-none items-center justify-center rounded-full shadow-xl transition duration-300 focus-visible:ring-4 focus-visible:ring-ring",
+                  "absolute top-[60%] left-1/2 z-40 flex size-20 -translate-x-1/2 -translate-y-1/2 touch-none items-center justify-center rounded-full shadow-xl transition duration-300 select-none focus-visible:ring-4 focus-visible:ring-ring [-webkit-touch-callout:none]",
                   holdProgress > 0 && "scale-110",
                   opening && "scale-50 opacity-0",
                 )}
@@ -369,7 +407,8 @@ export function LetterExperience({
             {openMode !== "wax_seal" && (
               <button
                 type="button"
-                onClick={open}
+                onClick={() => open()}
+                disabled={opening}
                 className="text-xs underline underline-offset-4 opacity-80 hover:opacity-100"
               >
                 Hoặc bấm nhanh để mở ngay
