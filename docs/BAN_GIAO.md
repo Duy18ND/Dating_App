@@ -1,3 +1,7 @@
+# Bàn giao
+
+> Cập nhật sau các task Opus: T-09, T-14, T-16, T-19, T-20 đã xong. Các mục "Cho T-…" bên dưới giữ lại để tham khảo. Review: `docs/REVIEW_OPUS.md`. Prompt Gemini: `docs/GEMINI_PROMPTS.md`.
+
 # Bàn giao sau các task Sonnet
 
 ## Cho T-09 (trình thiết kế)
@@ -25,5 +29,6 @@ Lệnh xóa của T-24: `src/lib/server/cleanup.ts`, `deleteExpiredLetters`, `ta
 ## Việc của chủ dự án
 - Nhạc: chọn bài có quyền sử dụng, tải lên R2 tại `audio/<id>.mp3` (danh sách id ở `src/lib/audio-tracks.ts`), đổi `label` cho khớp.
 - Donate: thêm `public/donate-qr-bank.webp` và/hoặc `public/donate-qr-zalo.webp`, điền ba biến `NEXT_PUBLIC_DONATE_*`.
+- Chạy `supabase/migrations/0002_upload_orphaned_at.sql` trên Supabase (sau 0001).
 - Đặt `NEXT_PUBLIC_SITE_URL` và `CRON_SECRET` trên Vercel. Cron khai trong `vercel.json`, chạy 19:00 UTC (02:00 giờ Việt Nam). Đây là Vercel Cron thay cho cron Supabase trong backlog, vì cần xóa file trên R2.
 - Sticker: 25 hình tự vẽ trong `public/stickers/memes/`, sinh lại bằng `node scripts/make-stickers.mjs`. Có thể thay bằng bộ do designer làm, giữ nguyên tên file.
