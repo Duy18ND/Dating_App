@@ -31,6 +31,22 @@ export type ImageFrame = (typeof IMAGE_FRAMES)[number];
 export const IMAGE_FILTERS = ["none", "vintage", "bw"] as const;
 export type ImageFilter = (typeof IMAGE_FILTERS)[number];
 
+/** Điểm giữ khi cắt ảnh theo khung (từ 0 đến 1, mặc định giữa 0.5, 0.5 — FR-16). */
+export interface ImageFocus {
+  x: number;
+  y: number;
+}
+
+export const IMAGE_FITS = ["contain", "cover"] as const;
+export type ImageFit = (typeof IMAGE_FITS)[number];
+
+/** Ảnh dùng trong các phần trang web cuộn (FR-10, FR-16). */
+export interface WebImage {
+  src: string;
+  fit?: ImageFit;
+  focus?: ImageFocus;
+}
+
 export interface CanvasElement {
   id: string;
   type: ElementType;
@@ -52,6 +68,9 @@ export interface CanvasElement {
   src?: string;
   frame?: ImageFrame;
   filter?: ImageFilter;
+  focus?: ImageFocus;
+  /** Độ dày viền trắng quanh ảnh (0..48 px logic; 0 = tắt viền). */
+  borderWidth?: number;
   // SVG icon
   iconId?: string;
   // Ghi tay (mỗi phần tử là một nét [x1, y1, x2, y2, ...] tương đối so với x, y) và vùng kẻ
@@ -107,6 +126,77 @@ export interface CanvasData {
   envelope: EnvelopeDecor;
 }
 
+export const WEB_SECTION_TYPES = [
+  "hero",
+  "first_day",
+  "memories",
+  "reasons",
+  "counter",
+  "message",
+  "interact",
+  "ending",
+] as const;
+export type WebSectionType = (typeof WEB_SECTION_TYPES)[number];
+
+export const COUNTER_MODES = ["since", "until"] as const;
+export type CounterMode = (typeof COUNTER_MODES)[number];
+
+export interface MemoryItem {
+  id: string;
+  image?: WebImage;
+  date?: string;
+  caption: string;
+}
+
+/** Một phần trên trang web cuộn dọc của người nhận (FR-10). */
+export type WebSection =
+  | { id: string; type: "hero"; enabled: boolean; image?: WebImage; lead: string }
+  | { id: string; type: "first_day"; enabled: boolean; image?: WebImage; date?: string; text: string }
+  | { id: string; type: "memories"; enabled: boolean; title?: string; items: MemoryItem[] }
+  | { id: string; type: "reasons"; enabled: boolean; title?: string; items: string[] }
+  | { id: string; type: "counter"; enabled: boolean; date: string; label: string; mode: CounterMode }
+  | { id: string; type: "message"; enabled: boolean; title: string; body: string }
+  | { id: string; type: "interact"; enabled: boolean }
+  | { id: string; type: "ending"; enabled: boolean; text: string; signature?: string };
+
+export const WEB_THEMES = ["warm_letter", "starry_night", "pastel", "doodle"] as const;
+export type WebThemeId = (typeof WEB_THEMES)[number];
+
+export const WEB_INTENSITIES = ["light", "medium", "rich"] as const;
+export type WebIntensity = (typeof WEB_INTENSITIES)[number];
+
+export const WEB_OPEN_EFFECTS = ["wax_seal", "ribbon", "hold_heart"] as const;
+export type WebOpenEffect = (typeof WEB_OPEN_EFFECTS)[number];
+
+export const WEB_TEXT_REVEALS = ["slide", "typewriter", "lines"] as const;
+export type WebTextReveal = (typeof WEB_TEXT_REVEALS)[number];
+
+export const WEB_PHOTO_EFFECTS = ["polaroid", "flip", "drop"] as const;
+export type WebPhotoEffect = (typeof WEB_PHOTO_EFFECTS)[number];
+
+export const WEB_PARTICLE_EFFECTS = ["none", "hearts", "stars", "petals"] as const;
+export type WebParticleEffect = (typeof WEB_PARTICLE_EFFECTS)[number];
+
+export const WEB_COUNTER_EFFECTS = ["count_up", "flip_calendar"] as const;
+export type WebCounterEffect = (typeof WEB_COUNTER_EFFECTS)[number];
+
+export const WEB_CELEBRATE_EFFECTS = ["confetti", "fireworks", "heart_rain"] as const;
+export type WebCelebrateEffect = (typeof WEB_CELEBRATE_EFFECTS)[number];
+
+/** Tùy chỉnh phong cách và hiệu ứng trang web (FR-15). Mục để trống lấy theo phong cách. */
+export interface WebStyleConfig {
+  theme: WebThemeId;
+  intensity: WebIntensity;
+  accent?: string;
+  font?: FontName;
+  open?: WebOpenEffect;
+  textReveal?: WebTextReveal;
+  photo?: WebPhotoEffect;
+  particle?: WebParticleEffect;
+  counter?: WebCounterEffect;
+  celebrate?: WebCelebrateEffect;
+}
+
 export interface WebConfig {
   recipientName: string;
   senderName: string;
@@ -124,6 +214,8 @@ export interface WebConfig {
     rsvp?: { enabled: boolean; eventDate: string; locationName: string; mapsUrl: string };
     poll?: { enabled: boolean; question: string; options: string[] };
   };
+  sections?: WebSection[];
+  style?: WebStyleConfig;
 }
 
 export interface LetterPayload {

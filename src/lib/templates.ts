@@ -2,6 +2,8 @@ import { blankLetter } from "@/lib/editor/defaults";
 import type { FontName } from "@/lib/font-names";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { STICKER_SIZE_PX } from "@/lib/stickers";
+import { defaultWebSections } from "@/lib/web-defaults";
+import { defaultWebStyle } from "@/lib/web-styles";
 import type {
   BackgroundConfig,
   CanvasElement,
@@ -408,6 +410,8 @@ export function createFromTemplate(type: TemplateType): LetterPayload {
       ...template.web,
       envelopeColor: template.envelopeColor,
       waxSealColor: template.waxSealColor,
+      style: defaultWebStyle(type),
+      sections: defaultWebSections(type),
     },
   });
 }

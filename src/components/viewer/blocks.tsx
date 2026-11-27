@@ -1,26 +1,32 @@
 "use client";
 
-import confetti from "canvas-confetti";
 import { MapPin } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { inputClass } from "@/components/editor/ui";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { runCelebration } from "@/lib/celebrate";
 import { sendResponse } from "@/lib/client/api";
 import { formatEventDate, mapsLink } from "@/lib/event";
 import type { ResponseInput } from "@/lib/validation";
-import type { WebConfig } from "@/types/letter";
+import type { WebCelebrateEffect, WebConfig, WebIntensity } from "@/types/letter";
 
 type Blocks = Required<WebConfig["blocks"]>;
 interface BlockProps {
   slug: string;
   recipient: string;
+  /** Chế độ xem thử (/xem-thu/[mau]): mô phỏng phản hồi, không gọi API lưu DB. */
+  preview?: boolean;
 }
 
 /** Gửi một phản hồi; giữ trạng thái đang gửi, lỗi và đã gửi xong. */
-function useResponse(slug: string) {
+function useResponse(slug: string, preview?: boolean) {
   const [state, setState] = useState<{ busy?: boolean; error?: string; sent?: ResponseInput }>({});
   async function send(input: ResponseInput) {
     if (state.busy) return false;
+    if (preview) {
+      setState({ sent: input });
+      return true;
+    }
     setState({ busy: true });
     try {
       await sendResponse(slug, input);
@@ -63,15 +69,26 @@ const randomOffset = () => ({
   y: Math.round((Math.random() - 0.5) * 120),
 });
 
-export function AcceptBlock({ slug, recipient, block }: BlockProps & { block: Blocks["acceptButton"] }) {
-  const { busy, error, sent, send } = useResponse(slug);
+export function AcceptBlock({
+  slug,
+  recipient,
+  preview,
+  celebrate = "confetti",
+  intensity = "medium",
+  block,
+}: BlockProps & {
+  block: Blocks["acceptButton"];
+  celebrate?: WebCelebrateEffect;
+  intensity?: WebIntensity;
+}) {
+  const { busy, error, sent, send } = useResponse(slug, preview);
   const [dodge, setDodge] = useState({ count: 0, x: 0, y: 0 });
   const name = recipient || undefined;
 
   async function answer(status: "yes" | "no") {
     const ok = await send({ action_type: "accept", status, responder_name: name });
     if (ok && status === "yes") {
-      void confetti({ particleCount: 160, spread: 90, origin: { y: 0.7 }, disableForReducedMotion: true });
+      runCelebration(celebrate, intensity);
     }
   }
 
@@ -116,8 +133,13 @@ export function AcceptBlock({ slug, recipient, block }: BlockProps & { block: Bl
   );
 }
 
-export function RsvpBlock({ slug, recipient, block }: BlockProps & { block: Blocks["rsvp"] }) {
-  const { busy, error, sent, send } = useResponse(slug);
+export function RsvpBlock({
+  slug,
+  recipient,
+  preview,
+  block,
+}: BlockProps & { block: Blocks["rsvp"] }) {
+  const { busy, error, sent, send } = useResponse(slug, preview);
   const [name, setName] = useState(recipient);
   const [status, setStatus] = useState<"attending" | "not_attending">("attending");
   const [guests, setGuests] = useState(1);
@@ -216,8 +238,13 @@ export function RsvpBlock({ slug, recipient, block }: BlockProps & { block: Bloc
   );
 }
 
-export function PollBlock({ slug, recipient, block }: BlockProps & { block: Blocks["poll"] }) {
-  const { busy, error, sent, send } = useResponse(slug);
+export function PollBlock({
+  slug,
+  recipient,
+  preview,
+  block,
+}: BlockProps & { block: Blocks["poll"] }) {
+  const { busy, error, sent, send } = useResponse(slug, preview);
   const [choice, setChoice] = useState("");
 
   return (

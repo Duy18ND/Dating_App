@@ -6,9 +6,14 @@ const MIN_BOX = 20;
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const round = (value: number) => Math.round(value * 10) / 10;
 
+/** Chọn hệ số giãn đồng đều theo trục biến đổi nhiều hơn để không bóp méo hình (FR-16). */
+const uniformScale = (sx: number, sy: number) =>
+  Math.abs(sx - 1) >= Math.abs(sy - 1) ? sx : sy;
+
 /**
  * Đổi một lần kéo giãn (sx, sy) thành thay đổi dữ liệu. Konva chỉ đổi scale của node,
  * còn canvas_data luôn lưu kích thước thật với scale = 1.
+ * Theo FR-16, mọi thành phần trừ vùng dòng kẻ (lined_area) đều giữ tỷ lệ khi kéo giãn.
  */
 export function scalePatch(el: CanvasElement, sx: number, sy: number): Partial<CanvasElement> {
   sx = Math.abs(sx);
@@ -21,10 +26,12 @@ export function scalePatch(el: CanvasElement, sx: number, sy: number): Partial<C
           clamp((el.fontSize ?? TEXT_DEFAULTS.fontSize) * sy, PRINT_CONFIG.CANVAS.minFontPx, 600),
         ),
       };
-    case "handwriting":
+    case "handwriting": {
+      const s = uniformScale(sx, sy);
       return {
-        points: (el.points ?? []).map((value, i) => round(value * (i % 2 === 0 ? sx : sy))),
+        points: (el.points ?? []).map((value) => round(value * s)),
       };
+    }
     case "qr_code": {
       const size = Math.max(
         (el.width ?? PRINT_CONFIG.CANVAS.defaultQrPx) * Math.max(sx, sy),
@@ -32,11 +39,23 @@ export function scalePatch(el: CanvasElement, sx: number, sy: number): Partial<C
       );
       return { width: round(size), height: round(size) };
     }
-    default:
+    case "lined_area":
       return {
         width: round(clamp((el.width ?? 100) * sx, MIN_BOX, 7000)),
         height: round(clamp((el.height ?? 100) * sy, MIN_BOX, 7000)),
       };
+    default: {
+      // image, sticker_img, svg_icon giữ đúng tỷ lệ gốc kể cả khi chạm ngưỡng min/max.
+      const w0 = el.width ?? 100;
+      const h0 = el.height ?? 100;
+      const minScale = Math.max(MIN_BOX / w0, MIN_BOX / h0);
+      const maxScale = Math.min(7000 / w0, 7000 / h0);
+      const s = clamp(uniformScale(sx, sy), minScale, maxScale);
+      return {
+        width: round(w0 * s),
+        height: round(h0 * s),
+      };
+    }
   }
 }
 

@@ -1,16 +1,19 @@
 "use client";
 
-import { Disc3, Heart } from "lucide-react";
-import { useRef, useState, type CSSProperties } from "react";
+import { Disc3, Gift, Heart } from "lucide-react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { trackUrl } from "@/lib/audio-tracks";
 import { recordView } from "@/lib/client/api";
 import { inkOn } from "@/lib/render/ink";
 import { cn } from "@/lib/utils";
-import type { PublicLetter } from "@/types/letter";
+import { resolveWebStyle } from "@/lib/web-styles";
+import type { PublicLetter, WebStyleConfig } from "@/types/letter";
 import { LetterContent } from "./LetterContent";
 
 type Step = "sealed" | "opening" | "open";
-const OPEN_MS = 1700;
+const OPEN_MS = 1650;
+const HOLD_MS = 850;
+const RIBBON_THRESHOLD = 72;
 
 function MusicButton({ onToggle, playing }: { onToggle: () => void; playing: boolean }) {
   return (
@@ -29,47 +32,111 @@ function MusicButton({ onToggle, playing }: { onToggle: () => void; playing: boo
   );
 }
 
-/** FR-08: phong bì đóng dấu sáp. Chạm vào dấu thì mở nắp, phát nhạc, rồi hiện lá thư. */
+/** FR-08 & FR-15: phong bì với 3 kiểu mở (wax_seal, ribbon, hold_heart), hỗ trợ bàn phím và nhạc iOS Safari. */
 export function LetterExperience({
   letter,
   recipient,
+  preview,
+  styleOverride,
+  initialStep = "sealed",
 }: {
   letter: PublicLetter;
   recipient: string;
+  preview?: boolean;
+  styleOverride?: WebStyleConfig;
+  initialStep?: Step;
 }) {
   const { envelopeColor, waxSealColor, senderName, audio: music } = letter.web_config;
   const name = recipient || letter.web_config.recipientName;
   const src = music.enabled ? trackUrl(music.trackId) : null;
   const audioRef = useRef<HTMLAudioElement>(null);
   const seeked = useRef(false);
-  const [step, setStep] = useState<Step>("sealed");
+  const [step, setStep] = useState<Step>(initialStep);
   const [playing, setPlaying] = useState(false);
+
+  // Trạng thái cho kiểu mở ribbon (kéo nơ) và hold_heart (nhấn giữ tim)
+  const [ribbonPull, setRibbonPull] = useState(0);
+  const ribbonStartX = useRef<number | null>(null);
+  const [holdProgress, setHoldProgress] = useState(0);
+  const holdTimer = useRef<number | null>(null);
+  const holdStart = useRef<number>(0);
+
+  const resolvedStyle = resolveWebStyle(styleOverride ?? letter.web_config.style);
+  const openMode = resolvedStyle.open;
+
+  function startAudioSync() {
+    const audio = audioRef.current;
+    if (!audio) return;
+    // iOS Safari chỉ cho phát nhạc khi play() được gọi ngay trong thao tác chạm của người dùng.
+    audio.volume = music.volume;
+    if (audio.readyState >= 1) {
+      audio.currentTime = music.startTime;
+      seeked.current = true;
+    }
+    audio.play().catch(() => {});
+  }
 
   function open() {
     if (step !== "sealed") return;
-    const audio = audioRef.current;
-    if (audio) {
-      // iOS Safari chỉ cho phát nhạc khi play() được gọi ngay trong thao tác chạm.
-      audio.volume = music.volume;
-      if (audio.readyState >= 1) {
-        audio.currentTime = music.startTime;
-        seeked.current = true;
-      }
-      audio.play().catch(() => {});
-    }
-    recordView(letter.slug);
+    startAudioSync();
+    if (!preview) recordView(letter.slug);
     setStep("opening");
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setTimeout(() => setStep("open"), reduce ? 0 : OPEN_MS);
+    window.setTimeout(() => setStep("open"), reduce ? 0 : OPEN_MS);
   }
+
+  function cancelHold(pauseIfStillSealed = true) {
+    if (holdTimer.current !== null) {
+      cancelAnimationFrame(holdTimer.current);
+      holdTimer.current = null;
+    }
+    setHoldProgress(0);
+    if (pauseIfStillSealed && step === "sealed") {
+      audioRef.current?.pause();
+    }
+  }
+
+  function beginHold() {
+    if (step !== "sealed") return;
+    // Mở khóa audio ngay trên pointerdown (trong user gesture) để iOS Safari phát nhạc chắc chắn.
+    startAudioSync();
+    holdStart.current = performance.now();
+    const tick = (now: number) => {
+      const ratio = Math.min(1, (now - holdStart.current) / HOLD_MS);
+      setHoldProgress(ratio);
+      if (ratio >= 1) {
+        holdTimer.current = null;
+        open();
+      } else {
+        holdTimer.current = requestAnimationFrame(tick);
+      }
+    };
+    holdTimer.current = requestAnimationFrame(tick);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (holdTimer.current !== null) cancelAnimationFrame(holdTimer.current);
+    };
+  }, []);
 
   const opening = step !== "sealed";
   const ink = inkOn(envelopeColor);
+  const t = resolvedStyle.theme.tokens;
+  const sealBg = openMode === "wax_seal" ? waxSealColor : resolvedStyle.accent;
+  const sealInk = inkOn(sealBg);
+
   const vars = {
     "--envelope": envelopeColor,
     "--pocket": `color-mix(in srgb, ${envelopeColor} 88%, #000)`,
     "--flap": `color-mix(in srgb, ${envelopeColor} 94%, #000)`,
+    backgroundColor: t.bg,
+    backgroundImage: t.bgPattern,
+    backgroundSize: t.bgSize,
+    color: t.ink,
   } as CSSProperties;
+
+  const ringCircumference = 2 * Math.PI * 36;
 
   return (
     <>
@@ -109,11 +176,16 @@ export function LetterExperience({
 
       {step === "open" ? (
         <div className="animate-in duration-700 fade-in slide-in-from-bottom-4 motion-reduce:animate-none">
-          <LetterContent letter={letter} recipient={recipient} />
+          <LetterContent
+            letter={letter}
+            recipient={recipient}
+            preview={preview}
+            styleOverride={styleOverride}
+          />
         </div>
       ) : (
         <main
-          className="flex min-h-dvh flex-col items-center justify-center gap-8 overflow-hidden px-4 py-10"
+          className="flex min-h-dvh flex-col items-center justify-center gap-7 overflow-hidden px-4 py-10"
           style={vars}
         >
           <div
@@ -133,7 +205,7 @@ export function LetterExperience({
               <div className="mx-auto mt-3 h-1 w-2/3 rounded bg-[#E8E1D9]" />
               <div className="mx-auto mt-3 h-1 w-3/5 rounded bg-[#E8E1D9]" />
             </div>
-            {/* Túi trước: hai bên và đáy */}
+            {/* Túi trước */}
             <div
               className="absolute inset-0 z-20 rounded-md bg-[var(--pocket)]"
               style={{ clipPath: "polygon(0 0, 50% 54%, 100% 0, 100% 100%, 0 100%)" }}
@@ -144,7 +216,7 @@ export function LetterExperience({
             >
               {name ? `Gửi ${name}` : "Gửi bạn"}
             </p>
-            {/* Nắp: lật ra sau rồi nằm dưới tờ thư */}
+            {/* Nắp phong bì */}
             <div
               className={cn(
                 "absolute inset-x-0 top-0 h-[60%] origin-top bg-[var(--flap)] [backface-visibility:visible] motion-reduce:transition-none",
@@ -154,27 +226,165 @@ export function LetterExperience({
               )}
               style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }}
             />
-            {/* Dấu sáp */}
-            <button
-              type="button"
-              onClick={open}
-              disabled={opening}
-              aria-label="Bóc dấu sáp để mở thư"
-              className={cn(
-                "absolute top-[60%] left-1/2 z-40 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full shadow-lg ring-4 ring-black/10 transition duration-300 focus-visible:ring-ring sm:size-20",
-                !opening && "animate-pulse motion-reduce:animate-none",
-                opening && "scale-50 opacity-0",
-              )}
-              style={{ backgroundColor: waxSealColor }}
-            >
-              <Heart className="size-7 fill-current" style={{ color: inkOn(waxSealColor) }} />
-            </button>
+
+            {/* Kiểu mở 1: Bóc dấu sáp (mặc định) */}
+            {openMode === "wax_seal" && (
+              <button
+                type="button"
+                onClick={open}
+                disabled={opening}
+                aria-label="Bóc dấu sáp để mở thư"
+                className={cn(
+                  "absolute top-[60%] left-1/2 z-40 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full shadow-lg ring-4 ring-black/10 transition duration-300 focus-visible:ring-ring sm:size-20",
+                  !opening && "animate-pulse motion-reduce:animate-none",
+                  opening && "scale-50 opacity-0",
+                )}
+                style={{ backgroundColor: waxSealColor }}
+              >
+                <Heart className="size-7 fill-current" style={{ color: inkOn(waxSealColor) }} />
+              </button>
+            )}
+
+            {/* Kiểu mở 2: Kéo nơ (ribbon) — hỗ trợ kéo ngang 1:1 và bấm trực tiếp bằng bàn phím */}
+            {openMode === "ribbon" && (
+              <>
+                <div
+                  aria-hidden
+                  className={cn(
+                    "pointer-events-none absolute inset-x-0 top-[56%] z-30 h-5 -translate-y-1/2 transition-opacity duration-300",
+                    opening && "opacity-0",
+                  )}
+                  style={{
+                    backgroundColor: sealBg,
+                    opacity: Math.max(0.2, 1 - ribbonPull / (RIBBON_THRESHOLD * 1.4)),
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={opening}
+                  aria-label="Kéo nơ sang phải hoặc nhấn để mở thư"
+                  onPointerDown={(event) => {
+                    if (opening) return;
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    ribbonStartX.current = event.clientX;
+                  }}
+                  onPointerMove={(event) => {
+                    if (ribbonStartX.current === null || opening) return;
+                    const dx = Math.max(0, Math.min(110, event.clientX - ribbonStartX.current));
+                    setRibbonPull(dx);
+                    if (dx >= RIBBON_THRESHOLD) {
+                      ribbonStartX.current = null;
+                      open();
+                    }
+                  }}
+                  onPointerUp={() => {
+                    ribbonStartX.current = null;
+                    if (ribbonPull < RIBBON_THRESHOLD) setRibbonPull(0);
+                  }}
+                  onPointerCancel={() => {
+                    ribbonStartX.current = null;
+                    setRibbonPull(0);
+                  }}
+                  onClick={() => {
+                    // Hỗ trợ bàn phím & chạm nhanh nếu không kéo.
+                    if (ribbonPull < 12) open();
+                  }}
+                  style={{
+                    backgroundColor: sealBg,
+                    color: sealInk,
+                    transform: `translate(calc(-50% + ${ribbonPull}px), -50%)`,
+                  }}
+                  className={cn(
+                    "absolute top-[56%] left-1/2 z-40 flex h-12 touch-none items-center gap-2 rounded-full px-5 text-xs font-semibold shadow-lg ring-4 ring-white/40 transition-opacity duration-300 focus-visible:ring-ring sm:text-sm",
+                    opening && "scale-75 opacity-0",
+                  )}
+                >
+                  <Gift className="size-4" />
+                  Kéo nơ →
+                </button>
+              </>
+            )}
+
+            {/* Kiểu mở 3: Nhấn giữ tim (hold_heart) — có vòng tiến trình & phím bấm thay thế */}
+            {openMode === "hold_heart" && (
+              <button
+                type="button"
+                disabled={opening}
+                aria-label="Nhấn giữ trái tim để mở thư, hoặc nhấn Enter để mở ngay"
+                onPointerDown={beginHold}
+                onPointerUp={() => cancelHold(true)}
+                onPointerLeave={() => cancelHold(true)}
+                onPointerCancel={() => cancelHold(true)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    open();
+                  }
+                }}
+                style={{ backgroundColor: sealBg, color: sealInk }}
+                className={cn(
+                  "absolute top-[60%] left-1/2 z-40 flex size-20 -translate-x-1/2 -translate-y-1/2 touch-none items-center justify-center rounded-full shadow-xl transition duration-300 focus-visible:ring-4 focus-visible:ring-ring",
+                  holdProgress > 0 && "scale-110",
+                  opening && "scale-50 opacity-0",
+                )}
+              >
+                <svg
+                  aria-hidden
+                  viewBox="0 0 80 80"
+                  className="pointer-events-none absolute -inset-1 size-[calc(100%+8px)] -rotate-90"
+                >
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="36"
+                    fill="none"
+                    stroke="rgba(255,255,255,0.35)"
+                    strokeWidth="4"
+                  />
+                  <circle
+                    cx="40"
+                    cy="40"
+                    r="36"
+                    fill="none"
+                    stroke="#FFFFFF"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeDasharray={ringCircumference}
+                    strokeDashoffset={ringCircumference * (1 - holdProgress)}
+                  />
+                </svg>
+                <Heart className="size-8 fill-current" />
+              </button>
+            )}
           </div>
 
-          <div className={cn("space-y-1 text-center transition-opacity", opening && "opacity-0")}>
-            <p className="font-medium">Chạm vào con dấu để mở thư</p>
-            {senderName && <p className="text-sm text-muted-foreground">Từ {senderName}</p>}
-            {src && <p className="text-xs text-muted-foreground">Thư có nhạc, hãy bật âm lượng</p>}
+          <div className={cn("space-y-2 text-center transition-opacity", opening && "opacity-0")}>
+            <p className="font-medium">
+              {openMode === "ribbon"
+                ? "Kéo nơ sang phải (hoặc chạm) để mở thư"
+                : openMode === "hold_heart"
+                  ? "Nhấn giữ trái tim trong 1 giây để mở thư"
+                  : "Chạm vào con dấu để mở thư"}
+            </p>
+            {openMode !== "wax_seal" && (
+              <button
+                type="button"
+                onClick={open}
+                className="text-xs underline underline-offset-4 opacity-80 hover:opacity-100"
+              >
+                Hoặc bấm nhanh để mở ngay
+              </button>
+            )}
+            {senderName && (
+              <p className="text-sm" style={{ color: t.muted }}>
+                Từ {senderName}
+              </p>
+            )}
+            {src && (
+              <p className="text-xs" style={{ color: t.muted }}>
+                Thư có nhạc, hãy bật âm lượng
+              </p>
+            )}
           </div>
         </main>
       )}

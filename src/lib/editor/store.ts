@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import { create } from "zustand";
 import { PRINT_CONFIG } from "@/lib/print-config";
+import { defaultWebStyle } from "@/lib/web-styles";
 import {
   FACE_IDS,
   type BackgroundConfig,
@@ -11,6 +12,8 @@ import {
   type LetterPayload,
   type LetterSheetConfig,
   type WebConfig,
+  type WebSection,
+  type WebStyleConfig,
   type WritingPageConfig,
 } from "@/types/letter";
 import { blankLetter } from "./defaults";
@@ -76,6 +79,11 @@ interface EditorState {
   setLetter: (patch: Partial<LetterSheetConfig>, key?: string) => void;
   setEnvelope: (patch: Partial<EnvelopeDecor>, key?: string) => void;
   setWebConfig: (patch: Partial<WebConfig>, key?: string) => void;
+  setWebStyle: (patch: Partial<WebStyleConfig>, key?: string) => void;
+  setWebSections: (sections: WebSection[], key?: string) => void;
+  updateWebSection: (id: string, patch: Partial<WebSection>, key?: string) => void;
+  moveWebSection: (id: string, direction: "up" | "down") => void;
+  toggleWebSection: (id: string, enabled?: boolean) => void;
   setTitle: (title: string, key?: string) => void;
 }
 
@@ -308,5 +316,55 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     ),
   setWebConfig: (patch, key) =>
     get().commit((doc) => ({ ...doc, web_config: { ...doc.web_config, ...patch } }), key),
+  setWebStyle: (patch, key) =>
+    get().commit((doc) => {
+      const base = doc.web_config.style ?? defaultWebStyle(doc.template_type);
+      const next: WebStyleConfig = { ...base, ...patch };
+      // Loại bỏ các trường đặt về undefined để dữ liệu sạch và hợp chuẩn strictObject.
+      for (const k of Object.keys(next) as (keyof WebStyleConfig)[]) {
+        if (next[k] === undefined) delete next[k];
+      }
+      return { ...doc, web_config: { ...doc.web_config, style: next } };
+    }, key),
+  setWebSections: (sections, key) =>
+    get().commit((doc) => ({ ...doc, web_config: { ...doc.web_config, sections } }), key),
+  updateWebSection: (id, patch, key) =>
+    get().commit((doc) => {
+      const sections = doc.web_config.sections;
+      if (!sections || !sections.some((s) => s.id === id)) return doc;
+      return {
+        ...doc,
+        web_config: {
+          ...doc.web_config,
+          sections: sections.map((s) => (s.id === id ? ({ ...s, ...patch, id } as WebSection) : s)),
+        },
+      };
+    }, key),
+  moveWebSection: (id, direction) =>
+    get().commit((doc) => {
+      const sections = doc.web_config.sections;
+      if (!sections) return doc;
+      const from = sections.findIndex((s) => s.id === id);
+      const to = direction === "up" ? from - 1 : from + 1;
+      if (from < 0 || to < 0 || to >= sections.length) return doc;
+      const next = [...sections];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return { ...doc, web_config: { ...doc.web_config, sections: next } };
+    }),
+  toggleWebSection: (id, enabled) =>
+    get().commit((doc) => {
+      const sections = doc.web_config.sections;
+      if (!sections || !sections.some((s) => s.id === id)) return doc;
+      return {
+        ...doc,
+        web_config: {
+          ...doc.web_config,
+          sections: sections.map((s) =>
+            s.id === id ? { ...s, enabled: enabled ?? !s.enabled } : s,
+          ),
+        },
+      };
+    }),
   setTitle: (title, key) => get().commit((doc) => ({ ...doc, title }), key),
 }));

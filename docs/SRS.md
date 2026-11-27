@@ -17,6 +17,10 @@ NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.6 (chốt ngày 27/11/2026)
 2. Trang web có **bộ phong cách và hiệu ứng** tùy chỉnh (FR-15). Đợt đầu: 4 phong cách, thiết kế để thêm dần tới 8.  
 3. Quy tắc **hiển thị nhất quán PC và điện thoại** (FR-16). Cuộn tự do, chưa làm kiểu từng màn.  
 4. Hiệu ứng hạt (tim, sao, cánh hoa) vào MVP.  
+5. **Bổ sung bản in sạch siêu gọn (chốt ngày 27/11/2026 cho T-29)**: **cả bộ nằm gọn trên ĐÚNG 1 TRANG A4 DUY NHẤT (in 1 mặt)** — không cần in đảo mặt, không gập thiệp, không dán lưng:
+   - **Nửa trên A4 (`y = 10..198 mm`, `x = 33 mm`)**: Phong bì C7 liền mạch (`144 × 188 mm`) có **tai cài nắp (`22 mm`) + khe rạch cài (`26 mm`)** ở nắp đáy, vùng dán chỉ vẽ gạch chéo mờ + icon giọt keo nhỏ bị nắp đáy che, chữ nắp xoay 180°, tràn màu `2 mm`.
+   - **Nửa dưới A4 (`y = 211..285 mm`, `x = 52,5 mm`)**: 1 tấm thiệp mini phẳng **`105 × 74 mm`** (một nửa A6, vừa khít phong bì C7) gồm **Lời chúc + Mã QR**, tràn màu `2 mm`, 4 dấu cắt góc + icon kéo `✂` ngoài vùng tràn. **Mặt sau tấm thiệp để trắng tự nhiên (mặt sau giấy A4) để người gửi tự viết tay lời cảm ơn / lời nhắn** (tùy chọn có thể in thêm mặt sau nếu người dùng muốn, nhưng mặc định chỉ xuất 1 trang A4).
+   - **Bản in PDF sạch**: tuyệt đối **không in chữ hướng dẫn** ("cắt ở đây", "bôi keo", "mặt trước"...) lên giấy PDF, chỉ dùng ký hiệu tối giản (icon kéo `✂` nhỏ, icon giọt keo mờ trong vùng ẩn, đường cắt/gấp mảnh).  
   
 NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.4 (chốt ngày 27/11/2026)  
 1. **Người tạo thiệp bắt buộc đăng nhập** (email + mật khẩu tự đăng ký, hoặc Google). Mỗi thiệp thuộc về một tài khoản (FR-14).  

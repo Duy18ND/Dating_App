@@ -249,13 +249,14 @@ export default function EditorStage({ scale }: { scale: number }) {
   }
 
   const locked = !!selected?.locked;
-  const keepRatio = selected?.type === "text" || selected?.type === "qr_code";
+  // FR-16: mọi thành phần trừ vùng dòng kẻ đều giữ tỷ lệ khi kéo giãn.
+  const keepRatio = selected?.type !== "lined_area";
   const anchors =
-    selected?.type === "qr_code"
-      ? ["top-left", "top-right", "bottom-left", "bottom-right"]
+    selected?.type === "lined_area"
+      ? undefined
       : selected?.type === "text"
         ? ["top-left", "top-right", "bottom-left", "bottom-right", "middle-left", "middle-right"]
-        : undefined;
+        : ["top-left", "top-right", "bottom-left", "bottom-right"];
 
   return (
     <LetterStage

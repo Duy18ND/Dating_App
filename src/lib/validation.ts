@@ -3,18 +3,30 @@ import { FONT_NAMES } from "@/lib/font-names";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import {
   BACKGROUND_PRESETS,
+  COUNTER_MODES,
   ELEMENT_TYPES,
   FACE_IDS,
   IMAGE_FILTERS,
+  IMAGE_FITS,
   IMAGE_FRAMES,
   PAPER_STYLES,
   TEMPLATE_TYPES,
+  WEB_CELEBRATE_EFFECTS,
+  WEB_COUNTER_EFFECTS,
+  WEB_INTENSITIES,
+  WEB_OPEN_EFFECTS,
+  WEB_PARTICLE_EFFECTS,
+  WEB_PHOTO_EFFECTS,
+  WEB_TEXT_REVEALS,
+  WEB_THEMES,
   type CanvasData,
   type LetterPayload,
+  type WebConfig,
 } from "@/types/letter";
 
 export const LIMITS = {
   maxUserImages: 4,
+  maxWebImages: 8,
   maxElements: 300,
   maxPointNumbers: 4000,
   maxBodyBytes: 1_000_000,
@@ -23,6 +35,17 @@ export const LIMITS = {
   maxMonogram: 12,
   maxEnvelopeLine: 80,
   maxLetterLine: 60,
+  maxWebSections: 16,
+  maxMemories: 8,
+  maxReasons: 8,
+  maxHeroLead: 200,
+  maxFirstDayText: 500,
+  maxMemoryCaption: 200,
+  maxReasonText: 200,
+  maxCounterLabel: 80,
+  maxMessageTitle: 100,
+  maxMessageBody: 5000,
+  maxEndingText: 200,
 } as const;
 
 export function isHttpUrl(value: string): boolean {
@@ -36,6 +59,15 @@ export function isHttpUrl(value: string): boolean {
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Màu phải có dạng #RRGGBB");
 const coordinate = z.number().min(-5000).max(7000);
 const size = z.number().positive().max(7000);
+const unit = z.number().min(0).max(1);
+
+export const imageFocusSchema = z.strictObject({ x: unit, y: unit });
+
+export const webImageSchema = z.strictObject({
+  src: z.string().max(500).refine(isHttpUrl, "URL ảnh không hợp lệ"),
+  fit: z.enum(IMAGE_FITS).optional(),
+  focus: imageFocusSchema.optional(),
+});
 
 export const backgroundSchema = z
   .strictObject({
@@ -74,6 +106,8 @@ export const elementSchema = z
     src: z.string().max(500).optional(),
     frame: z.enum(IMAGE_FRAMES).optional(),
     filter: z.enum(IMAGE_FILTERS).optional(),
+    focus: imageFocusSchema.optional(),
+    borderWidth: z.number().min(0).max(48).optional(),
     iconId: z.string().max(60).optional(),
     points: z.array(coordinate).max(LIMITS.maxPointNumbers).optional(),
     strokeWidth: z.number().min(2).max(8).optional(),
@@ -106,13 +140,36 @@ export const elementSchema = z
 
 const allElements = (canvas: CanvasData) => FACE_IDS.flatMap((face) => canvas.faces[face].elements);
 
-/** Các URL ảnh người dùng tải lên trên cả hai mặt thiệp (ảnh và ảnh nền), đã bỏ trùng. */
-export function collectUserImageUrls(canvas: CanvasData): string[] {
+/** Các URL ảnh người dùng tải lên trên trang web cuộn (hero, first_day, memories), đã bỏ trùng. */
+export function collectWebImageUrls(web?: Pick<WebConfig, "sections">): string[] {
+  if (!web?.sections) return [];
+  const urls: string[] = [];
+  for (const section of web.sections) {
+    if ((section.type === "hero" || section.type === "first_day") && section.image?.src) {
+      urls.push(section.image.src);
+    } else if (section.type === "memories") {
+      for (const item of section.items) {
+        if (item.image?.src) urls.push(item.image.src);
+      }
+    }
+  }
+  return [...new Set(urls)];
+}
+
+/**
+ * Các URL ảnh người dùng tải lên trên cả hai mặt thiệp (ảnh và ảnh nền).
+ * Khi truyền thêm `web`, gom luôn URL ảnh trong các phần trang web để T-32 gắn upload và cron không xóa nhầm.
+ */
+export function collectUserImageUrls(
+  canvas: CanvasData,
+  web?: Pick<WebConfig, "sections">,
+): string[] {
   const urls = allElements(canvas).flatMap((el) => (el.type === "image" && el.src ? [el.src] : []));
   for (const face of FACE_IDS) {
     const background = canvas.faces[face].background;
     if (background.type === "image") urls.push(background.value);
   }
+  if (web) urls.push(...collectWebImageUrls(web));
   return [...new Set(urls)];
 }
 
@@ -217,23 +274,121 @@ const pollSchema = z
     { message: "Bình chọn cần câu hỏi và 2-4 phương án khác nhau" },
   );
 
-export const webConfigSchema = z.strictObject({
-  recipientName: z.string().max(LIMITS.maxNameLength),
-  senderName: z.string().max(LIMITS.maxNameLength),
-  envelopeColor: hexColor,
-  waxSealColor: hexColor,
-  audio: z.strictObject({
-    enabled: z.boolean(),
-    trackId: z.string().regex(/^[a-z0-9-]{0,60}$/),
-    startTime: z.number().min(0).max(600),
-    volume: z.number().min(0).max(1),
-  }),
-  blocks: z.strictObject({
-    acceptButton: acceptButtonSchema.optional(),
-    rsvp: rsvpSchema.optional(),
-    poll: pollSchema.optional(),
-  }),
+const sectionId = z.string().min(1).max(40);
+const optionalDate = z.string().max(40).optional();
+
+const memoryItemSchema = z.strictObject({
+  id: sectionId,
+  image: webImageSchema.optional(),
+  date: optionalDate,
+  caption: shortText(LIMITS.maxMemoryCaption),
 });
+
+export const webSectionSchema = z.discriminatedUnion("type", [
+  z.strictObject({
+    id: sectionId,
+    type: z.literal("hero"),
+    enabled: z.boolean(),
+    image: webImageSchema.optional(),
+    lead: shortText(LIMITS.maxHeroLead),
+  }),
+  z.strictObject({
+    id: sectionId,
+    type: z.literal("first_day"),
+    enabled: z.boolean(),
+    image: webImageSchema.optional(),
+    date: optionalDate,
+    text: shortText(LIMITS.maxFirstDayText),
+  }),
+  z.strictObject({
+    id: sectionId,
+    type: z.literal("memories"),
+    enabled: z.boolean(),
+    title: shortText(LIMITS.maxMessageTitle).optional(),
+    items: z.array(memoryItemSchema).max(LIMITS.maxMemories),
+  }),
+  z.strictObject({
+    id: sectionId,
+    type: z.literal("reasons"),
+    enabled: z.boolean(),
+    title: shortText(LIMITS.maxMessageTitle).optional(),
+    items: z.array(shortText(LIMITS.maxReasonText)).max(LIMITS.maxReasons),
+  }),
+  z.strictObject({
+    id: sectionId,
+    type: z.literal("counter"),
+    enabled: z.boolean(),
+    date: z.string().max(40),
+    label: shortText(LIMITS.maxCounterLabel),
+    mode: z.enum(COUNTER_MODES),
+  }),
+  z.strictObject({
+    id: sectionId,
+    type: z.literal("message"),
+    enabled: z.boolean(),
+    title: shortText(LIMITS.maxMessageTitle),
+    body: shortText(LIMITS.maxMessageBody),
+  }),
+  z.strictObject({
+    id: sectionId,
+    type: z.literal("interact"),
+    enabled: z.boolean(),
+  }),
+  z.strictObject({
+    id: sectionId,
+    type: z.literal("ending"),
+    enabled: z.boolean(),
+    text: shortText(LIMITS.maxEndingText),
+    signature: shortText(LIMITS.maxLetterLine).optional(),
+  }),
+]);
+
+export const webStyleSchema = z.strictObject({
+  theme: z.enum(WEB_THEMES),
+  intensity: z.enum(WEB_INTENSITIES),
+  accent: hexColor.optional(),
+  font: z.enum(FONT_NAMES).optional(),
+  open: z.enum(WEB_OPEN_EFFECTS).optional(),
+  textReveal: z.enum(WEB_TEXT_REVEALS).optional(),
+  photo: z.enum(WEB_PHOTO_EFFECTS).optional(),
+  particle: z.enum(WEB_PARTICLE_EFFECTS).optional(),
+  counter: z.enum(WEB_COUNTER_EFFECTS).optional(),
+  celebrate: z.enum(WEB_CELEBRATE_EFFECTS).optional(),
+});
+
+export const webConfigSchema = z
+  .strictObject({
+    recipientName: z.string().max(LIMITS.maxNameLength),
+    senderName: z.string().max(LIMITS.maxNameLength),
+    envelopeColor: hexColor,
+    waxSealColor: hexColor,
+    audio: z.strictObject({
+      enabled: z.boolean(),
+      trackId: z.string().regex(/^[a-z0-9-]{0,60}$/),
+      startTime: z.number().min(0).max(600),
+      volume: z.number().min(0).max(1),
+    }),
+    blocks: z.strictObject({
+      acceptButton: acceptButtonSchema.optional(),
+      rsvp: rsvpSchema.optional(),
+      poll: pollSchema.optional(),
+    }),
+    sections: z.array(webSectionSchema).max(LIMITS.maxWebSections).optional(),
+    style: webStyleSchema.optional(),
+  })
+  .superRefine((web, ctx) => {
+    if (!web.sections) return;
+    if (new Set(web.sections.map((s) => s.id)).size !== web.sections.length) {
+      ctx.addIssue({ code: "custom", path: ["sections"], message: "Trùng id phần trang web" });
+    }
+    if (collectWebImageUrls(web).length > LIMITS.maxWebImages) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["sections"],
+        message: `Trang web tối đa ${LIMITS.maxWebImages} ảnh tải lên`,
+      });
+    }
+  });
 
 export const letterPayloadSchema = z.strictObject({
   template_type: z.enum(TEMPLATE_TYPES),

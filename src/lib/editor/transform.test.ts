@@ -15,8 +15,26 @@ const el = (patch: Partial<CanvasElement>): CanvasElement => ({
 });
 
 describe("scalePatch", () => {
-  it("ảnh đổi kích thước theo từng chiều", () => {
-    expect(scalePatch(el({}), 2, 0.5)).toEqual({ width: 400, height: 50 });
+  it("ảnh, sticker, icon giữ tỷ lệ gốc khi kéo giãn (FR-16)", () => {
+    expect(scalePatch(el({ type: "image", width: 200, height: 100 }), 2, 0.5)).toEqual({
+      width: 400,
+      height: 200,
+    });
+    expect(scalePatch(el({ type: "sticker_img", width: 300, height: 300 }), 1.2, 1.5)).toEqual({
+      width: 450,
+      height: 450,
+    });
+    expect(scalePatch(el({ type: "svg_icon", width: 120, height: 120 }), 0.5, 1.1)).toEqual({
+      width: 60,
+      height: 60,
+    });
+  });
+
+  it("vùng dòng kẻ (lined_area) co giãn tự do hai chiều", () => {
+    expect(scalePatch(el({ type: "lined_area", width: 200, height: 100 }), 2, 0.5)).toEqual({
+      width: 400,
+      height: 50,
+    });
   });
 
   it("chữ đổi bề rộng khung và cỡ chữ", () => {
@@ -26,9 +44,9 @@ describe("scalePatch", () => {
     });
   });
 
-  it("nét vẽ co giãn tọa độ điểm", () => {
-    expect(scalePatch(el({ type: "handwriting", points: [0, 0, 10, 20] }), 2, 3)).toEqual({
-      points: [0, 0, 20, 60],
+  it("nét vẽ co giãn đồng đều giữ tỷ lệ (FR-16)", () => {
+    expect(scalePatch(el({ type: "handwriting", points: [0, 0, 10, 20] }), 1.2, 3)).toEqual({
+      points: [0, 0, 30, 60],
     });
   });
 

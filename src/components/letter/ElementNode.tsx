@@ -23,12 +23,21 @@ interface Props {
 
 function Photo({ element }: { element: CanvasElement }) {
   const image = useImage(element.src);
-  const { width = 600, height = 600, frame = "none", filter = "none" } = element;
+  const { width = 600, height = 600, frame = "none", filter = "none", focus, borderWidth } = element;
   const framed = useMemo(
     () =>
       image &&
-      renderFramedImage(image, width, height, frame, filter, PRINT_CONFIG.EXPORT_PIXEL_RATIO),
-    [image, width, height, frame, filter],
+      renderFramedImage(
+        image,
+        width,
+        height,
+        frame,
+        filter,
+        PRINT_CONFIG.EXPORT_PIXEL_RATIO,
+        focus,
+        borderWidth,
+      ),
+    [image, width, height, frame, filter, focus, borderWidth],
   );
   if (!framed) return <Rect name={PENDING} width={width} height={height} fill="#EFECE6" />;
   return (
@@ -37,9 +46,9 @@ function Photo({ element }: { element: CanvasElement }) {
       width={width}
       height={height}
       shadowColor="#2B2623"
-      shadowBlur={frame === "polaroid" || frame === "stamp" ? 18 : 0}
-      shadowOpacity={0.18}
-      shadowOffsetY={6}
+      shadowBlur={frame === "polaroid" || frame === "stamp" ? 18 : 10}
+      shadowOpacity={frame === "polaroid" || frame === "stamp" ? 0.18 : 0.14}
+      shadowOffsetY={frame === "polaroid" || frame === "stamp" ? 6 : 4}
     />
   );
 }
