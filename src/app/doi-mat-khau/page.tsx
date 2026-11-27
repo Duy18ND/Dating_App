@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AuthShell } from "@/components/account/AuthShell";
 import { NewPasswordForm } from "@/components/account/NewPasswordForm";
 
 export const metadata: Metadata = {
@@ -9,8 +10,8 @@ export const metadata: Metadata = {
 // proxy.ts chặn trang này khi chưa có phiên (phiên tạm tạo từ link đặt lại mật khẩu).
 export default function NewPasswordPage() {
   return (
-    <main className="mx-auto w-full max-w-sm flex-1 px-4 py-10">
+    <AuthShell>
       <NewPasswordForm />
-    </main>
+    </AuthShell>
   );
 }
