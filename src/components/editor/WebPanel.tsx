@@ -6,9 +6,10 @@ import { useEditorStore } from "@/lib/editor/store";
 import { LIMITS, webConfigSchema } from "@/lib/validation";
 import type { WebConfig } from "@/types/letter";
 import { ColorField } from "./ColorField";
-import { Field, inputClass, Section, Toggle } from "./ui";
+import { ENVELOPE_COLORS } from "./EnvelopePanel";
+import { TextInput } from "./TextInput";
+import { Section, Toggle } from "./ui";
 
-const ENVELOPE_COLORS = ["#C8A882", "#F4E9DA", "#8E2424", "#2F4A3A", "#243B5A", "#E8B4BC"];
 const SEAL_COLORS = ["#8E2424", "#C9A227", "#2B2623", "#2F4A3A", "#243B5A", "#B0566B"];
 const MAX_POLL_OPTIONS = 4;
 
@@ -25,37 +26,6 @@ const DEFAULT_BLOCKS: Required<Blocks> = {
   rsvp: { enabled: true, eventDate: "", locationName: "", mapsUrl: "" },
   poll: { enabled: true, question: "Bạn thích món nào?", options: ["Lẩu", "Đồ nướng"] },
 };
-
-function TextField({
-  label,
-  value,
-  maxLength,
-  type = "text",
-  placeholder,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  maxLength: number;
-  type?: string;
-  placeholder?: string;
-  onChange: (value: string) => void;
-}) {
-  const endCoalesce = useEditorStore((s) => s.endCoalesce);
-  return (
-    <Field label={label}>
-      <input
-        className={inputClass}
-        type={type}
-        value={value}
-        maxLength={maxLength}
-        placeholder={placeholder}
-        onChange={(event) => onChange(event.target.value)}
-        onBlur={endCoalesce}
-      />
-    </Field>
-  );
-}
 
 /** Lưu thay đổi một khối; các lần gõ cùng `field` gộp thành một bước Undo. */
 function useBlock<K extends keyof Blocks>(name: K) {
@@ -82,19 +52,19 @@ function AcceptBlock() {
       />
       {block?.enabled && (
         <>
-          <TextField
+          <TextInput
             label="Câu hỏi"
             value={block.question}
             maxLength={200}
             onChange={(question) => set({ question }, "question")}
           />
-          <TextField
+          <TextInput
             label="Chữ trên nút đồng ý"
             value={block.yesText}
             maxLength={40}
             onChange={(yesText) => set({ yesText }, "yes")}
           />
-          <TextField
+          <TextInput
             label="Chữ trên nút từ chối"
             value={block.noText}
             maxLength={40}
@@ -122,20 +92,20 @@ function RsvpBlock() {
       />
       {block?.enabled && (
         <>
-          <TextField
+          <TextInput
             label="Thời gian"
             type="datetime-local"
             value={block.eventDate}
             maxLength={40}
             onChange={(eventDate) => set({ eventDate }, "date")}
           />
-          <TextField
+          <TextInput
             label="Địa điểm"
             value={block.locationName}
             maxLength={200}
             onChange={(locationName) => set({ locationName }, "location")}
           />
-          <TextField
+          <TextInput
             label="Link Google Maps (không bắt buộc)"
             type="url"
             placeholder="https://maps.app.goo.gl/..."
@@ -160,7 +130,7 @@ function PollBlock() {
       />
       {block?.enabled && (
         <>
-          <TextField
+          <TextInput
             label="Câu hỏi"
             value={block.question}
             maxLength={200}
@@ -169,7 +139,7 @@ function PollBlock() {
           {block.options.map((option, index) => (
             <div key={index} className="flex items-end gap-2">
               <div className="flex-1">
-                <TextField
+                <TextInput
                   label={`Phương án ${index + 1}`}
                   value={option}
                   maxLength={120}
@@ -222,13 +192,13 @@ export function WebPanel() {
   return (
     <div className="space-y-6">
       <Section title="Phong bì">
-        <TextField
+        <TextInput
           label="Tên người nhận"
           value={config.recipientName}
           maxLength={LIMITS.maxNameLength}
           onChange={(recipientName) => setWebConfig({ recipientName }, "recipient")}
         />
-        <TextField
+        <TextInput
           label="Tên người gửi"
           value={config.senderName}
           maxLength={LIMITS.maxNameLength}

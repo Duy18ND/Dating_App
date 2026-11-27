@@ -4,6 +4,7 @@ import {
   ChevronDown,
   Image as ImageIcon,
   LayoutTemplate,
+  Mail,
   Music,
   NotebookPen,
   Palette,
@@ -24,6 +25,7 @@ import { AudioPanel } from "./AudioPanel";
 import { BackgroundPanel } from "./BackgroundPanel";
 import { EditorCanvas } from "./EditorCanvas";
 import { ElementToolbar } from "./ElementToolbar";
+import { EnvelopePanel } from "./EnvelopePanel";
 import { HandwritingPanel } from "./HandwritingPanel";
 import { ImagePanel } from "./ImagePanel";
 import { LetterPanel } from "./LetterPanel";
@@ -42,7 +44,8 @@ type TabId =
   | "sticker"
   | "draw"
   | "web"
-  | "letter";
+  | "letter"
+  | "envelope";
 
 const TABS: { id: TabId; label: string; icon: ComponentType; Panel: ComponentType }[] = [
   { id: "template", label: "Mẫu", icon: LayoutTemplate, Panel: TemplatePanel },
@@ -62,6 +65,7 @@ const TABS: { id: TabId; label: string; icon: ComponentType; Panel: ComponentTyp
   { id: "sticker", label: "Sticker", icon: Smile, Panel: StickerPanel },
   { id: "draw", label: "Vẽ tay", icon: PenLine, Panel: HandwritingPanel },
   { id: "letter", label: "Thư", icon: NotebookPen, Panel: LetterPanel },
+  { id: "envelope", label: "Phong bì", icon: Mail, Panel: EnvelopePanel },
   {
     id: "web",
     label: "QR & Web",
