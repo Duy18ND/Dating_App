@@ -42,7 +42,7 @@
 
 ## 4. 1 bình luận ghim kèm link demo
 
-> Link tự làm miễn phí ngay trên trình duyệt (không cần đăng ký tài khoản): [LINK]
+> Link tự làm miễn phí ngay trên trình duyệt (đăng nhập bằng Google hoặc email; nếu đang mở trong Threads, hãy mở bằng Chrome/Safari để dùng Google): [LINK]
 > Có sẵn 4 mẫu tỏ tình, mời cưới, vé đi ăn và bưu thiếp lễ hội — thiết kế xong xuất thẳng file PDF A4 để tự in, cắt, gập thành bộ thiệp mini 10,5 × 7,4 cm bỏ vừa phong bì C7 luôn nha!
 
 ---

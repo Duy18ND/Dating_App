@@ -1,18 +1,19 @@
-# Backlog v1.3 (chốt 27/11/2026)
+# Backlog v1.4 (chốt 27/11/2026)
 
-Nguồn chuẩn là file này và `docs/SRS.md` v1.3. File .xlsx chưa cập nhật. Backlog v1.1 gốc ở cuối file để tra cứu.
+Nguồn chuẩn là file này và `docs/SRS.md` v1.4. File .xlsx chưa cập nhật. Backlog v1.1 gốc ở cuối file để tra cứu.
 
 ## Trạng thái T-01 → T-25
 
 | Task | Trạng thái |
 |---|---|
-| T-01, T-04 → T-08, T-18, T-21, T-22, T-24 | Đã có code, chưa thử với Supabase/R2 thật. |
+| T-01, T-08, T-18, T-21, T-24 | Đã có code, chưa thử với Supabase/R2 thật. |
+| T-04 → T-07, T-22 | Đã có code theo kiểu không đăng nhập (edit_token). API, quyền và trang quản lý được thay ở T-38 → T-40. |
 | T-03, T-09, T-10 → T-16 | Đã chuyển sang bộ mini (T-26, T-27). |
 | T-26, T-27, T-28, T-30, T-31 | **Xong** (nhánh `feat/mini-print`). Đã thử trên trình duyệt với dữ liệu giả; chưa in thử. Tiếp theo: T-29 (Opus). |
 | T-17 | Có code; 4 bố cục được thay ở T-28. |
 | T-19 | Có code PDF 2 trang; được thay bằng T-29. |
 | T-20 | Phong bì + nhạc xong; phần sau khi mở được thay bằng T-33. |
-| T-02 | Chủ dự án. Gồm chạy `0001_init.sql` rồi `0002_upload_orphaned_at.sql`, thêm nhạc và ảnh QR donate. |
+| T-02 | Chủ dự án. Chạy `0001_init.sql`, `0002_upload_orphaned_at.sql` (và `0003` sau T-38); thêm nhạc, ảnh QR donate; **cấu hình đăng nhập**: bật Email và Google trong Supabase Auth, tạo OAuth Client ở Google Cloud, cấu hình SMTP gửi email, đặt URL chuyển hướng, bật captcha Turnstile. **Phải xong trước đợt B.** |
 | T-23 | Chủ dự án, tách thành T-23A, T-23B. |
 | T-25 | Chủ dự án, làm cuối cùng. |
 
@@ -26,28 +27,39 @@ Nguồn chuẩn là file này và `docs/SRS.md` v1.3. File .xlsx chưa cập nh�
 | T-31 | Phong bì và bìa sau (FR-12): hàm vẽ phần trang trí + panel + xem trước | Chữ lồng và câu ngắn đúng giới hạn; màu dùng chung `envelopeColor`; có bản ảnh cho nắp trên (T-29 xoay 180°) | **Sonnet** | 2 | T-26 |
 | T-28 | 4 mẫu mini (mỗi mẫu 2 mặt) | Nội dung và tọa độ từ Gemini (Prompt 1); test lề an toàn, cỡ chữ, QR đạt; kiểm tra bằng ảnh chụp | **Gemini** soạn → **Sonnet** ghép | 2 | T-27 |
 | T-29 | PDF 3 trang theo SRS 2.2 | Số đo đúng (có test hình học); tràn màu 2mm; dấu cắt ngoài vùng tràn; vùng "Bôi keo" bị nắp đáy che hết; chữ nắp xoay 180°; hai dải thiệp cùng chiều xoay nên dán lưng đúng mặt; 3 công tắc nền; không `pdf.text()` cho chữ người dùng; kiểm tra file PDF xuất ra | **Opus** | 3.5 | T-27, T-30, T-31 |
-| T-37 | Xem trước cả bộ (FR-13) | Dùng đúng hàm vẽ của PDF; đổi màu, chữ hiện ngay; mượt trên mobile | **Sonnet** | 1.5 | T-29 |
-| T-23A | In thử trên giấy thật | In 100%, cắt, dán, gấp: hai dải khít nhau; thiệp + thư bỏ vào và rút ra phong bì dễ (không quá dày); chữ nắp đọc xuôi; không lộ keo; quét được QR bằng 2 điện thoại; chữ nhỏ đọc được | **Chủ dự án** | 2 | T-28, T-37 |
+| T-37 | Xem trước cả bộ (FR-13) và nút **Tải PDF thử** | Dùng đúng hàm vẽ của PDF; đổi màu, chữ hiện ngay; tải được PDF 3 trang khi chưa xuất bản và chưa có Supabase; mượt trên mobile; gom thanh công cụ mobile theo SRS 2.3 | **Sonnet** | 2.5 | T-29 |
+| T-23A | In thử trên giấy thật | In 100%, cắt, dán, gấp: hai dải khít nhau; thiệp + thư bỏ vào và rút ra phong bì dễ (không quá dày); chữ nắp đọc xuôi; không lộ keo; quét được QR bằng 2 điện thoại; chữ nhỏ đọc được. Dùng nút Tải PDF thử | **Chủ dự án** | 2 | T-28, T-37 |
 
-## Đợt B: Trang web bày tỏ
+## Đợt B: Tài khoản (đăng nhập bắt buộc, FR-14)
 
 | Task | Nội dung | Tiêu chí hoàn thành | Phụ trách | Giờ | Sau |
 |---|---|---|---|---|---|
-| T-32 | Ảnh cho trang web: tối đa 8, upload 20 ảnh/giờ, gắn ảnh vào thư | URL trong `sections` và hai mặt thiệp cùng được đưa vào `set_letter_uploads` ở cả tạo và sửa, **kể cả khi PATCH chỉ đổi web_config hoặc chỉ canvas_data** (thiếu một bên là cron xóa nhầm ảnh); từ chối URL lạ; có test | **Opus** | 2 | T-26 |
+| T-38 | Nền tảng đăng nhập và quyền: Supabase Auth phía server, migration `0003`, API `/api/me/*`, bỏ edit_token | Đọc tài liệu Next trong `node_modules/next/dist/docs/` trước (proxy, cookies); phiên được xác minh với Supabase; mọi API người tạo cần đăng nhập, kiểm tra chủ và Origin; thiệp người khác trả 404; ảnh chỉ gắn được vào thiệp của người tải lên; giới hạn theo tài khoản và IP; trang bắt buộc đăng nhập bị chặn ở server; chuyển hướng sau đăng nhập chỉ nhận đường dẫn nội bộ; test migration chạy trên PGlite; có test API cho trường hợp chưa đăng nhập và sai chủ | **Opus** | 4 | T-02 |
+| T-39 | Màn hình đăng ký, đăng nhập, quên/đặt lại mật khẩu, Google, chính sách riêng tư | Dùng được ở 360px; phát hiện trình duyệt nhúng và hướng dẫn mở bằng Chrome/Safari; lỗi không lộ email đã đăng ký; đăng nhập xong quay lại đúng trang; đăng xuất; sửa câu "Không cần đăng nhập" ở trang chủ (`src/app/page.tsx`) | **Sonnet** | 3 | T-38 |
+| T-40 | Trang Thiệp của tôi và trang chi tiết (thay `/manage/[editToken]`) | Đủ thao tác FR-14 (sửa, xem thử, QR, PDF, link ?to=, phản hồi, xóa, xóa tài khoản); `/editor?id=` mở đúng thiệp; modal xuất bản dẫn về đây; gỡ code cũ dùng edit_token; có trạng thái trống | **Sonnet** | 3.5 | T-38, T-39 |
+| T-41 | Review bảo mật tài khoản | Thử truy cập chéo hai tài khoản ở mọi API; CSRF; chuyển hướng; khóa bí mật không lọt ra bundle; xóa tài khoản và dọn ảnh đúng; người nhận vẫn mở thư không cần đăng nhập | **Opus** | 1.5 | T-40 |
+
+## Đợt C: Trang web bày tỏ
+
+| Task | Nội dung | Tiêu chí hoàn thành | Phụ trách | Giờ | Sau |
+|---|---|---|---|---|---|
+| T-32 | Ảnh cho trang web: tối đa 8, upload 20 ảnh/giờ, gắn ảnh vào thư | URL trong `sections` và hai mặt thiệp cùng được đưa vào `set_letter_uploads` ở cả tạo và sửa, **kể cả khi PATCH chỉ đổi web_config hoặc chỉ canvas_data** (thiếu một bên là cron xóa nhầm ảnh); từ chối URL lạ và ảnh của tài khoản khác; có test | **Opus** | 2 | T-41 |
 | T-33 | Trang web cuộn (FR-10) | Đẹp ở 360px; hiện dần khi cuộn; tôn trọng reduced-motion; phần trống tự ẩn; nhạc không ngắt; "Xem lại tấm thiệp"; thư không có `sections` vẫn hiển thị | **Sonnet** | 4 | T-27 |
 | T-34 | Tab "Trang web" trong trình thiết kế | Bật/tắt, đổi thứ tự, nhập nội dung, tải ảnh, xem trước cỡ điện thoại; Undo/Redo; dùng được trên mobile | **Sonnet** | 3.5 | T-32, T-33 |
 | T-35 | Phần web mặc định cho 4 mẫu | Nội dung từ Gemini (Prompt 5), đúng thứ tự FR-01, qua validation | **Gemini** soạn → **Sonnet** ghép | 1.5 | T-33 |
-| T-36 | Review đợt B | Chữ người dùng hiển thị an toàn; URL ảnh; dọn rác không xóa nhầm; thử lại toàn luồng | **Opus** | 1.5 | T-34, T-35 |
-| T-23B | Thử trên iPhone và Android thật | Nhạc, cuộn, `?to=`, phản hồi, tải PDF và ảnh QR | **Chủ dự án** | 1.5 | T-36 |
+| T-36 | Review đợt C | Chữ người dùng hiển thị an toàn; URL ảnh; dọn rác không xóa nhầm; thử lại toàn luồng | **Opus** | 1.5 | T-34, T-35 |
+| T-23B | Thử trên iPhone và Android thật | Đăng ký, đăng nhập (kể cả từ trình duyệt trong Threads/Zalo), nhạc, cuộn, `?to=`, phản hồi, tải PDF và ảnh QR | **Chủ dự án** | 1.5 | T-36 |
 
-## Phân việc
+## Phân việc còn lại
 
 | Phụ trách | Task | Giờ (ước lượng) |
 |---|---|---|
-| Claude Opus | T-26, T-27, T-29, T-32, T-36 | 12.5 |
-| Claude Sonnet | T-30, T-31, T-37, T-33, T-34, ghép T-28 và T-35 | 17 |
-| Gemini | Soạn nội dung cho T-28 (Prompt 1), T-35 (Prompt 5); kịch bản T-25 (Prompt 4) | tính chung ở trên |
+| Claude Opus | T-29, T-38, T-41, T-32, T-36 | 12.5 |
+| Claude Sonnet | T-37, T-39, T-40, T-33, T-34, T-35 (ghép) | 18 |
+| Gemini | Nội dung T-35 và kịch bản T-25 đã soạn xong (`docs/gemini-output/`) | — |
 | Chủ dự án | T-02, T-23A, T-23B, T-25 | — |
+
+Đã xong: T-26, T-27, T-28, T-30, T-31.
 
 ## Thứ tự và câu lệnh giao việc
 
@@ -55,17 +67,16 @@ Nguồn chuẩn là file này và `docs/SRS.md` v1.3. File .xlsx chưa cập nh�
 
 | Lượt | Model | Câu lệnh |
 |---|---|---|
-| 0 | Chủ dự án | Quyết định các thay đổi icon/sticker/mẫu chưa commit: commit hoặc bỏ. Gửi Prompt 1 cho Gemini. |
-| 1 | `/model opus` | `Làm T-26 và T-27 trong docs/BACKLOG.md theo docs/SRS.md v1.3. Commit sau mỗi task.` |
-| 2 | `/model sonnet` | `Làm T-30 và T-31 trong docs/BACKLOG.md. Commit sau mỗi task.` |
-| 3 | `/model sonnet` | `Ghép kết quả Gemini này cho T-28.` (dán kết quả) |
-| 4 | `/model opus` | `Làm T-29 trong docs/BACKLOG.md.` |
-| 5 | `/model sonnet` | `Làm T-37 trong docs/BACKLOG.md.` |
-| 6 | Chủ dự án | T-23A. **In thử đạt mới sang đợt B.** |
+| 1 | `/model opus` | `Làm T-29 trong docs/BACKLOG.md. Commit sau khi xong.` |
+| 2 | `/model sonnet` | `Làm T-37 trong docs/BACKLOG.md.` |
+| 3 | Chủ dự án | T-23A in thử (**đạt mới đi tiếp**). Trong lúc đó làm T-02, gồm cấu hình đăng nhập. |
+| 4 | `/model opus` | `Làm T-38 trong docs/BACKLOG.md theo SRS v1.4 FR-14.` |
+| 5 | `/model sonnet` | `Làm T-39 và T-40 trong docs/BACKLOG.md. Commit sau mỗi task.` |
+| 6 | `/model opus` | `Làm T-41.` |
 | 7 | `/model opus` | `Làm T-32.` |
-| 8 | `/model sonnet` | `Làm T-33, T-34, T-35 trong docs/BACKLOG.md.` |
+| 8 | `/model sonnet` | `Làm T-33, T-34, T-35. Nội dung T-35 ở docs/gemini-output/.` |
 | 9 | `/model opus` | `Làm T-36.` |
-| 10 | Chủ dự án | T-02 (nếu chưa), T-23B, T-25. |
+| 10 | Chủ dự án | T-23B, T-25. |
 
 ---
 

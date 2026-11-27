@@ -1,17 +1,22 @@
-> **SRS v1.3 — nguồn chuẩn hiện hành.** Bản gốc trích từ SRS_Phygital_Letter_Studio_V1.docx (v1.1); các thay đổi sau đó được sửa trực tiếp trong file này. File .docx và .xlsx **chưa cập nhật**, khi lệch thì file .md này là chuẩn. Quyết định bổ sung nằm ở CLAUDE.md.
+> **SRS v1.4 — nguồn chuẩn hiện hành.** Bản gốc trích từ SRS_Phygital_Letter_Studio_V1.docx (v1.1); các thay đổi sau đó được sửa trực tiếp trong file này. File .docx và .xlsx **chưa cập nhật**, khi lệch thì file .md này là chuẩn. Quyết định bổ sung nằm ở CLAUDE.md.
 
-SOFTWARE REQUIREMENTS SPECIFICATION (SRS) — VERSION 1.3  
+SOFTWARE REQUIREMENTS SPECIFICATION (SRS) — VERSION 1.4  
 NỀN TẢNG TẠO THƯ ĐIỆN TỬ LAI THƯ TAY(PHYGITAL LETTER STUDIO)  
 Trình thiết kế bộ quà mini (phong bì C7, thiệp gập có bìa, thư viết tay gấp 3) tự cắt dán tại nhà, kèm trang web bày tỏ dạng cuộn dọc mở bằng mã QR.  
   
 Thông tin tài liệu | Chi tiết  
 Tên sản phẩm | Phygital Letter Studio  
-Phiên bản tài liệu | v1.3 — Bộ in mini C7 cắt dán & trang web bày tỏ dạng cuộn  
+Phiên bản tài liệu | v1.4 — Tài khoản bắt buộc cho người tạo, bộ in mini C7 & trang web bày tỏ dạng cuộn  
 Ngày cập nhật | 27/11/2026  
 Mô hình vận hành | 100% Miễn phí (Free) + Ủng hộ tự nguyện bằng Ảnh QR Ngân hàng / ZaloPay tĩnh  
 Kênh ra mắt mục tiêu | Threads (clip mở phong bì mini, lật thiệp, quét QR phát nhạc)  
 Kế hoạch thực thi | Sprint 7 ngày (Kiến trúc Gemini + Code Claude Sonnet / Opus / Haiku trong IDE)  
 Công nghệ cốt lõi | Next.js (App Router), TypeScript, Tailwind CSS, React-Konva, Supabase, Cloudflare R2  
+NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.4 (chốt ngày 27/11/2026)  
+1. **Người tạo thiệp bắt buộc đăng nhập** (email + mật khẩu tự đăng ký, hoặc Google). Mỗi thiệp thuộc về một tài khoản (FR-14).  
+2. Trang **Thiệp của tôi** thay trang quản lý bằng link bí mật. Bỏ hoàn toàn edit_token và /manage/[editToken] (chưa có thư thật nên không cần tương thích).  
+3. **Người nhận không cần đăng nhập.** Đường dẫn công khai giữ mã ngẫu nhiên /l/[slug], không dùng số thứ tự đoán được.  
+  
 NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.3 (chốt ngày 27/11/2026)  
 1. Cả bộ in thu về cỡ mini: phong bì **C7 114 x 81 mm**, thiệp và thư đã gấp **105 x 74 mm**. Bỏ toàn bộ khổ C6, A6 phẳng, A5.  
 2. **Thiệp gập có bìa**, mở như cuốn sách: in một mặt 2 dải 210 x 74 mm, cắt, dán lưng vào nhau, gấp đôi.  
@@ -27,7 +32,7 @@ Tài liệu này là nguồn chuẩn duy nhất (Single Source of Truth) đặc 
 1.2. Đối tượng người dùng & Chiến lược ra mắt  
 Tệp người dùng mục tiêu: Gen Z, sinh viên và người trẻ tại Việt Nam (18–28 tuổi) trên nền tảng Threads — nhóm thích tự tay cá nhân hóa quà tặng theo gu riêng (từ tối giản lãng mạn đến tấu hài bằng Meme).  
 Kịch bản sử dụng: Thiệp tỏ tình/kỷ niệm nhỏ gọn kẹp hoa hoặc hộp quà, thiệp mời cưới gửi bạn bè thân thiết, vé mời đi ăn/hẹn hò, thiệp sinh nhật & Giáng sinh.  
-Vòng lặp lan truyền (Organic Viral Loop): Thiết kế ngay không cần đăng nhập; cuối trang xem thư (/l/[slug]) có dòng credit tinh tế dẫn về trang tạo thư miễn phí; hiển thị khung Donate QR ngân hàng/ZaloPay tĩnh ngay khoảnh khắc người dùng xuất bản thành công.  
+Vòng lặp lan truyền (Organic Viral Loop): Người nhận mở thư không cần đăng nhập; cuối trang xem thư (/l/[slug]) có dòng credit dẫn về trang tạo thư miễn phí (người tạo đăng nhập để bắt đầu); hiển thị khung Donate QR tĩnh ngay khi xuất bản thành công.  
 1.3. Phân tách phạm vi MVP (V1.1) và Mở rộng (V2)  
 Hạng mục | Trong phạm vi MVP (V1.1 — Làm ngay) | Ngoài phạm vi MVP (Để sang V2)  
 Hệ sinh thái mẫu | 4 mẫu dựng sẵn, mỗi mẫu gồm bìa trước, trang Lời mời + QR và bộ phần web mặc định: Tỏ tình, Mời cưới, Mời ăn/Hẹn hò, Sinh nhật/Giáng sinh. | Mở rộng: Mời họp lớp, Thiệp Tết, Group Letter.  
@@ -35,7 +40,7 @@ Cá nhân hóa (Customize) | Mini-Canva Responsive PC & Mobile; Custom Backgroun
 Cá nhân hóa người nhận | Nhập tên người gửi/nhận mặc định + hỗ trợ đổi tên từng khách qua tham số URL (?to=Ten-Khach) kèm ô tạo nhanh link theo tên. | Mail Merge tạo hàng loạt hàng trăm thiệp PDF từ file Excel/CSV.  
 Xuất bản & In ấn | Mã QR động (/l/[slug]); PDF 3 trang A4 (phong bì C7, thiệp gập, thư gấp 3) có đường cắt, đường gấp, vùng dán; tắt nền để in giấy màu. | Mô phỏng gấp 3D, các khổ khác, in hai mặt.  
 Trải nghiệm Web & Nhạc | Bóc dấu sáp phát nhạc, trang cuộn dọc kể chuyện (FR-10), Block tương tác (Đồng ý, RSVP + Maps, Poll). | Hiệu ứng hoa/tuyết rơi, thẻ cào, hồi âm hai chiều, upload MP3 riêng, kéo thả tự do trên trang web.  
-Quản lý & Vận hành | Không cần tài khoản (link quản lý bí mật /manage/[editToken]); Free + Donate ảnh QR ngân hàng/Zalo tĩnh; tự hết hạn sau 60 ngày. | Tài khoản người dùng, Dashboard thống kê chi tiết, Gói mở rộng trả phí (lưu vĩnh viễn/bỏ credit).  
+Quản lý & Vận hành | Tài khoản bắt buộc cho người tạo (email + mật khẩu, Google); trang Thiệp của tôi; Free + Donate ảnh QR tĩnh; thư tự hết hạn sau 60 ngày. | Dashboard thống kê chi tiết, gói trả phí (lưu vĩnh viễn/bỏ credit), đăng nhập mạng xã hội khác, nhiều người cùng sửa một thiệp.  
 2.  HỆ THỐNG THIẾT KẾ (UI/UX) & CHUẨN KÍCH THƯỚC IN ẤN  
 2.1. Định hướng thẩm mỹ & Design Tokens  
 Thành phần | Giá trị chuẩn | Mục đích áp dụng  
@@ -100,9 +105,9 @@ Xuất PDF 3 trang A4 theo bảng 2.2: Trang 1 phong bì C7; Trang 2 hai dải t
 FR-08 — Trang Người nhận (/l/[slug]) & Cá nhân hóa theo URL (?to=...)  
 Ghi đè tên khách mời linh hoạt: Nếu URL có tham số ?to=Minh-Anh (decode URI, chuyển dấu gạch ngang thành khoảng trắng, giới hạn tối đa 50 ký tự và lọc XSS), hệ thống tự động hiển thị tên này trên vỏ phong bì và lời chào thay cho recipientName mặc định.  
 Hiệu ứng mở thư & Gửi phản hồi: Chạm dấu sáp → mở nắp (màu phong bì giống bản in) → bật nhạc từ startTime → trang web cuộn (FR-10) → phản hồi lưu vào bảng responses. view_count chỉ tăng khi bóc dấu sáp.  
-FR-09 — Modal Xuất bản, Trang Quản lý (/manage/[editToken]) & Ảnh QR Donate Tĩnh  
-Tạo nhanh link cá nhân hóa theo khách: Trong Modal Xuất bản và Trang Quản lý, cung cấp 1 ô nhập nhanh 'Tên người nhận riêng' -> tự sinh và copy link dạng https://domain.com/l/[slug]?to=... để chủ thiệp gửi riêng cho từng người bạn.  
-Quản lý không cần đăng nhập: Cấp edit_token bí mật 24 ký tự để xem lượt mở (view_count), bảng phản hồi/lời chúc và nút quay lại Editor chỉnh sửa thư.  
+FR-09 — Modal Xuất bản, Chia sẻ & Ảnh QR Donate Tĩnh  
+Tạo nhanh link cá nhân hóa theo khách: Trong Modal Xuất bản và trang chi tiết thiệp, ô 'Tên người nhận riêng' tự sinh và copy link https://domain.com/l/[slug]?to=...  
+Sau khi xuất bản, modal dẫn tới trang chi tiết thiệp trong Thiệp của tôi (không còn link quản lý bí mật).  
 Khung Donate Ảnh QR Tĩnh (Ngân hàng / ZaloPay): Sử dụng trực tiếp ảnh tĩnh tối ưu sẵn (public/donate-qr-bank.webp và/hoặc public/donate-qr-zalo.webp, chia 2 tab nhỏ nếu dùng cả hai). Bắt buộc đặt kèm 2 nút hỗ trợ người dùng điện thoại: (1) Nút 'Lưu ảnh QR' (download 1 chạm) và (2) Nút 'Copy số tài khoản' (hiển thị tên ngân hàng, STK, tên chủ TK; cắt gọn ảnh QR không để lộ SĐT cá nhân).  
 FR-10 — Trang web bày tỏ dạng cuộn dọc (v1.2)  
 Sau khi bóc dấu sáp, người nhận lướt dọc qua các phần; mỗi phần hiện dần khi cuộn tới, nhạc phát xuyên suốt. Bố cục dựng sẵn, **không kéo thả**. Mỗi phần bật/tắt và đổi thứ tự được; phần bật nhưng để trống thì tự ẩn trên trang người nhận.  
@@ -124,18 +129,28 @@ FR-12 — Trang trí phong bì & bìa sau (v1.3)
 Người tạo nhập chữ lồng (tối đa 12 ký tự, ví dụ 'u ♡') và một câu ngắn (tối đa 80 ký tự), chọn phông; màu giấy là web_config.envelopeColor (đổi một chỗ, web và bản in cùng đổi). Chữ lồng cũng in nhỏ ở bìa sau thiệp. Có xem trước. Không kéo thả.  
 FR-13 — Xem trước cả bộ (v1.3)  
 Một màn hình hiện phong bì (gấp xong và trải phẳng), thiệp (bìa trước, mặt trong, bìa sau) và thư, vẽ bằng **cùng hàm** dùng để xuất PDF; thay đổi hiện ngay, không cần tải PDF.  
+Có nút **Tải PDF thử** ngay trên màn hình này (mã QR trỏ tới link xem thử), để in kiểm tra khổ giấy mà chưa cần xuất bản.  
+FR-14 — Tài khoản & Thiệp của tôi (v1.4)  
+Phạm vi bắt buộc đăng nhập: trình thiết kế (/editor), Thiệp của tôi và mọi API tạo, sửa, xóa, tải ảnh, xem phản hồi. **Không** cần đăng nhập: trang chủ, trang người nhận /l/[slug], gửi phản hồi, ghi lượt mở, trang đăng nhập, chính sách riêng tư. Chưa đăng nhập mà vào trang bắt buộc thì chuyển tới /dang-nhap, đăng nhập xong quay lại đúng trang (chỉ nhận đường dẫn nội bộ bắt đầu bằng một dấu '/', chặn chuyển hướng ra ngoài).  
+Cách đăng nhập (Supabase Auth): (1) Đăng ký bằng email + mật khẩu (tối thiểu 8 ký tự), xác nhận email, quên và đặt lại mật khẩu; (2) Đăng nhập Google. Chống bot khi đăng ký/đăng nhập bằng captcha Turnstile của Supabase. Thông báo lỗi đăng nhập không tiết lộ email đã tồn tại hay chưa. Production phải cấu hình SMTP riêng để gửi email xác nhận và đặt lại mật khẩu.  
+Trình duyệt nhúng (Threads, Messenger, Instagram, Zalo...): Google thường chặn đăng nhập. Khi phát hiện, ẩn hoặc tắt nút Google, hướng dẫn 'Mở bằng Chrome/Safari' kèm nút sao chép link; đăng nhập email vẫn dùng được.  
+Thiệp của tôi (/thiep-cua-toi): danh sách thiệp của chính tài khoản, mới nhất trước. Mỗi thiệp có tên (hoặc 'Thiệp N' theo thứ tự tạo), ảnh bìa trước, ngày tạo, ngày hết hạn, lượt mở, số phản hồi. Thao tác: Sửa (/editor?id=<id>), Xem thử, Xem & tải mã QR (PNG), Tải PDF bộ in, Chia sẻ link ?to=, Xóa (hỏi xác nhận). Trang chi tiết /thiep-cua-toi/[id] có danh sách phản hồi và lời chúc. Sửa thiệp **không đổi slug**, mã QR đã in vẫn dùng được.  
+Chủ thiệp xem thử thiệp của mình không làm tăng lượt mở.  
+Tài khoản: đăng xuất; xóa tài khoản (hỏi xác nhận) xóa toàn bộ thiệp và phản hồi, ảnh được cron dọn khỏi R2. Trang /chinh-sach-rieng-tu nêu dữ liệu lưu (email, nội dung thiệp, ảnh, phản hồi người nhận), thời hạn lưu và cách xóa.  
+Quyền truy cập: server lấy người dùng bằng cách **xác minh phiên với Supabase** (không tin dữ liệu người dùng đọc thẳng từ cookie). Mọi truy vấn của chủ thiệp lọc theo owner_id; thiệp không tồn tại và thiệp của người khác cùng trả 404. Ảnh chỉ gắn được vào thiệp nếu do chính chủ thiệp tải lên. API thay đổi dữ liệu kiểm tra header Origin cùng trang (chống CSRF).  
 4.  YÊU CẦU PHI CHỨC NĂNG & QUẢN TRỊ RỦI RO  
 Hạng mục | Tiêu chuẩn & Ràng buộc Kỹ thuật  
 Hiệu năng & Tương thích | Trang /l/[slug] hiện phong bì dưới 2 giây trên 4G; ảnh phần web tải lười; mở phong bì và cuộn mượt 60fps; iOS Safari 16+, Chrome Android, Chrome/Edge/Safari Desktop.  
 Chi phí hạ tầng (~0đ) | Ảnh WebP <= 200KB; mỗi thư tối đa 4 ảnh thiệp + 8 ảnh web; R2 cho ảnh & nhạc; xuất PDF ở trình duyệt.  
-Tự động dọn rác (60 ngày) | Thư miễn phí tự hết hạn sau 60 ngày (expires_at). Cron job định kỳ xóa bản ghi quá hạn trên Supabase và xóa file ảnh tương ứng trên R2.  
-Bảo mật & Chống Spam | Turnstile cho API upload và tạo thư; 5 thư/IP/ngày & **20 ảnh/IP/giờ** (IP hash SHA-256); kiểm tra MIME & <= 500KB phía server; sanitize ?to=; ẩn edit_token ở API public; mọi URL ảnh (thiệp và web) phải thuộc bảng uploads của đúng thư.  
+Tự động dọn rác (60 ngày) | Thư tự hết hạn sau 60 ngày (expires_at). Cron xóa bản ghi quá hạn trên Supabase và file ảnh tương ứng trên R2. Tài khoản không bị xóa theo thư.  
+Bảo mật & Chống Spam | Bắt buộc phiên đăng nhập cho API của người tạo; kiểm tra chủ sở hữu và Origin (FR-14). Turnstile cho upload, tạo thư và đăng ký/đăng nhập. Giới hạn theo **tài khoản và IP**: 5 thư/ngày, 20 ảnh/giờ (IP hash SHA-256). Kiểm tra MIME & <= 500KB phía server; sanitize ?to=; API public không trả owner_id hay IP hash; mọi URL ảnh phải thuộc bảng uploads của đúng thư và đúng chủ.  
 Bản quyền & Pháp lý | Bộ Meme dựng sẵn chỉ dùng doodle/chibi mở hoặc nguồn miễn phí thương mại; đặt ghi chú người dùng tự chịu trách nhiệm với ảnh cá nhân tải lên.  
 5.  KIẾN TRÚC HỆ THỐNG, DỮ LIỆU & ĐẶC TẢ API  
 5.1. Hằng số In ấn Chuẩn (lib/print-config.ts)  
 export const PRINT_CONFIG = {  CANVAS: { width: 1760, height: 1240, safeMarginPx: 84, minQrPx: 340, defaultQrPx: 380, minFontPx: 48 },  PAPER_A4_MM: { width: 210, height: 297 },  BLEED_MM: 2,  CARD_FACE_MM: { width: 105, height: 74 },  CARD_STRIPS_MM: { length: 210, height: 74, gap: 14, marginX: 24, y: 43.5 },  LETTER_MM: { width: 105, height: 222, offsetX: 52.5, offsetY: 37.5, panelHeight: 74, lineGap: 8 },  ENVELOPE_C7_FLAT_MM: { bodyWidth: 114, bodyHeight: 81, sideFlap: 15, bottomFlap: 62, topFlap: 45, offsetX: 33, offsetY: 54.5 },  EXPORT_PIXEL_RATIO: 2,} as const;  
 5.2. Thiết kế Cơ sở dữ liệu (Supabase / PostgreSQL)  
 CREATE TABLE letters (  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  slug VARCHAR(12) UNIQUE NOT NULL,  edit_token VARCHAR(32) UNIQUE NOT NULL,  template_type VARCHAR(20) NOT NULL CHECK (template_type IN ('confession','wedding','dinner','holiday')),  title VARCHAR(120),  canvas_data JSONB NOT NULL,  web_config JSONB NOT NULL,  view_count INT DEFAULT 0,  creator_ip_hash VARCHAR(64),  expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '60 days'),  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());CREATE INDEX idx_letters_slug ON letters(slug);CREATE INDEX idx_letters_expires_at ON letters(expires_at);CREATE TABLE responses (  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  letter_id UUID NOT NULL REFERENCES letters(id) ON DELETE CASCADE,  responder_name VARCHAR(100),  action_type VARCHAR(20) NOT NULL, -- 'accept' | 'rsvp' | 'poll'  status VARCHAR(30),               -- 'yes' | 'no' | 'attending' | 'not_attending'  guest_count INT DEFAULT 1,  poll_option VARCHAR(120),  message TEXT,  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());CREATE INDEX idx_responses_letter_id ON responses(letter_id);  
+**v1.4 (migration 0003):** letters thêm owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE kèm index, và **bỏ cột edit_token**; uploads thêm owner_id REFERENCES auth.users(id) ON DELETE SET NULL; set_letter_uploads chỉ nhận ảnh có owner_id trùng chủ thư. RLS vẫn bật và không có policy: trình duyệt chỉ dùng Supabase cho đăng nhập, mọi truy cập bảng qua server bằng service role. Migration không tự xóa dữ liệu; database thử đã có thư thì người vận hành tự xóa trước khi chạy. Biến môi trường mới: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY.  
 5.3. Chuẩn Dữ liệu JSON (types/letter.ts)  
 export interface BackgroundConfig {  type: 'preset' | 'color' | 'image';  value: string;          // 'kraft' | 'cream' | 'grid' | 'plaid' | '#FDE2E4' | 'https://r2.../bg.webp'  overlayColor?: string;  // Mặc định '#FFFFFF'  overlayOpacity: number; // 0 -> 0.8 (mặc định 0.35 khi dùng ảnh nền)  blur?: number;          // 0 -> 10 (px)}export interface CanvasElement {  id: string;  type: 'text' | 'image' | 'svg_icon' | 'sticker_img' | 'handwriting' | 'lined_area' | 'qr_code';  x: number; y: number; width?: number; height?: number;  rotation: number; zIndex: number; locked?: boolean;  text?: string; fontFamily?: string; fontSize?: number; fill?: string; align?: 'left'|'center'|'right';  src?: string; frame?: 'none'|'polaroid'|'stamp'|'rounded'|'circle'|'cloud'; filter?: 'none'|'vintage'|'bw';  iconId?: string;  points?: number[]; strokeWidth?: number; lineStyle?: 'ruled'|'dot_grid';}export interface LetterPayload {  template_type: 'confession' | 'wedding' | 'dinner' | 'holiday';  title: string;  canvas_data: {    width: 1240; height: 1754;    defaultPrintSize: 'A6' | 'A5';    background: BackgroundConfig;    elements: CanvasElement[];  };  web_config: {    recipientName: string; senderName: string;    envelopeColor: string; waxSealColor: string;    audio: { enabled: boolean; trackId: string; startTime: number; volume: number };    blocks: {      acceptButton?: { enabled: boolean; question: string; yesText: string; noText: string; dodgeNo: boolean };      rsvp?: { enabled: boolean; eventDate: string; locationName: string; mapsUrl: string };      poll?: { enabled: boolean; question: string; options: string[] };    };  };}  
 **v1.3 thay phần canvas_data ở trên** (không cần migration, vẫn là hai cột JSONB). Tên trường chốt ở T-26:  
@@ -144,13 +159,16 @@ Giới hạn: tổng phần tử hai mặt <= 300; ảnh hai mặt <= 4; id khô
 web_config: thêm sections?: Array<{ id; type: 'hero'|'first_day'|'memories'|'reasons'|'counter'|'message'|'interact'|'ending'; enabled; ...trường riêng theo type }>. Không có sections thì hiển thị thiệp + các Block.  
 5.4. Đặc tả API Routes (Next.js App Router)  
 Method | Endpoint | Bảo vệ / Guard | Mô tả xử lý  
-POST | /api/upload | Turnstile + 20 ảnh/IP/giờ | Nhận ảnh WebP (<=500KB), kiểm tra MIME, đẩy lên Cloudflare R2 -> trả về { url }.  
-POST | /api/letters | Turnstile + 5 thư/IP/ngày | Validate LetterPayload bằng Zod -> sinh slug(6) & edit_token(24) -> lưu Supabase -> trả về { slug, edit_token }.  
-GET | /api/letters/[slug] | Public (ẩn edit_token & IP) | Kiểm tra expires_at -> trả dữ liệu thư. Không tăng view_count.  
-POST | /api/letters/[slug]/view | Public + Rate Limit | Tăng view_count khi người nhận bóc dấu sáp.  
-PATCH | /api/letters/[slug] | Header x-edit-token khớp DB | Cập nhật nội dung thư (giữ nguyên slug & mã QR giấy cũ).  
+POST | /api/upload | Đăng nhập + Origin + Turnstile + 20 ảnh/giờ (tài khoản & IP) | Nhận ảnh WebP (<=500KB), kiểm tra MIME, đẩy lên R2, ghi owner_id -> trả về { url }.  
+POST | /api/letters | Đăng nhập + Origin + Turnstile + 5 thư/ngày | Validate Zod -> sinh slug(6) -> lưu với owner_id = người dùng -> trả về { id, slug }.  
+GET | /api/letters/[slug] | Public (không trả owner_id, IP hash) | Kiểm tra expires_at -> trả dữ liệu hiển thị. Không tăng view_count.  
+POST | /api/letters/[slug]/view | Public + Rate Limit | Tăng view_count khi bóc dấu sáp; bỏ qua nếu người gọi là chủ thiệp.  
 POST | /api/letters/[slug]/responses | Public + Rate Limit nhẹ | Lưu phản hồi từ người nhận (Đồng ý / Form RSVP / Bình chọn Poll) vào bảng responses.  
-GET | /api/manage/[editToken] | Bí mật theo editToken | Trả về thông tin thư, view_count và danh sách toàn bộ phản hồi cho người gửi.  
+GET | /api/me/letters | Đăng nhập | Danh sách thiệp của tài khoản kèm lượt mở và số phản hồi.  
+GET | /api/me/letters/[id] | Đăng nhập + đúng chủ | Chi tiết thiệp để sửa, kèm phản hồi. Không phải chủ -> 404.  
+PATCH | /api/me/letters/[id] | Đăng nhập + đúng chủ + Origin | Cập nhật nội dung, giữ nguyên slug.  
+DELETE | /api/me/letters/[id] | Đăng nhập + đúng chủ + Origin | Xóa thiệp và phản hồi; ảnh thành mồ côi để cron dọn.  
+DELETE | /api/me/account | Đăng nhập + Origin + xác nhận | Xóa tài khoản cùng toàn bộ thiệp.  
 6.  CHIẾN LƯỢC TRIỂN KHAI 7 NGÀY & PHÂN BỔ MÔ HÌNH AI  
 6.1. Chiến lược chọn Model Claude trong IDE & Phối hợp Gemini  
 Mô hình AI | Vai trò | Phạm vi nhiệm vụ khuyến nghị  
@@ -167,5 +185,5 @@ Ngày 4 | 4 Mẫu sẵn, Nhạc & PDF A6/C6 | Landing Gallery + 4 mẫu JSON (A6
 Ngày 5 | Trang Người nhận & Quản lý | Màn hình /l/[slug] hỗ trợ ?to=..., bóc dấu sáp phát nhạc + 3 Block; Modal Xuất bản + Ảnh QR Donate tĩnh + trang /manage/[editToken].  
 Ngày 6 | Kiểm thử Thực tế & In giấy A6 | Test nhạc iOS Safari/Android Chrome; in thử PDF ra giấy thật cắt gấp phong bì C6 + thiệp A6 & quét QR; bật cron 60 ngày.  
 Ngày 7 | Deploy & Ra mắt Threads | Deploy Vercel, kiểm tra rate limit & ảnh Donate QR; quay clip 15–20s mở phong bì giấy Kraft + thiệp A6 + quét QR đăng Threads.  
-Bổ sung v1.3: làm theo hai đợt, Đợt A (bộ in mini, kết thúc bằng in thử cắt dán) rồi Đợt B (trang web cuộn), sau đó mới deploy và ra mắt. Chi tiết ở docs/BACKLOG.md.  
+Bổ sung v1.4: làm theo ba đợt: A (bộ in mini, kết thúc bằng in thử cắt dán), B (tài khoản), C (trang web cuộn), sau đó mới deploy và ra mắt. Chi tiết ở docs/BACKLOG.md.  
 4 QUY TẮC VÀNG CHỐNG VỠ TIẾN ĐỘ KHI CODE CÙNG CLAUDE IDE1. Xuất PDF qua ảnh chụp Stage (pixelRatio: 2, đã ẩn Transformer & Safe Margin) dán vào jsPDF — tuyệt đối không dùng pdf.text() cho nội dung thiệp.2. Khóa cứng tọa độ logic 1760 x 1240 px và dùng duy nhất hằng số PRINT_CONFIG (mặt thiệp 105x74mm, thư 105x222mm, phong bì C7 trải phẳng 144x188mm).3. Dùng ảnh QR Ngân hàng/ZaloPay tĩnh (public/donate-qr-*.webp) kèm nút Lưu ảnh & Copy STK — không code API thanh toán.4. Git commit ngay sau mỗi task (T-01 -> T-25) và mở khung chat mới mỗi khi chuyển Epic để giữ context Claude sạch nhất.  
