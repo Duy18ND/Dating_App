@@ -1,9 +1,9 @@
 import { PRINT_CONFIG } from "@/lib/print-config";
 
 // Hình học bản in, đơn vị mm trên A4 dọc. Mọi số đo lấy từ PRINT_CONFIG.
-// v1.8: cả bộ nằm trên ĐÚNG 1 tờ A4 in hai mặt (PDF 2 trang):
-// - nửa trên: phôi phong bì C7 liền một mảnh có tai cài + khe cài,
-// - nửa dưới: thiệp mini phẳng 105 x 74 mm; mặt sau của nó in ở trang 2.
+// v1.9: hai tờ A4, mỗi tờ một loại giấy:
+// - tờ phong bì: phôi C7 liền một mảnh có tai cài + khe cài, in một mặt,
+// - tờ thiệp: thiệp mini phẳng 105 x 74 mm ở giữa trang, in hai mặt.
 // Bản in không có chữ hướng dẫn: chỉ nét cắt, nét gấp và vài biểu tượng nhỏ.
 
 export type Point = [number, number];
@@ -66,7 +66,7 @@ export function insidePolygon([px, py]: Point, polygon: Point[]): boolean {
 }
 
 /**
- * Phôi phong bì C7 trải phẳng, liền một mảnh (144 x 188 mm, y = 8..196).
+ * Phôi phong bì C7 trải phẳng, liền một mảnh (144 x 188 mm, canh giữa tờ A4).
  *
  * Gấp: hai tai bên vào trước, nắp đáy lên đè lên tai bên (dính keo), nắp trên xuống
  * rồi cài tai vào khe trên nắp đáy. Mặt in là mặt ngoài phong bì.
@@ -248,20 +248,24 @@ export function scissorsIcon(cx: number, cy: number, size = 4) {
   return { rings, blades, box: { x: cx - size / 2, y: cy - size / 2, width: size, height: size } };
 }
 
-/** Toàn bộ bố cục trang A4: phong bì, thiệp, dấu cắt và vị trí các biểu tượng kéo. */
+/** Bố cục hai tờ in: phong bì (kèm biểu tượng kéo) và thiệp (kèm dấu cắt góc). */
 export function printKitLayout() {
   const envelope = envelopeC7();
   const card = miniCard();
   const outline = bounds(envelope.cut);
-  const scissors = [
-    // Ngoài mép trái phong bì, ngang tai bên.
-    scissorsIcon(outline.x - 6, envelope.body.y + 20),
+  return {
+    envelope,
+    envelopeScissors: [
+      // Ngoài mép trái phong bì, ngang tai bên.
+      scissorsIcon(outline.x - 6, envelope.body.y + 20),
+      // Cạnh khe cài (nằm trên giấy phong bì).
+      scissorsIcon(envelope.body.x + envelope.body.width / 2 - 13 - 4, envelope.slitY, 3),
+    ],
+    card,
+    cardCropMarks: cropMarks(card),
     // Ngoài góc trên trái của thiệp, tránh dấu cắt.
-    scissorsIcon(card.x - 7, card.y + 10),
-    // Cạnh khe cài (nằm trên giấy phong bì).
-    scissorsIcon(envelope.body.x + envelope.body.width / 2 - 13 - 4, envelope.slitY, 3),
-  ];
-  return { envelope, card, cardCropMarks: cropMarks(card), scissors };
+    cardScissors: [scissorsIcon(card.x - 7, card.y + 10)],
+  };
 }
 
 /** Thư gấp 3 trên A4 và hai vạch gấp (theo trục y). (v1.7: chưa có trong PDF mặc định.) */

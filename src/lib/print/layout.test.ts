@@ -28,11 +28,12 @@ const overlaps = (a: Rect, b: Rect) =>
   a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 const segmentsBox = (segments: [Point, Point][]) => bounds(segments.flat());
 
-describe("bộ in 1 tờ A4 hai mặt (v1.8)", () => {
-  it("phôi C7 liền mạch 144 x 188 mm ở x = 33, y = 8..196", () => {
+describe("bộ in hai tờ A4 (v1.9)", () => {
+  it("phôi C7 liền mạch 144 x 188 mm canh giữa tờ A4 riêng", () => {
     const outline = bounds(envelopeC7().cut);
     expect(outline.x).toBeCloseTo(33);
-    expect(outline.y).toBeCloseTo(8);
+    expect(outline.y).toBeCloseTo(54.5);
+    expect(outline.y * 2 + outline.height).toBeCloseTo(A4.height);
     expect(outline.width).toBeCloseTo(144);
     expect(outline.height).toBeCloseTo(188);
     expect(inA4(grow(outline, bleed))).toBe(true);
@@ -40,9 +41,9 @@ describe("bộ in 1 tờ A4 hai mặt (v1.8)", () => {
 
   it("thân 114 x 81, nắp trên 45 mm gồm vòm và tai cài 22 x 10 ở chính giữa đỉnh", () => {
     const { body, tab, cut, topFlap } = envelopeC7();
-    expect(body).toMatchObject({ x: 48, y: 53, width: 114, height: 81 });
+    expect(body).toMatchObject({ x: 48, y: 99.5, width: 114, height: 81 });
     expect(topFlap.height).toBe(45);
-    expect(tab).toMatchObject({ width: 22, height: 10, y: 8 });
+    expect(tab).toMatchObject({ width: 22, height: 10, y: 54.5 });
     expect(tab.x * 2 + tab.width).toBeCloseTo(A4.width);
     // Phần cao hơn chân tai cài chỉ có tai cài.
     const aboveDome = cut.filter(([, y]) => y < tab.y + tab.height - 1e-6);
@@ -54,7 +55,7 @@ describe("bộ in 1 tờ A4 hai mặt (v1.8)", () => {
     for (const [x, y] of cut.filter(([, y]) => y < body.y)) {
       expect(x).toBeGreaterThanOrEqual(body.x - 1e-6);
       expect(x).toBeLessThanOrEqual(body.x + body.width + 1e-6);
-      expect(y).toBeGreaterThanOrEqual(8 - 1e-6);
+      expect(y).toBeGreaterThanOrEqual(54.5 - 1e-6);
     }
   });
 
@@ -65,7 +66,7 @@ describe("bộ in 1 tờ A4 hai mặt (v1.8)", () => {
     expect(slit.height).toBeLessThanOrEqual(2);
     expect(slit.x * 2 + slit.width).toBeCloseTo(A4.width);
     expect(e.slitY - (e.body.y + e.body.height)).toBe(45);
-    expect(196 - e.slitY).toBe(17);
+    expect(242.5 - e.slitY).toBe(17);
     // Khi gấp: khe nằm giữa chân tai (35 mm) và mũi tai (45 mm) tính từ mép trên thân.
     expect(e.foldedSlitFromTop).toBeGreaterThan(env.topFlap - env.tuckTab.height);
     expect(e.foldedSlitFromTop).toBeLessThan(env.topFlap);
@@ -94,38 +95,34 @@ describe("bộ in 1 tờ A4 hai mặt (v1.8)", () => {
     });
   });
 
-  it("thiệp mini 105 x 74 phẳng ở y = 207..281, căn giữa, vừa phong bì", () => {
+  it("thiệp mini 105 x 74 nằm chính giữa tờ A4 riêng, vừa phong bì", () => {
     const card = miniCard();
-    expect(card).toEqual({ x: 52.5, y: 207, width: face.width, height: face.height });
+    expect(card).toEqual({ x: 52.5, y: 111.5, width: face.width, height: face.height });
+    expect(card.x * 2 + card.width).toBeCloseTo(A4.width);
+    expect(card.y * 2 + card.height).toBeCloseTo(A4.height);
     const { body } = envelopeC7();
     expect(body.width - card.width).toBe(9);
     expect(body.height - card.height).toBe(7);
   });
 
-  it("phong bì và thiệp không chạm nhau kể cả tràn màu 2 mm và dấu cắt", () => {
-    const { envelope, card, cardCropMarks } = printKitLayout();
-    const envelopeArea = grow(bounds(envelope.cut), bleed);
-    const cardArea = grow(card, bleed);
-    expect(overlaps(envelopeArea, cardArea)).toBe(false);
-    const marks = segmentsBox(cardCropMarks);
-    expect(inA4(marks)).toBe(true);
-    expect(marks.y).toBeGreaterThan(envelopeArea.y + envelopeArea.height);
-  });
-
-  it("mặt sau ở trang 2 nằm đúng sau lưng mặt trước khi in đảo theo cạnh dài", () => {
+  it("mặt sau nằm đúng sau lưng mặt trước, lật theo cạnh nào cũng đúng chỗ", () => {
     const front = miniCard();
     const back = miniCardBack();
-    // Lật tờ giấy theo cạnh dài: điểm x ở trang 2 nằm sau điểm 210 - x của trang 1.
     expect(A4.width - (back.x + back.width)).toBeCloseTo(front.x);
-    expect(A4.width - back.x).toBeCloseTo(front.x + front.width);
-    expect(back).toMatchObject({ y: front.y, width: front.width, height: front.height });
+    // Nằm giữa trang nên cả khi lật theo cạnh ngắn, khung cũng trùng.
+    expect(A4.height - (back.y + back.height)).toBeCloseTo(front.y);
+    expect(back).toEqual(front);
   });
 
-  it("dấu cắt cách mép giấy ít nhất 8 mm, trong vùng máy in nhà in được", () => {
+  it("mỗi tờ chừa lề rộng cho máy in: ít nhất 30 mm quanh vùng in", () => {
+    const outline = grow(bounds(envelopeC7().cut), bleed);
     const marks = segmentsBox(printKitLayout().cardCropMarks);
-    expect(A4.height - (marks.y + marks.height)).toBeGreaterThanOrEqual(8);
-    const outline = bounds(envelopeC7().cut);
-    expect(outline.y - bleed).toBeGreaterThanOrEqual(6);
+    for (const area of [outline, marks]) {
+      expect(area.x).toBeGreaterThanOrEqual(30);
+      expect(area.y).toBeGreaterThanOrEqual(30);
+      expect(A4.width - area.x - area.width).toBeGreaterThanOrEqual(30);
+      expect(A4.height - area.y - area.height).toBeGreaterThanOrEqual(30);
+    }
   });
 
   it("dấu cắt nằm ngoài vùng tràn màu của thiệp", () => {
@@ -144,20 +141,14 @@ describe("bộ in 1 tờ A4 hai mặt (v1.8)", () => {
   });
 
   it("biểu tượng kéo nằm ngoài vùng in (trừ cái cạnh khe cài) và không đè dấu cắt", () => {
-    const { envelope, card, cardCropMarks, scissors } = printKitLayout();
-    const [outside, cardSide, slitSide] = scissors;
-    const envelopeArea = grow(bounds(envelope.cut), bleed);
-    expect(overlaps(outside.box, envelopeArea)).toBe(false);
+    const { envelope, envelopeScissors, card, cardCropMarks, cardScissors } = printKitLayout();
+    const [outside, slitSide] = envelopeScissors;
+    const [cardSide] = cardScissors;
+    expect(overlaps(outside.box, grow(bounds(envelope.cut), bleed))).toBe(false);
     expect(overlaps(cardSide.box, grow(card, bleed))).toBe(false);
-    for (const icon of [outside, cardSide]) {
-      expect(inA4(icon.box)).toBe(true);
-      for (const [[x1, y1], [x2, y2]] of cardCropMarks) {
-        const mark = bounds([
-          [x1, y1],
-          [x2, y2],
-        ]);
-        expect(overlaps(icon.box, grow(mark, 0.5))).toBe(false);
-      }
+    for (const icon of [outside, cardSide]) expect(inA4(icon.box)).toBe(true);
+    for (const [from, to] of cardCropMarks) {
+      expect(overlaps(cardSide.box, grow(bounds([from, to]), 0.5))).toBe(false);
     }
     // Kéo nhỏ cạnh khe: nằm trên nắp đáy, không đè lên khe.
     const corners: Point[] = [

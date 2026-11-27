@@ -6,7 +6,7 @@ import { FloatingHearts } from "@/components/cute/FloatingHearts";
 
 const STEPS = [
   { icon: Mail, text: "Trang trí thiệp và trang web kể chuyện của riêng bạn" },
-  { icon: Scissors, text: "In 2 mặt trên 1 tờ A4, cắt thành phong bì và thiệp mini" },
+  { icon: Scissors, text: "In trên 2 tờ A4, cắt thành phong bì và thiệp mini 2 mặt" },
   { icon: QrCode, text: "Người nhận quét mã QR để mở thư, không cần tài khoản" },
   { icon: Clock, text: "Mỗi thiệp được giữ 60 ngày, sau đó mã QR ngừng hoạt động" },
 ];
