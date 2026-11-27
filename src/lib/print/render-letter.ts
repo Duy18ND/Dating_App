@@ -21,7 +21,7 @@ function drawGuides(
   ctx.fillStyle = color;
   for (const y of rows) {
     if (paper === "ruled") {
-      ctx.fillRect(MARGIN_X_MM, y, width - MARGIN_X_MM * 2, 0.18);
+      ctx.fillRect(MARGIN_X_MM, y, width - MARGIN_X_MM * 2, 0.22);
     } else {
       for (const x of dotColumns(width)) {
         ctx.beginPath();

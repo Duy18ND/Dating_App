@@ -1,5 +1,22 @@
 # Bàn giao
 
+## Sau T-30, T-31, T-28 (cho Opus làm T-29)
+
+Hàm vẽ đã có, đều theo `PartRenderer` trong `src/lib/print/parts.ts` (gọi với `pxPerMm: PRINT_PX_PER_MM`, `background` theo công tắc, bleed mặc định 2 mm):
+
+| Phần | Hàm | Đầu vào |
+|---|---|---|
+| writingPage | `renderWritingPage` (`render-letter.ts`) | `canvas_data.writingPage` |
+| letter | `renderLetterSheet` (`render-letter.ts`) | `{ letter, recipient: web_config.recipientName }` |
+| cardBack | `renderCardBack` (`render-envelope.ts`) | `{ decor: canvas_data.envelope, frontBackground: faces.front.background }` |
+| envelopeFlap | `renderEnvelopeFlap` (`render-envelope.ts`) | `{ decor: canvas_data.envelope, color: web_config.envelopeColor }` |
+
+- Dòng kẻ và chữ vẫn in khi `background: false` (kết quả là PNG trong suốt, `opaque: false`).
+- `envelopeFlap` vẽ xuôi (mũi nắp ở dưới), phủ kín hình chữ nhật 114 x 45 mm + bleed: T-29 xoay 180° rồi cắt theo hình nắp bo tròn. Chữ được xếp theo nắp **tam giác**; nếu bo tròn đầu nắp thì chữ vẫn nằm trong (dòng cuối ở y = 24,5 mm trên 45 mm).
+- Nền phong bì (thân, tai, đáy) tô bằng `web_config.envelopeColor`, tràn 2 mm.
+- Mới thử vẽ ở độ phân giải xem trước (6 px/mm, không bleed); **chưa chạy ở 14 px/mm có bleed**.
+- Thanh công cụ dưới trên điện thoại giờ có 9 mục, phải vuốt ngang để thấy Thư, Phong bì, QR & Web. T-37 nên cân nhắc gom lại theo cấu trúc tab Bản in / Trang web (SRS 2.3).
+
 ## Sau T-26, T-27 (cho Sonnet làm T-30, T-31, T-37 và Opus làm T-29)
 
 - Dữ liệu: `canvas_data` v2 trong `src/types/letter.ts` (`faces.front`, `faces.inside`, `writingPage`, `letter`, `envelope`). Store có `face` (mặt đang sửa), `currentElements`, `selectedElement`, `setFace`, `setWritingPage`, `setLetter`, `setEnvelope`; tất cả đi qua Undo/Redo.

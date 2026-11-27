@@ -8,7 +8,7 @@ Nguồn chuẩn là file này và `docs/SRS.md` v1.3. File .xlsx chưa cập nh�
 |---|---|
 | T-01, T-04 → T-08, T-18, T-21, T-22, T-24 | Đã có code, chưa thử với Supabase/R2 thật. |
 | T-03, T-09, T-10 → T-16 | Đã chuyển sang bộ mini (T-26, T-27). |
-| T-26, T-27 | **Xong** (nhánh `feat/mini-print`). Đã thử trên trình duyệt với dữ liệu giả; chưa in thử. |
+| T-26, T-27, T-28, T-30, T-31 | **Xong** (nhánh `feat/mini-print`). Đã thử trên trình duyệt với dữ liệu giả; chưa in thử. Tiếp theo: T-29 (Opus). |
 | T-17 | Có code; 4 bố cục được thay ở T-28. |
 | T-19 | Có code PDF 2 trang; được thay bằng T-29. |
 | T-20 | Phong bì + nhạc xong; phần sau khi mở được thay bằng T-33. |
