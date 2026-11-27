@@ -53,10 +53,12 @@ export function LinkRow({ label, url }: { label: string; url: string }) {
 export function SharePanel({
   slug,
   canvas,
+  envelopeColor,
   defaultHideBackground = false,
 }: {
   slug: string;
   canvas: CanvasData;
+  envelopeColor: string;
   defaultHideBackground?: boolean;
 }) {
   const [guest, setGuest] = useState("");
@@ -114,7 +116,8 @@ export function SharePanel({
               await exportLetterPdf({
                 canvas,
                 qrUrl: url,
-                cardBackground: !hideBackground,
+                envelopeColor,
+                background: !hideBackground,
                 fileName: `bo-thiep-${slug}.pdf`,
               });
             } catch (cause) {
@@ -127,14 +130,24 @@ export function SharePanel({
           <FileText /> {exporting ? "Đang tạo PDF..." : "Tải PDF bộ in"}
         </Button>
         <Toggle
-          label="Ẩn nền thiệp khi in (giấy Kraft hoặc giấy màu)"
+          label="Ẩn nền phong bì và thiệp khi in (giấy Kraft hoặc giấy màu)"
           checked={hideBackground}
           onChange={setHideBackground}
         />
-        <p className="text-xs text-muted-foreground">
-          PDF gồm 3 trang A4: phong bì C7, thiệp gập (2 dải cắt rồi dán lưng vào nhau) và thư gấp 3.
-          In đúng 100%, không chọn &quot;Vừa trang&quot;.
-        </p>
+        <div className="space-y-1.5 text-xs text-muted-foreground">
+          <p>
+            PDF chỉ 1 trang A4, in 1 mặt (giấy 180–220gsm), đúng 100%, không chọn &quot;Vừa
+            trang&quot;. Bản in không có chữ hướng dẫn, các bước ở đây:
+          </p>
+          {/* Hướng dẫn lắp ráp chỉ nằm trên web, không in lên giấy (v1.7). */}
+          <ol className="list-decimal space-y-0.5 pl-5">
+            <li>Cắt theo nét liền (chỗ có hình cây kéo), kể cả khe cong nhỏ trên nắp dưới.</li>
+            <li>Thiệp: cắt theo 4 dấu góc. Mặt sau để trắng, bạn viết tay lời nhắn ở đó.</li>
+            <li>Gấp theo nét đứt: hai tai bên vào trước, rồi nắp dưới lên.</li>
+            <li>Bôi keo vào ô gạch chéo trên hai tai bên rồi ép nắp dưới lên.</li>
+            <li>Bỏ thiệp vào, gấp nắp trên xuống và cài tai vào khe.</li>
+          </ol>
+        </div>
         {pdfError && (
           <p role="alert" className="text-sm text-destructive">
             {pdfError}

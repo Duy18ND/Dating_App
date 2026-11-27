@@ -4,9 +4,10 @@
 
 ## Active Print Renderer Contracts (Existing Code for `T-29` & `T-37`)
 - `src/lib/print/parts.ts`: `PartRenderer` interface (`pxPerMm: PRINT_PX_PER_MM = 14`, `bleedMm = 2`, `background` toggle). Wait for `document.fonts.load(...)` before Canvas 2D text draw (`useFontsKey` in `src/components/letter/hooks.ts`).
-- `src/lib/print/render-envelope.ts`: `renderEnvelopeFlap` (drawn upright; `T-29` rotates 180° and clips to rounded tuck-in flap), `renderCardBack`. Envelope paper color comes from `web_config.envelopeColor`.
-- `src/lib/print/render-letter.ts`: `renderWritingPage`, `renderLetterSheet` (note: per v1.7 owner update, default PDF is now 1 single A4 page with C7 tuck-in envelope on top + flat `105 × 74 mm` card on bottom; blank paper back is used for handwriting).
-- `src/lib/print/layout.ts` & `src/lib/client/export-pdf.tsx`: currently holds the draft v1.3 3-page layout; update in `T-29` to the locked **1-page A4 clean spec** in `docs/gemini-output/HANDOFF_CLAUDE.md` Section 3.
+- `src/lib/print/layout.ts` (**T-29 done**): pure geometry for the 1-page A4 kit. `envelopeC7()` (curves flattened to one polyline shared by the colour fill and the vector cut line: rounded flap + 22×10 tuck tab, 26 mm curved slit, glue trapezoids proven covered by the bottom flap), `miniCard()`, `printKitLayout()` (adds card crop marks + scissors icon positions), `cropMarks()`. Geometry tests in `layout.test.ts`.
+- `src/lib/print/render-envelope.ts`: `renderEnvelopeSheet` (raster layer: envelope colour + 2 mm bleed, glue hatch + drop icon, flap text from `renderEnvelopeFlap` rotated 180°), `renderEnvelopeFlap` (upright), `renderCardBack` (not in the default PDF).
+- `src/lib/client/export-pdf.tsx`: `exportLetterPdf({ canvas, qrUrl, envelopeColor, background, fileName })` → exactly 1 A4 page. The card is the `inside` face (the only face with the QR) captured from Konva at pixelRatio 2, edge-stretched by `withEdgeBleed` for the 2 mm bleed. Cut/fold/slit/crop marks/scissors are vector lines; the PDF contains **zero text glyphs**. Assembly steps live only in `SharePanel`.
+- Not in the default PDF any more: folded card strips (removed), `renderLetterSheet`/`renderWritingPage` (still used by the editor's LetterPanel; decide in `T-37` whether to keep that panel).
 
 ## Owner Infrastructure Checklist (`T-02`)
 - **Audio**: Upload licensed MP3s (128kbps) to R2 at `audio/<id>.mp3` matching `src/lib/audio-tracks.ts`.

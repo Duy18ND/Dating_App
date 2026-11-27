@@ -9,22 +9,24 @@
   - `T-44`: Aspect-ratio lock (all except `lined_area`), focal-point crop + `FocusPicker`, customizable white photo border (`0..48` px), `CardZoomModal` tap-to-zoom.
   - `T-33`, `T-35`, `T-46`, `T-47`: Scrollable story page (all 8 FR-10 sections), DB-free `/xem-thu/[mau]`, wired `docs/gemini-output/T-35-scroll-web-defaults.json`, all 4 Wave 1 themes (`warm_letter`, `starry_night`, `pastel`, `doodle`), all Wave 1 effects (`wax_seal`/`ribbon`/`hold_heart`, `slide`/`typewriter`/`lines`, `polaroid`/`flip`/`drop`, `none`/`hearts`/`stars`/`petals`, `count_up`/`flip_calendar`, `confetti`/`fireworks`/`heart_rain`, `intensity`, randomizer).
 
+- **Claude (27/11/2026)**: `T-48` (touch audio for ribbon/hold_heart, a11y, tall-section reveal, local dates, modal focus, `/xem-thu` build fix), `T-32` (claim card + web URLs on create and on any one-sided PATCH, upload limit 20/h, `useImageUpload("web")`), `T-29` (1-page A4 PDF, geometry tests).
+
 ## Stage 1: Finish & Gate 1
 | Task | Scope | Acceptance Criteria | Owner | Est (h) | After |
 |---|---|---|---|---|---|
-| `T-48` | Cross-review Stage 1 | Audit mobile mid-range perf, iOS Safari audio (`ribbon`/`hold_heart`), `prefers-reduced-motion`, widths `360/390/768/1366/1920px`, keyboard a11y; fix issues; commit | **Opus** | 2 | `T-47` |
+| ~~`T-48`~~ ✅ | Cross-review Stage 1 | Audit mobile mid-range perf, iOS Safari audio (`ribbon`/`hold_heart`), `prefers-reduced-motion`, widths `360/390/768/1366/1920px`, keyboard a11y; fix issues; commit | **Opus** | 2 | `T-47` |
 | `T-49` | **Gate 1**: Live device QA | Deploy preview to Vercel (or LAN Wi-Fi); verify `/xem-thu/[mau]` on PC, iPhone, Android. **Must pass before Stage 2** | **Project Owner** | 1.5 | `T-48` |
 
 ## Stage 2: Web Content Authoring
 | Task | Scope | Acceptance Criteria | Owner | Est (h) | After |
 |---|---|---|---|---|---|
-| `T-32` | Web images (max 8, 20 uploads/hr) | Claim both card + web URLs via `collectUserImageUrls(canvas, web)` into `set_letter_uploads` on create AND PATCH (**even when patching only one side**); reject unknown URLs; tests | **Opus** | 2 | `T-49` |
+| ~~`T-32`~~ ✅ | Web images (max 8, 20 uploads/hr) | Claim both card + web URLs via `collectUserImageUrls(canvas, web)` into `set_letter_uploads` on create AND PATCH (**even when patching only one side**); reject unknown URLs; tests | **Opus** | 2 | `T-49` |
 | `T-34` | Editor "Trang web" tab | Toggle/reorder sections, text inputs, web image upload + fit/focus, theme & effect pickers, Phone/PC preview toggle, Undo/Redo, mobile usable | **Sonnet** | 5 | `T-32` |
 
 ## Stage 3: Clean 1-Page A4 Print & Physical QA
 | Task | Scope | Acceptance Criteria | Owner | Est (h) | After |
 |---|---|---|---|---|---|
-| `T-29` | Clean **1-page A4 PDF** (v1.7 spec) | Top (`y=10..198mm`): continuous C7 envelope (`144×188mm`) with 22mm tuck tab, 26mm curved slit on bottom flap, 180° top flap text, hidden glue tabs (hatch + drop icon), 2mm bleed. Bottom (`y=211..285mm`): flat `105×74mm` mini card (Front: greeting + QR; Back: blank paper for handwriting; no folding/back-gluing), 2mm bleed. **Zero helper text on paper** (icon-only `✂` & thin marks). No `pdf.text()` for user copy; respect image `focus` & `borderWidth`; geometry tests | **Opus** | 3.5 | `T-34` |
+| ~~`T-29`~~ ✅ | Clean **1-page A4 PDF** (v1.7 spec) | Top (`y=10..198mm`): continuous C7 envelope (`144×188mm`) with 22mm tuck tab, 26mm curved slit on bottom flap, 180° top flap text, hidden glue tabs (hatch + drop icon), 2mm bleed. Bottom (`y=211..285mm`): flat `105×74mm` mini card (Front: greeting + QR; Back: blank paper for handwriting; no folding/back-gluing), 2mm bleed. **Zero helper text on paper** (icon-only `✂` & thin marks). No `pdf.text()` for user copy; respect image `focus` & `borderWidth`; geometry tests | **Opus** | 3.5 | `T-34` |
 | `T-37` | Full-kit preview (FR-13) + draft PDF | Render via shared PDF functions; allow downloading draft PDF before publish; group mobile editor toolbar into Print / Web tabs (SRS 2.3) | **Sonnet** | 2.5 | `T-29` |
 | `T-23A` | **Gate 2**: Print, cut, tuck & scan | Print 1 A4 sheet; cut envelope & flat mini card; tuck flap smoothly into slit; scan QR on 2 phones. **Must pass before Stage 4** | **Project Owner** | 2 | `T-37` |
 
@@ -40,9 +42,9 @@
 | `T-25` | Production deploy & Threads launch | Launch script: `docs/gemini-output/T-25-threads-launch-script.md` | **Project Owner** | 3 | `T-23B` |
 
 ## Remaining Workload & Next Prompts for Claude
-- **Claude Opus (14.5h)**: `T-48`, `T-32`, `T-29`, `T-38`, `T-41`, `T-36`
+- **Claude Opus (7h)**: `T-38`, `T-41`, `T-36`
 - **Claude Sonnet (14h)**: `T-34`, `T-37`, `T-39`, `T-40`
 - **Post-Launch V1.8 (after MVP launch — do not block Stage 1–4)**:
   - **Canva-style Smart Snap Guides** in `EditorStage` (center X/Y & safe-margin magnetic alignment lines).
   - **Hybrid Freeform Web Block (`scrapbook`, fixed `4:5` Konva canvas)** inside scrollable web pages so users can freely drag/rotate photos, stickers, and doodles while keeping text/forms 100% responsive across 360px Mobile, Tablet, and PC.
-- **Next command**: `/model opus` → `Read docs/gemini-output/HANDOFF_CLAUDE.md and execute T-48 from docs/BACKLOG.md. Commit when done.`
+- **Next**: owner runs `T-49` (Gate 1), then `/model sonnet` → `T-34` (use `useImageUpload("web")`), then `T-37`.

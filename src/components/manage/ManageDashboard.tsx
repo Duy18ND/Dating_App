@@ -131,7 +131,11 @@ export function ManageDashboard() {
 
       <section className="space-y-3">
         <h2 className="font-semibold">Chia sẻ</h2>
-        <SharePanel slug={letter.slug} canvas={letter.canvas_data} />
+        <SharePanel
+          slug={letter.slug}
+          canvas={letter.canvas_data}
+          envelopeColor={letter.web_config.envelopeColor}
+        />
       </section>
 
       <DonatePanel />

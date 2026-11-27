@@ -81,6 +81,7 @@ export function PublishDialog() {
                 <SharePanel
                   slug={published.slug}
                   canvas={doc.canvas_data}
+                  envelopeColor={doc.web_config.envelopeColor}
                   defaultHideBackground={hideBackground}
                 />
                 <div className="space-y-2 rounded-lg border border-primary/40 bg-accent p-3">

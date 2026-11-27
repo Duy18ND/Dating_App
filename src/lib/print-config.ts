@@ -14,21 +14,33 @@ export const PRINT_CONFIG = {
   BLEED_MM: 2,
   CARD_FACE_MM: { width: 105, height: 74 },
   /**
-   * Thiệp gập = 2 dải 210 x 74 mm (ngoài: [Bìa sau | Bìa trước], trong: [Trang viết tay | Lời mời]).
-   * Trên A4 mỗi dải xoay 90° thành 74 x 210, đặt cạnh nhau.
+   * v1.7: thiệp mini phẳng 105 x 74 mm in một mặt ở nửa dưới tờ A4 (y = 211..285).
+   * Mặt sau là giấy trắng để người gửi viết tay. Không gập, không dán lưng.
    */
-  CARD_STRIPS_MM: { length: 210, height: 74, gap: 14, marginX: 24, y: 43.5 },
-  /** Thư gấp 3: dải 105 x 222 mm, mỗi ô 105 x 74. */
+  MINI_CARD_MM: { x: 52.5, y: 211 },
+  /** Thư gấp 3: dải 105 x 222 mm, mỗi ô 105 x 74. (v1.7: chưa có trong PDF mặc định.) */
   LETTER_MM: { width: 105, height: 222, offsetX: 52.5, offsetY: 37.5, panelHeight: 74, lineGap: 8 },
-  /** Phong bì C7 thành phẩm 114 x 81 mm; trải phẳng 144 x 188 mm. */
+  /**
+   * Phong bì C7 thành phẩm 114 x 81 mm; trải phẳng liền một mảnh 144 x 188 mm ở nửa trên A4
+   * (y = 10..198). Nắp trên bo tròn cao 45 mm gồm vòm 35 mm + tai cài 22 x 10 mm ở đỉnh.
+   * Khe cài 26 mm nằm trên nắp đáy, cách nếp gấp đáy 45 mm: khi gấp, khe nằm cách mép trên
+   * thân 81 - 45 = 36 mm, tức giữa chân tai cài (35 mm) và mũi tai (45 mm).
+   */
   ENVELOPE_C7_FLAT_MM: {
     bodyWidth: 114,
     bodyHeight: 81,
     sideFlap: 15,
     bottomFlap: 62,
     topFlap: 45,
+    tuckTab: { width: 22, height: 10 },
+    tuckSlit: { width: 26, depth: 45 },
+    /** Hai tai bên và nắp đáy vát vào ở hai đầu. */
+    sideFlapTaper: 8,
+    bottomFlapTaper: 8,
+    /** Vùng keo trên tai bên: chỉ nằm trong phần bị nắp đáy che (cách hai đầu 8 mm). */
+    glueInset: 8,
     offsetX: 33,
-    offsetY: 54.5,
+    offsetY: 10,
   },
   EXPORT_PIXEL_RATIO: 2,
 } as const;

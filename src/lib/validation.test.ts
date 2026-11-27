@@ -135,7 +135,7 @@ describe("PRINT_CONFIG", () => {
     PAPER_A4_MM: a4,
     CANVAS,
     CARD_FACE_MM,
-    CARD_STRIPS_MM: strips,
+    MINI_CARD_MM: card,
     ENVELOPE_C7_FLAT_MM: env,
   } = PRINT_CONFIG;
 
@@ -143,12 +143,11 @@ describe("PRINT_CONFIG", () => {
     expect(CANVAS.width / CANVAS.height).toBeCloseTo(CARD_FACE_MM.width / CARD_FACE_MM.height, 2);
   });
 
-  it("phong bì C7 và hai dải thiệp căn giữa A4", () => {
+  it("phong bì C7 và thiệp mini căn giữa ngang trên cùng một tờ A4", () => {
     expect(2 * env.offsetX + env.bodyWidth + 2 * env.sideFlap).toBe(a4.width);
-    expect(2 * env.offsetY + env.topFlap + env.bodyHeight + env.bottomFlap).toBe(a4.height);
-    expect(2 * strips.marginX + 2 * strips.height + strips.gap).toBe(a4.width);
-    expect(2 * strips.y + strips.length).toBe(a4.height);
-    expect(strips.length).toBe(2 * CARD_FACE_MM.width);
+    expect(env.offsetY + env.topFlap + env.bodyHeight + env.bottomFlap).toBe(198);
+    expect(2 * card.x + CARD_FACE_MM.width).toBe(a4.width);
+    expect(card.y + CARD_FACE_MM.height).toBe(285);
   });
 
   it("QR tối thiểu in ra rộng ít nhất 20 mm", () => {
