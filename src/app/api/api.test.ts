@@ -260,6 +260,10 @@ describe("/api/me/letters/[id]: chỉ chính chủ", () => {
     expect((await deleteMine(send("DELETE", {}), idCtx)).status).toBe(404);
     expect(repo.updateOwnedLetter).not.toHaveBeenCalled();
     expect(repo.deleteOwnedLetter).not.toHaveBeenCalled();
+    // Người lạ cũng không chiếm được ảnh của thư qua PATCH.
+    const steal = send("PATCH", { canvas_data: samplePayload().canvas_data }, {});
+    expect((await editMine(steal, idCtx)).status).toBe(404);
+    expect(repo.setLetterUploads).not.toHaveBeenCalled();
     signIn(OWNER);
     const missing = params({ id: "22222222-2222-2222-2222-222222222222" });
     expect((await readMine(get(), missing)).status).toBe(404);
