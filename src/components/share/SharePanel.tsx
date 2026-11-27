@@ -2,7 +2,7 @@
 
 import { Download, FileText } from "lucide-react";
 import { useState } from "react";
-import { inputClass } from "@/components/editor/ui";
+import { inputClass, Toggle } from "@/components/editor/ui";
 import { Button } from "@/components/ui/button";
 import type { PrintSize } from "@/lib/print-config";
 import { recipientLink, sanitizeRecipient } from "@/lib/recipient";
@@ -54,15 +54,17 @@ export function LinkRow({ label, url }: { label: string; url: string }) {
 export function SharePanel({
   slug,
   canvas,
-  onDownloadPdf,
+  defaultHideBackground = false,
 }: {
   slug: string;
   canvas: CanvasData;
-  /** T-19 truyền hàm xuất PDF vào đây. Chưa có thì không hiện nút. */
-  onDownloadPdf?: (size: PrintSize) => void;
+  defaultHideBackground?: boolean;
 }) {
   const [guest, setGuest] = useState("");
   const [error, setError] = useState<string>();
+  const [hideBackground, setHideBackground] = useState(defaultHideBackground);
+  const [exporting, setExporting] = useState<PrintSize | null>(null);
+  const [pdfError, setPdfError] = useState<string>();
   // Thành phần này chỉ dựng sau thao tác trên trình duyệt nên luôn có window.
   const url = letterUrl(window.location.origin, slug);
 
@@ -102,16 +104,53 @@ export function SharePanel({
         )}
       </div>
 
-      {onDownloadPdf && (
+      <div className="space-y-2">
         <div className="flex flex-wrap gap-2">
-          <Button type="button" onClick={() => onDownloadPdf("A6")}>
-            <FileText /> Tải PDF A6
-          </Button>
-          <Button type="button" variant="outline" onClick={() => onDownloadPdf("A5")}>
-            <FileText /> Tải PDF A5
-          </Button>
+          {(["A6", "A5"] as const).map((size) => (
+            <Button
+              key={size}
+              type="button"
+              variant={size === canvas.defaultPrintSize ? "default" : "outline"}
+              disabled={exporting !== null}
+              onClick={async () => {
+                setExporting(size);
+                setPdfError(undefined);
+                try {
+                  // Konva và jsPDF nặng, chỉ tải khi bấm nút.
+                  const { exportLetterPdf } = await import("@/lib/client/export-pdf");
+                  await exportLetterPdf({
+                    canvas,
+                    qrUrl: url,
+                    size,
+                    hideBackground,
+                    fileName: `thiep-${slug}-${size}.pdf`,
+                  });
+                } catch (cause) {
+                  setPdfError(cause instanceof Error ? cause.message : "Không xuất được PDF.");
+                } finally {
+                  setExporting(null);
+                }
+              }}
+            >
+              <FileText /> {exporting === size ? "Đang tạo PDF..." : `Tải PDF ${size}`}
+            </Button>
+          ))}
         </div>
-      )}
+        <Toggle
+          label="Ẩn nền khi in (giấy Kraft hoặc giấy màu)"
+          checked={hideBackground}
+          onChange={setHideBackground}
+        />
+        <p className="text-xs text-muted-foreground">
+          PDF gồm 2 trang A4: phôi phong bì C6 (nét liền cắt, nét đứt gấp) và thiệp kèm dấu cắt
+          góc. In đúng 100%, không chọn &quot;Vừa trang&quot;.
+        </p>
+        {pdfError && (
+          <p role="alert" className="text-sm text-destructive">
+            {pdfError}
+          </p>
+        )}
+      </div>
       <p className="text-xs text-muted-foreground">
         Mẹo in: thiệp dùng giấy 250–300 gsm, phong bì Kraft dùng giấy 120–180 gsm.
       </p>

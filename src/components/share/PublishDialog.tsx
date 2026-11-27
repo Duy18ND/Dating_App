@@ -6,16 +6,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createLetter, updateLetter } from "@/lib/client/api";
 import { useEditorStore } from "@/lib/editor/store";
-import type { PrintSize } from "@/lib/print-config";
 import { letterPayloadSchema } from "@/lib/validation";
 import { DonatePanel } from "./DonatePanel";
 import { LinkRow, SharePanel } from "./SharePanel";
 
 /** Nút Xuất bản kèm modal kết quả. Lần xuất bản sau cập nhật đúng thư cũ, giữ nguyên mã QR. */
-export function PublishDialog({ onDownloadPdf }: { onDownloadPdf?: (size: PrintSize) => void }) {
+export function PublishDialog() {
   const doc = useEditorStore((s) => s.doc);
   const published = useEditorStore((s) => s.published);
+  const hideBackground = useEditorStore((s) => s.printHideBackground);
   const setPublished = useEditorStore((s) => s.setPublished);
+  const markSaved = useEditorStore((s) => s.markSaved);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -35,6 +36,7 @@ export function PublishDialog({ onDownloadPdf }: { onDownloadPdf?: (size: PrintS
         const created = await createLetter(payload);
         setPublished({ slug: created.slug, editToken: created.edit_token });
       }
+      markSaved(payload);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Xuất bản không được, hãy thử lại.");
     } finally {
@@ -79,7 +81,7 @@ export function PublishDialog({ onDownloadPdf }: { onDownloadPdf?: (size: PrintS
                 <SharePanel
                   slug={published.slug}
                   canvas={doc.canvas_data}
-                  onDownloadPdf={onDownloadPdf}
+                  defaultHideBackground={hideBackground}
                 />
                 <div className="space-y-2 rounded-lg border border-primary/40 bg-accent p-3">
                   <p className="text-sm font-medium">
