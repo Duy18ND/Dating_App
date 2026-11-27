@@ -1,15 +1,27 @@
 "use client";
 
+import { ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { DonatePanel } from "@/components/share/DonatePanel";
 import { SharePanel } from "@/components/share/SharePanel";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { getMyLetter } from "@/lib/client/api";
+import { AuthRequiredError, deleteMyLetter, getMyLetter } from "@/lib/client/api";
+import { loginPath } from "@/lib/safe-redirect";
 import { describeResponse, summarizeResponses } from "@/lib/responses";
 import type { ManagedLetter } from "@/types/letter";
+import { ExpiryNotice } from "./ExpiryNotice";
 
 const date = (iso: string) => new Date(iso).toLocaleString("vi-VN");
+
+function BackLink() {
+  return (
+    <Link href="/thiep-cua-toi" className="inline-flex items-center gap-1 text-sm text-muted-foreground underline">
+      <ArrowLeft className="size-4" /> Thiệp của tôi
+    </Link>
+  );
+}
 
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
@@ -22,8 +34,12 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 
 /** Chi tiết một thiệp của chính chủ: số liệu, phản hồi, chia sẻ. */
 export function LetterDetail({ id }: { id: string }) {
+  const router = useRouter();
   const [letter, setLetter] = useState<ManagedLetter>();
+  const [loadedAt, setLoadedAt] = useState(0);
   const [error, setError] = useState<string>();
+  const [needsLogin, setNeedsLogin] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const reload = useCallback(() => setAttempt((n) => n + 1), []);
 
@@ -33,9 +49,14 @@ export function LetterDetail({ id }: { id: string }) {
       (data) => {
         if (!active) return;
         setLetter(data);
+        setLoadedAt(Date.now());
         setError(undefined);
       },
-      (cause: Error) => active && setError(cause.message),
+      (cause: Error) => {
+        if (!active) return;
+        setNeedsLogin(cause instanceof AuthRequiredError);
+        setError(cause.message);
+      },
     );
     return () => {
       active = false;
@@ -48,13 +69,33 @@ export function LetterDetail({ id }: { id: string }) {
         <p role="alert" className="text-destructive">
           {error}
         </p>
-        <Button type="button" onClick={reload}>
-          Thử lại
-        </Button>
+        {needsLogin ? (
+          <Link href={loginPath(`/thiep-cua-toi/${id}`)} className={buttonVariants()}>
+            Đăng nhập lại
+          </Link>
+        ) : (
+          <Button type="button" onClick={reload}>
+            Thử lại
+          </Button>
+        )}
+        <BackLink />
       </div>
     ) : (
       <p className="text-muted-foreground">Đang tải...</p>
     );
+  }
+
+  async function remove() {
+    if (!letter) return;
+    if (!window.confirm("Xóa thiệp này? Thiệp, phản hồi và mã QR sẽ ngừng hoạt động ngay.")) return;
+    setDeleting(true);
+    try {
+      await deleteMyLetter(letter.id);
+      router.replace("/thiep-cua-toi");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Chưa xóa được, hãy thử lại.");
+      setDeleting(false);
+    }
   }
 
   const summary = summarizeResponses(letter.responses);
@@ -63,16 +104,33 @@ export function LetterDetail({ id }: { id: string }) {
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold">{letter.title || "Lá thư của bạn"}</h1>
-        <p className="text-sm text-muted-foreground">
-          Tạo lúc {date(letter.created_at)}. Hết hạn lúc {date(letter.expires_at)}.
-        </p>
+        <BackLink />
+        <h1 className="text-2xl font-semibold">{letter.title || "Thiệp của bạn"}</h1>
+        <p className="text-sm text-muted-foreground">Tạo lúc {date(letter.created_at)}.</p>
+        <ExpiryNotice expiresAt={letter.expires_at} now={loadedAt} detailed />
         <div className="flex flex-wrap gap-2">
           <Link href={`/editor?id=${letter.id}`} className={buttonVariants()}>
-            Chỉnh sửa thư
+            Sửa thiệp
           </Link>
+          <a
+            href={`/l/${letter.slug}`}
+            target="_blank"
+            rel="noopener"
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Xem thử (không tính lượt mở)
+          </a>
           <Button type="button" variant="outline" onClick={reload}>
             Tải lại số liệu
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-destructive"
+            disabled={deleting}
+            onClick={remove}
+          >
+            <Trash2 /> {deleting ? "Đang xóa..." : "Xóa thiệp"}
           </Button>
         </div>
         {error && (
