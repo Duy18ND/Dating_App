@@ -8,6 +8,8 @@ export const HISTORY_LIMIT = 50;
 
 export type NewElement = Omit<CanvasElement, "id" | "zIndex" | "rotation"> & { rotation?: number };
 export type LayerMove = "front" | "back" | "forward" | "backward";
+/** Thư đã xuất bản của tài liệu đang mở: lần sau cập nhật thay vì tạo mới. */
+export type Published = { slug: string; editToken: string };
 
 interface EditorState {
   /** Phần được lưu và nằm trong lịch sử Undo/Redo. Không bao giờ sửa tại chỗ. */
@@ -20,8 +22,10 @@ interface EditorState {
   selectedId: string | null;
   editingTextId: string | null;
   printHideBackground: boolean;
+  published: Published | null;
 
-  load: (doc: LetterPayload) => void;
+  load: (doc: LetterPayload, published?: Published) => void;
+  setPublished: (published: Published) => void;
   select: (id: string | null) => void;
   setEditingText: (id: string | null) => void;
   setPrintHideBackground: (hide: boolean) => void;
@@ -98,9 +102,19 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   selectedId: null,
   editingTextId: null,
   printHideBackground: false,
+  published: null,
 
-  load: (doc) =>
-    set({ doc, past: [], future: [], coalesceKey: null, selectedId: null, editingTextId: null }),
+  load: (doc, published) =>
+    set({
+      doc,
+      published: published ?? null,
+      past: [],
+      future: [],
+      coalesceKey: null,
+      selectedId: null,
+      editingTextId: null,
+    }),
+  setPublished: (published) => set({ published }),
   select: (selectedId) => set({ selectedId, coalesceKey: null }),
   setEditingText: (editingTextId) => set({ editingTextId, coalesceKey: null }),
   setPrintHideBackground: (printHideBackground) => set({ printHideBackground }),
