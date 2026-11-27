@@ -4,12 +4,12 @@ Mỗi prompt dán nguyên khối vào Gemini. Kết quả Gemini trả về thì
 
 | # | Task | Gemini làm gì | Khi nào gửi |
 |---|---|---|---|
-| 1 | T-28 | 4 thiệp **nằm ngang** (nội dung + bố cục) | Ngay bây giờ |
+| 1 | T-28 | 4 thiệp mini, mỗi thiệp 2 mặt (nội dung + bố cục) | Ngay bây giờ |
 | 5 | T-35 | Nội dung mặc định cho trang web cuộn | Trước T-35 |
 | 4 | T-25 | Kịch bản clip và caption Threads | Trước khi ra mắt |
-| 2, 3 | T-13 | Icon SVG và sticker | Không cần gửi lại: repo đang có thay đổi icon và sticker mới chưa commit, kiểm tra rồi commit nếu ưng |
+| 2, 3 | T-13 | Icon SVG và sticker | Không cần gửi lại nếu bạn ưng bộ đang chờ commit |
 
-> Cập nhật v1.2 (27/11/2026): Prompt 1 đã viết lại cho thiệp ngang. Bản cũ cho thiệp đứng không còn dùng.
+> Cập nhật v1.3 (27/11/2026): Prompt 1 viết lại cho bộ mini. Các bản cũ không còn dùng. Prompt 4 nhắc tới "thiệp A6": khi gửi, đổi thành "thiệp mini gập 10,5 x 7,4 cm trong phong bì C7".
 
 ---|---|---|---|
 | 1 | T-17 | Viết lại nội dung chữ và bố cục 4 mẫu thiệp A6 | `src/lib/templates.ts` |
@@ -19,42 +19,51 @@ Mỗi prompt dán nguyên khối vào Gemini. Kết quả Gemini trả về thì
 
 ---
 
-## Prompt 1: 4 thiệp nằm ngang (T-28)
+## Prompt 1: 4 thiệp mini hai mặt (T-28)
 
-Mẹo: dán kèm nội dung file `src/lib/templates.ts` hiện tại để Gemini giữ lại phần chữ bạn đã ưng.
+Mẹo: dán kèm `src/lib/templates.ts` hiện tại để Gemini giữ lại phần chữ bạn đã ưng.
 
 ```
-Bạn là copywriter và designer cho "Phygital Letter Studio". Bộ quà in ra gồm: phong bì C6, một THIỆP NẰM NGANG 148 x 105 mm có mã QR, và một tờ thư riêng để viết tay cảm xúc. Quét QR trên thiệp sẽ mở trang web có nhạc để người nhận lướt xem. Người dùng là Gen Z Việt Nam 18–28 tuổi.
+Bạn là copywriter và designer cho "Phygital Letter Studio". Người dùng tự in, cắt, dán một bộ quà MINI: phong bì 11,4 x 8,1 cm, một thiệp gập mở như cuốn sách (mỗi mặt 10,5 x 7,4 cm, nằm ngang) và một tờ thư viết tay gấp 3. Trong thiệp có mã QR mở trang web có nhạc. Người dùng là Gen Z Việt Nam 18–28 tuổi. Phong cách: NHỎ NHẮN, XINH XẮN, thoáng, ít chữ.
 
-Vì lời tâm sự dài nằm ở thư viết tay và trang web, THIỆP chỉ là lời mời ngắn, thoáng, nhiều khoảng trống, mời người nhận quét mã. Tiếng Việt có dấu, tự nhiên, ấm áp, không sến, không dùng tên người thật.
+Mỗi mẫu gồm 2 mặt:
+- front (bìa trước): một tiêu đề ngắn và vài hình trang trí. Không có QR.
+- inside (trang bên phải khi mở thiệp): một lời mời ngắn và đúng 1 mã QR. (Trang bên trái là chỗ viết tay, bạn KHÔNG thiết kế.)
 
-Soạn 4 mẫu:
-1. confession – Tỏ tình / Kỷ niệm: tiêu đề ngắn, vài hình trang trí, QR đặt một bên kèm câu mời quét.
-2. wedding – Mời cưới: trang trọng, tông kem và đỏ rượu vang (#6E1F2A), "Tên cô dâu & Tên chú rể" (ví dụ rõ ràng), thời gian, địa điểm, QR.
-3. dinner – Vé mời đi ăn / hẹn hò: bố cục như tấm vé ngang, QR ở phần "cuống vé" bên phải, 1–2 sticker.
-4. holiday – Sinh nhật / Giáng sinh: bưu thiếp ngang, lời chúc ngắn, 1 sticker, QR.
+4 mẫu:
+1. confession – Tỏ tình / Kỷ niệm: bìa có tiêu đề ngắn và tim.
+2. wedding – Mời cưới: tông kem + đỏ rượu vang (#6E1F2A). Bìa: "Tên cô dâu & Tên chú rể". Trong: thời gian, địa điểm (ghi rõ là ví dụ), QR.
+3. dinner – Mời đi ăn / hẹn hò: bìa kiểu "VÉ MỜI" với 1 sticker. Trong: thời gian, địa điểm, QR.
+4. holiday – Sinh nhật / Giáng sinh: bìa lời chúc ngắn + 1 sticker.
+
+Tiếng Việt có dấu, tự nhiên, ấm áp, không sến, không dùng tên người thật.
 
 RÀNG BUỘC KỸ THUẬT (code có test tự động):
-- Canvas 1754 x 1240 px (NGANG), gốc (0,0) góc trên trái. Lề an toàn 94 px: mọi phần tử nằm trong x từ 94 đến 1660, y từ 94 đến 1146.
-- Chữ: chiều cao ước tính = số dòng x fontSize x 1.35, xuống dòng bằng "
-". Phải ghi rõ x và width cho từng khối chữ. Cỡ chữ nhỏ nhất 32 px (nhỏ hơn in ra khó đọc). Mỗi dòng phải đủ ngắn để không tự xuống dòng ngoài ý muốn.
+- Mỗi mặt là canvas 1760 x 1240 px, gốc (0,0) góc trên trái; 1 mm ≈ 16,76 px. Lề an toàn 84 px: mọi phần tử nằm trong x 84..1676, y 84..1156.
+- Chữ: chiều cao ≈ số dòng x fontSize x 1.35; xuống dòng bằng "\n". Ghi rõ x và width cho từng khối chữ. fontSize NHỎ NHẤT 48. Tiêu đề nên 120–200. Mỗi mặt tối đa 3 khối chữ. Mỗi dòng đủ ngắn để không tự xuống dòng.
 - Font: "Be Vietnam Pro", "Cormorant Garamond", "Playfair Display", "Charm", "Dancing Script", "Mali". Màu "#RRGGBB".
-- Icon id: heart, heart-line, rings, star, sparkle, envelope, toast, flower, leaf, branch, tulip, wax-seal, wreath, squiggle, scribble-circle, arrow, underline, smile, crown, music-note.
-- Sticker id: yeu-qua, nho-ban, di-an-hong, chot-keo, chuc-mung, sinh-nhat, doi-qua, met-xiu, ngu-day, bat-ngo, ngau, gian-roi, xin-loi, cam-on, thuong-lam, nho-den-nha, khong-gap-khong-ve, iu-iu, hong-be-oi, dong-y-di, hehe, xinh-xiu, qua-da, buon-nhe, giang-sinh. Sticker vuông, tối đa 400 px.
-- Đúng 1 mã QR mỗi mẫu, cạnh 240–320 px. Viền trắng quanh QR rộng thêm 10% cạnh mỗi phía, viền cũng phải nằm trong lề an toàn. Màu QR đậm.
-- Không phần tử nào đè lên nhau.
-- Nền: preset ("kraft" | "cream" | "grid" | "plaid") hoặc "#RRGGBB".
+- Icon id: heart, heart-line, rings, star, sparkle, envelope, toast, flower, leaf, branch, tulip, wax-seal, wreath, squiggle, scribble-circle, arrow, underline, smile, crown, music-note. Icon nhỏ nhất 70 px.
+- Sticker id: yeu-qua, nho-ban, di-an-hong, chot-keo, chuc-mung, sinh-nhat, doi-qua, met-xiu, ngu-day, bat-ngo, ngau, gian-roi, xin-loi, cam-on, thuong-lam, nho-den-nha, khong-gap-khong-ve, iu-iu, hong-be-oi, dong-y-di, hehe, xinh-xiu, qua-da, buon-nhe, giang-sinh. Vuông, 300–400 px (nhỏ hơn thì chữ trên sticker khó đọc).
+- QR chỉ ở inside, đúng 1 mã, cạnh 340–440 px. Viền trắng rộng thêm 10% cạnh mỗi phía, viền cũng phải nằm trong lề an toàn. Màu QR đậm.
+- Không phần tử nào đè nhau.
+- Nền mỗi mặt: preset ("kraft" | "cream" | "grid" | "plaid") hoặc "#RRGGBB".
+- Gợi ý thêm cho mỗi mẫu: màu phong bì (envelopeColor), chữ lồng ≤ 12 ký tự (ví dụ "u ♡"), một câu ngắn in trên nắp phong bì ≤ 80 ký tự.
 - Khối web: acceptButton { question, yesText ≤40, noText ≤40, dodgeNo }, rsvp { eventDate "YYYY-MM-DDTHH:mm", locationName, mapsUrl "" }, poll { question, options 2–4 phương án khác nhau }.
 
-TRẢ VỀ: một khối TypeScript dùng các hàm có sẵn:
+TRẢ VỀ: một khối TypeScript dùng các hàm:
   text(y, "nội dung", fontSize, "Font", "#màu", { x, width })
   icon("id", x, y, size, "#màu")
   sticker("id", x, y, size, rotation?)
   qr(x, y, size, "#màu", "iconId giữa mã"?)
-export const TEMPLATES: Template[] = [ { type, name, description (≤90 ký tự), title, background: { type, value, overlayOpacity: 0 }, elements: [...], web: { audio: { enabled: false, trackId, startTime: 0, volume: 0.4 }, blocks: {...} } }, ... ]
+export const TEMPLATES = [ { type, name, description (≤90 ký tự), title,
+  front: { background: { type, value, overlayOpacity: 0 }, elements: [...] },
+  inside: { background: {...}, elements: [...] },
+  envelope: { monogram, line }, envelopeColor, waxSealColor,
+  web: { audio: { enabled: false, trackId, startTime: 0, volume: 0.4 }, blocks: {...} } }, ... ]
 trackId lần lượt: romantic-1, wedding-1, fun-1, festive-1.
+(Lập trình viên có thể đổi tên trường cho khớp code.)
 
-Sau code, lập bảng cho từng phần tử: x, y, rộng, cao ước tính, mép phải, mép dưới, để chứng minh nằm trong lề an toàn và không chồng nhau.
+Sau code, lập bảng cho từng phần tử: mặt, x, y, rộng, cao ước tính, mép phải, mép dưới, để chứng minh nằm trong lề an toàn và không chồng nhau.
 ```
 
 ---
