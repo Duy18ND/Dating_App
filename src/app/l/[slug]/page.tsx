@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { cache, Suspense } from "react";
-import { LetterContent } from "@/components/viewer/LetterContent";
+import { LetterExperience } from "@/components/viewer/LetterExperience";
 import { sanitizeRecipient } from "@/lib/recipient";
 import { ApiError } from "@/lib/server/http";
 import { getActiveLetter, toPublicLetter } from "@/lib/server/letters";
@@ -71,6 +71,5 @@ async function Letter({ params, searchParams }: PageProps<"/l/[slug]">) {
   }
 
   // toPublicLetter loại edit_token trước khi dữ liệu sang trình duyệt.
-  // TODO(T-20): bọc phong bì, phát nhạc và gọi recordView khi bóc dấu sáp.
-  return <LetterContent letter={toPublicLetter(row)} recipient={sanitizeRecipient(query.to)} />;
+  return <LetterExperience letter={toPublicLetter(row)} recipient={sanitizeRecipient(query.to)} />;
 }
