@@ -1,6 +1,6 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { useState } from "react";
 import { inputClass, Toggle } from "@/components/editor/ui";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { createQrBlob, letterUrl, quietZone } from "@/lib/render/qr";
 import { LIMITS } from "@/lib/validation";
 import type { CanvasData } from "@/types/letter";
 import { CopyButton } from "./CopyButton";
-import { PrintDownloads } from "./PrintDownloads";
 import { PrintGuide } from "./PrintGuide";
 
 const QR_PNG_PX = 1024;
@@ -68,6 +67,8 @@ export function SharePanel({
   const [guest, setGuest] = useState("");
   const [error, setError] = useState<string>();
   const [hideBackground, setHideBackground] = useState(defaultHideBackground);
+  const [exporting, setExporting] = useState(false);
+  const [pdfError, setPdfError] = useState<string>();
   // Thành phần này chỉ dựng sau thao tác trên trình duyệt nên luôn có window.
   const url = letterUrl(window.location.origin, slug);
 
@@ -106,22 +107,43 @@ export function SharePanel({
       </div>
 
       <div className="space-y-2">
-        <PrintDownloads
-          input={{
-            canvas,
-            qrUrl: url,
-            envelopeColor,
-            recipientName,
-            background: !hideBackground,
+        <Button
+          type="button"
+          disabled={exporting}
+          onClick={async () => {
+            setExporting(true);
+            setPdfError(undefined);
+            try {
+              // Konva và jsPDF nặng, chỉ tải khi bấm nút.
+              const { exportLetterPdf } = await import("@/lib/client/export-pdf");
+              await exportLetterPdf({
+                canvas,
+                qrUrl: url,
+                envelopeColor,
+                recipientName,
+                background: !hideBackground,
+                fileName: `bo-thiep-${slug}.pdf`,
+              });
+            } catch (cause) {
+              setPdfError(cause instanceof Error ? cause.message : "Không xuất được PDF.");
+            } finally {
+              setExporting(false);
+            }
           }}
-          name={slug}
-        />
+        >
+          <FileText /> {exporting ? "Đang tạo PDF..." : "Tải PDF bộ in"}
+        </Button>
         <Toggle
           label="Ẩn nền phong bì và thiệp khi in (giấy Kraft hoặc giấy màu)"
           checked={hideBackground}
           onChange={setHideBackground}
         />
         <PrintGuide />
+        {pdfError && (
+          <p role="alert" className="text-sm text-destructive">
+            {pdfError}
+          </p>
+        )}
       </div>
     </div>
   );

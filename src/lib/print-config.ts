@@ -14,15 +14,16 @@ export const PRINT_CONFIG = {
   BLEED_MM: 2,
   CARD_FACE_MM: { width: 105, height: 74 },
   /**
-   * v1.9: thiệp mini phẳng 105 x 74 mm nằm CHÍNH GIỮA tờ A4 riêng, in hai mặt.
-   * Nằm giữa trang nên lật tờ giấy theo cạnh nào mặt sau cũng đúng chỗ.
+   * v1.8: thiệp mini phẳng 105 x 74 mm in HAI MẶT ở nửa dưới tờ A4 (y = 207..281).
+   * Trang 1 in mặt trước, trang 2 in mặt sau (in đảo theo cạnh dài). Không gập, không dán lưng.
+   * Dấu cắt kết thúc ở y = 289, còn cách mép giấy 8 mm cho lề không in được của máy in nhà.
    */
-  MINI_CARD_MM: { x: 52.5, y: 111.5 },
+  MINI_CARD_MM: { x: 52.5, y: 207 },
   /** Thư gấp 3: dải 105 x 222 mm, mỗi ô 105 x 74. (v1.7: chưa có trong PDF mặc định.) */
   LETTER_MM: { width: 105, height: 222, offsetX: 52.5, offsetY: 37.5, panelHeight: 74, lineGap: 8 },
   /**
    * Phong bì C7 thành phẩm 114 x 81 mm; trải phẳng liền một mảnh 144 x 188 mm ở nửa trên A4
-   * (tờ A4 riêng, canh giữa: y = 54,5..242,5). Nắp trên bo tròn cao 45 mm gồm vòm 35 mm + tai cài 22 x 10 mm ở đỉnh.
+   * (y = 8..196). Nắp trên bo tròn cao 45 mm gồm vòm 35 mm + tai cài 22 x 10 mm ở đỉnh.
    * Khe cài 26 mm nằm trên nắp đáy, cách nếp gấp đáy 45 mm: khi gấp, khe nằm cách mép trên
    * thân 81 - 45 = 36 mm, tức giữa chân tai cài (35 mm) và mũi tai (45 mm).
    */
@@ -40,7 +41,7 @@ export const PRINT_CONFIG = {
     /** Vùng keo trên tai bên: chỉ nằm trong phần bị nắp đáy che (cách hai đầu 8 mm). */
     glueInset: 8,
     offsetX: 33,
-    offsetY: 54.5,
+    offsetY: 8,
   },
   EXPORT_PIXEL_RATIO: 2,
 } as const;

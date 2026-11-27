@@ -1,23 +1,19 @@
-> **SRS v1.9 — nguồn chuẩn hiện hành** (không dùng số 1.5: bản đó đã hủy). Bản gốc trích từ SRS_Phygital_Letter_Studio_V1.docx (v1.1); các thay đổi sau đó được sửa trực tiếp trong file này. File .docx và .xlsx **chưa cập nhật**, khi lệch thì file .md này là chuẩn. Quyết định bổ sung nằm ở CLAUDE.md.
+> **SRS v1.8 — nguồn chuẩn hiện hành** (không dùng số 1.5: bản đó đã hủy). Bản gốc trích từ SRS_Phygital_Letter_Studio_V1.docx (v1.1); các thay đổi sau đó được sửa trực tiếp trong file này. File .docx và .xlsx **chưa cập nhật**, khi lệch thì file .md này là chuẩn. Quyết định bổ sung nằm ở CLAUDE.md.
 
-SOFTWARE REQUIREMENTS SPECIFICATION (SRS) — VERSION 1.9  
+SOFTWARE REQUIREMENTS SPECIFICATION (SRS) — VERSION 1.8  
 NỀN TẢNG TẠO THƯ ĐIỆN TỬ LAI THƯ TAY(PHYGITAL LETTER STUDIO)  
 Trình thiết kế bộ quà mini (phong bì C7 và tấm thiệp mini, in trọn trên 1 tờ A4) tự cắt dán tại nhà, kèm trang web bày tỏ dạng cuộn dọc mở bằng mã QR.  
   
 Thông tin tài liệu | Chi tiết  
 Tên sản phẩm | Phygital Letter Studio  
-Phiên bản tài liệu | v1.9 — Bộ in 2 tờ A4 (phong bì, thiệp 2 mặt); làm web trước; bộ phong cách & hiệu ứng; hiển thị nhất quán PC và điện thoại  
+Phiên bản tài liệu | v1.8 — Bộ in 1 tờ A4 hai mặt; làm web trước; bộ phong cách & hiệu ứng; hiển thị nhất quán PC và điện thoại  
 Ngày cập nhật | 27/11/2026  
 Mô hình vận hành | 100% Miễn phí (Free) + Ủng hộ tự nguyện bằng Ảnh QR Ngân hàng / ZaloPay tĩnh  
 Kênh ra mắt mục tiêu | Threads (clip mở phong bì mini, lật thiệp, quét QR phát nhạc)  
 Kế hoạch thực thi | Sprint 7 ngày (Kiến trúc Gemini + Code Claude Sonnet / Opus / Haiku trong IDE)  
 Công nghệ cốt lõi | Next.js (App Router), TypeScript, Tailwind CSS, React-Konva, Supabase, Cloudflare R2  
-NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.9 (chốt ngày 27/11/2026) — **thay mục 1 và 4 của v1.8**  
-1. **Hai tờ A4, hai loại giấy, hai file PDF tải riêng.** File phong bì: 1 trang, in 1 mặt, giấy 120–160 gsm. File thiệp: 2 trang là hai mặt của một tờ bìa 230–300 gsm, in đảo theo cạnh dài.  
-2. Phong bì và thiệp đều canh giữa tờ riêng: phôi phong bì y = 54,5..242,5 mm; thiệp x = 52,5, y = 111,5..185,5 mm.  
-3. Tách hai file (không gộp 3 trang) để bật in 2 mặt không ghép phong bì vào cùng tờ với thiệp.  
-  
 NHỮNG CẬP NHẬT CHÍNH Ở PHIÊN BẢN V1.8 (chốt ngày 27/11/2026) — **thay mục 1–2 của v1.7**  
+0. **v1.9 (tách 2 tờ, 2 file) đã thử rồi bỏ cùng ngày:** chủ dự án chốt quay lại bản một tờ A4 in hai mặt dưới đây. Trang web có thêm hướng dẫn mua giấy, keo, dụng cụ, cách in và lắp ráp.  
 1. **Một tờ A4 in hai mặt** (PDF 2 trang, in đảo theo cạnh dài). Trang 1: phong bì C7 ở nửa trên, **mặt trước thiệp** ở nửa dưới. Trang 2: chỉ **mặt sau thiệp**, nằm đúng sau lưng mặt trước.  
 2. Thiệp là thẻ phẳng 105 x 74 mm, **người tạo tự thiết kế cả hai mặt**; mã QR ở mặt sau. Mặt sau không còn để trắng (muốn viết tay thì chừa chỗ hoặc đặt khối dòng kẻ).  
 3. **Mặt trước phong bì** in 'Gửi [tên người nhận]': mặc định tự lấy tên, sửa được chữ (<= 60 ký tự), xóa trống để viết tay.  
@@ -61,7 +57,7 @@ Hạng mục | Trong phạm vi MVP (V1.1 — Làm ngay) | Ngoài phạm vi MVP (
 Hệ sinh thái mẫu | 4 mẫu dựng sẵn, mỗi mẫu gồm bìa trước, trang Lời mời + QR và bộ phần web mặc định: Tỏ tình, Mời cưới, Mời ăn/Hẹn hò, Sinh nhật/Giáng sinh. | Mở rộng: Mời họp lớp, Thiệp Tết, Group Letter.  
 Cá nhân hóa (Customize) | Mini-Canva Responsive PC & Mobile; Custom Background (Preset/Màu/Ảnh + Blur/Overlay), Ảnh WebP (khung Polaroid/Tem/Tròn/Đám mây + filter), 20 Icon SVG đổi màu, 25 Sticker Meme WebP, Ghi tay 2 chế độ, đổi màu phong bì/dấu sáp/QR. | AI tự động tách nền ảnh tải lên, hiệu ứng chữ uốn cong/3D, upload font cá nhân.  
 Cá nhân hóa người nhận | Nhập tên người gửi/nhận mặc định + hỗ trợ đổi tên từng khách qua tham số URL (?to=Ten-Khach) kèm ô tạo nhanh link theo tên. | Mail Merge tạo hàng loạt hàng trăm thiệp PDF từ file Excel/CSV.  
-Xuất bản & In ấn | Mã QR động (/l/[slug]); 2 file PDF trên 2 tờ A4 (phong bì C7 có tai cài + thiệp mini phẳng) có đường cắt, đường gấp, vùng dán; tắt nền để in giấy màu. | Mô phỏng gấp 3D, các khổ khác, in hai mặt.  
+Xuất bản & In ấn | Mã QR động (/l/[slug]); PDF 1 tờ A4 hai mặt (phong bì C7 có tai cài + thiệp mini phẳng) có đường cắt, đường gấp, vùng dán; tắt nền để in giấy màu. | Mô phỏng gấp 3D, các khổ khác, in hai mặt.  
 Trải nghiệm Web & Nhạc | Bóc dấu sáp phát nhạc, trang cuộn dọc kể chuyện (FR-10), Block tương tác (Đồng ý, RSVP + Maps, Poll). | Thẻ cào, câu đố mở khóa, ghi âm giọng nói, cuộn kiểu từng màn (story), hồi âm hai chiều, upload MP3 riêng, kéo thả tự do trên trang web.  
 Quản lý & Vận hành | Tài khoản bắt buộc cho người tạo (email + mật khẩu, Google); trang Thiệp của tôi; Free + Donate ảnh QR tĩnh; thư tự hết hạn sau 60 ngày. | Dashboard thống kê chi tiết, gói trả phí (lưu vĩnh viễn/bỏ credit), đăng nhập mạng xã hội khác, nhiều người cùng sửa một thiệp.  
 2.  HỆ THỐNG THIẾT KẾ (UI/UX) & CHUẨN KÍCH THƯỚC IN ẤN  
@@ -76,19 +72,19 @@ Font giao diện (UI) | Be Vietnam Pro | Hiển thị chuẩn dấu tiếng Vi�
 Font trang trọng (Serif) | Cormorant Garamond, Playfair Display | Tiêu đề thiệp cưới, thư tỏ tình phong cách cổ điển.  
 Font viết tay (Script) | Charm, Dancing Script, Mali | Hỗ trợ đầy đủ dấu tiếng Việt trên Canvas, không nhảy font.  
 2.2. Chuẩn Kích thước Bộ in Mini (PRINT_CONFIG)  
-Cả bộ in trên **2 tờ A4 dọc** (phong bì một mặt; thiệp hai mặt), người dùng tự cắt, gấp, dán. Thiệp 105 x 74 mm bỏ vào phong bì 114 x 81 mm, hở 9 mm chiều dài và 7 mm chiều cao.  
+Cả bộ in trên **đúng 1 tờ A4 dọc, hai mặt**, người dùng tự cắt, gấp, dán. Thiệp 105 x 74 mm bỏ vào phong bì 114 x 81 mm, hở 9 mm chiều dài và 7 mm chiều cao.  
 Hạng mục | Thông số chuẩn | Quy tắc triển khai  
 Mặt thiệp (đơn vị thiết kế) | 105 x 74 mm = canvas logic **1760 x 1240 px** (~16,76 px/mm) | Mỗi mặt thiết kế là một canvas riêng. Chỉ lưu tọa độ logic.  
 Các mặt thiệp | **Mặt trước** (thiết kế tự do); **Mặt sau + QR** (thiết kế tự do). Cả hai đều được in. | Mã QR chỉ nằm ở mặt sau (faces.inside), đúng 1 mã.  
-Thiệp mini (tờ thiệp) | Thẻ phẳng 105 x 74 mm ở chính giữa tờ A4: x = 52,5, y = 111,5..185,5 mm, cả hai mặt cùng vị trí | Không gập, không dán lưng. Tràn màu 2 mm cả hai mặt bằng cách kéo giãn điểm ảnh ở mép. 4 dấu cắt góc chỉ ở mặt trước.  
-Phong bì C7 (tờ phong bì) | Thành phẩm 114 x 81 mm; trải phẳng **liền một mảnh** 144 x 188 mm tại x = 33, y = 54,5..242,5 mm. Tai bên 15 mm; nắp đáy 62 mm; nắp trên 45 mm gồm vòm bo tròn và **tai cài 22 x 10 mm** ở đỉnh; hai tai bên và nắp đáy vát 8 mm | **Khe cài 26 mm** cong nhẹ trên nắp đáy, cách nếp gấp đáy 45 mm (17 mm từ mép dưới). Nét liền cắt, nét đứt gấp. **Vùng dán** trên hai tai bên chỉ gạch chéo mờ + biểu tượng giọt keo, nằm trọn trong phần nắp đáy che. Nắp trên in chữ lồng tên + một câu, **xoay 180°**. Thân (mặt trước phong bì) in 'Gửi [tên]' vẽ xuôi.  
+Thiệp mini (nửa dưới A4) | Thẻ phẳng 105 x 74 mm tại x = 52,5, y = 207..281 mm; trang 2 đặt đối xứng qua trục giữa trang (in đảo cạnh dài) | Không gập, không dán lưng. Tràn màu 2 mm cả hai mặt bằng cách kéo giãn điểm ảnh ở mép. 4 dấu cắt góc chỉ ở trang 1.  
+Phong bì C7 (nửa trên A4) | Thành phẩm 114 x 81 mm; trải phẳng **liền một mảnh** 144 x 188 mm tại x = 33, y = 8..196 mm. Tai bên 15 mm; nắp đáy 62 mm; nắp trên 45 mm gồm vòm bo tròn và **tai cài 22 x 10 mm** ở đỉnh; hai tai bên và nắp đáy vát 8 mm | **Khe cài 26 mm** cong nhẹ trên nắp đáy, cách nếp gấp đáy 45 mm (17 mm từ mép dưới). Nét liền cắt, nét đứt gấp. **Vùng dán** trên hai tai bên chỉ gạch chéo mờ + biểu tượng giọt keo, nằm trọn trong phần nắp đáy che. Nắp trên in chữ lồng tên + một câu, **xoay 180°**. Thân (mặt trước phong bì) in 'Gửi [tên]' vẽ xuôi.  
 Tràn màu (bleed) | 2 mm ngoài mọi đường cắt có màu hoặc ảnh nền | Cắt lệch nhẹ không lộ viền trắng. Dấu cắt nằm ngoài vùng tràn.  
 Lề an toàn | 84 px (5 mm) | Khung nét đứt trên Editor, không in.  
 Mã QR | Mặc định 380 px (~22,7 mm). Tối thiểu 340 px (~20,3 mm) | Khóa trong store; nền sáng Quiet Zone 10% cạnh mỗi phía.  
 Cỡ chữ tối thiểu | 48 px (~2,9 mm, ~8 pt) | Áp dụng cho chữ trên thiệp.  
 Chất lượng xuất PDF | pixelRatio 2 (mặt thiệp 3520 x 2480 px) | Mọi nội dung có chữ vẽ thành ảnh rồi nhúng vào jsPDF (PDF không chứa ký tự chữ); chỉ nét cắt, nét gấp, dấu cắt và biểu tượng kéo vẽ vector.  
 Bản in sạch | Không in chữ hướng dẫn lên giấy | Chỉ ký hiệu tối giản. Thứ tự lắp (hiện trên web): cắt theo nét liền và khe cài → cắt thiệp theo dấu góc (được thẻ in 2 mặt) → gấp hai tai bên → bôi keo vào ô gạch chéo → gấp nắp đáy lên → bỏ thiệp vào → gấp nắp trên, cài tai vào khe.  
-Giấy gợi ý | Phong bì 120–160 gsm. Thiệp 230–300 gsm. Giấy 70–80 gsm chỉ để in nháp | Hiện dưới từng nút tải và trong hướng dẫn, kèm nhắc xem giới hạn gsm của máy in, in 100% (không 'Vừa trang') và các bước cắt dán.  
+Giấy gợi ý | 180–200 gsm cho cả tờ A4 (một loại giấy cho thiệp và phong bì); giấy 70–80 gsm chỉ để in nháp | Web có hướng dẫn thu gọn được: chọn giấy (đúng loại in phun / laser), mua keo (băng keo hai mặt <= 5 mm hoặc keo khô), kéo, **dao rọc giấy** (cho khe cài), thước, bút miết nếp; cách in (100%, 2 mặt, lật cạnh dài) và các bước cắt gấp dán.  
 Màu in | Màu phong bì dùng chung với web (web_config.envelopeColor) | 1 công tắc 'Ẩn nền phong bì và thiệp khi in' để in giấy màu hoặc Kraft. Màu in có thể lệch nhẹ so với màn hình.  
 2.3. Thiết kế Thích ứng PC & Điện thoại (Responsive UX)  
 Hạng mục UX | PC (Desktop >= 768px) | Điện thoại (Mobile < 768px)  
@@ -122,9 +118,9 @@ FR-06 — Nhạc nền & Khối Tương tác Web (Interactive Blocks)
 Kho nhạc & Chọn điệp khúc: 6–8 bài MP3 nén nhẹ (128kbps) lưu trên Cloudflare R2 theo 4 gu cảm xúc; cho nghe thử, kéo chọn giây bắt đầu (startTime) và âm lượng mặc định 0.4.  
 Vượt chặn Autoplay trên iOS/Android: Gọi HTMLAudioElement.play() trực tiếp trong sự kiện click/tap khi người nhận chạm vào con dấu sáp mở phong bì. Kèm nút đĩa nhạc xoay góc trên phải để tắt/bật.  
 3 Block lắp ghép: (1) AcceptButton (câu hỏi + nút Đồng ý tung hoa + nút Từ chối tùy chọn né chuột), (2) RSVP & LocationMap (thời gian, địa điểm, Google Maps, form xác nhận số người & lời chúc), (3) Poll (bình chọn món ăn/giờ hẹn tối đa 4 lựa chọn).  
-FR-07 — Xuất bản, Mã QR Động & Xuất PDF Bộ in Mini (2 tờ A4, 2 file PDF)  
+FR-07 — Xuất bản, Mã QR Động & Xuất PDF Bộ in Mini (1 tờ A4 hai mặt)  
 Mã QR Động: Sinh slug 6 ký tự duy nhất (/l/[slug]) lưu JSON vào Supabase; cho phép quay lại sửa nội dung web mà không cần in lại mã QR trên tờ thiệp giấy.  
-Xuất **2 file PDF** theo bảng 2.2: file phong bì (1 trang) và file thiệp (2 trang: mặt trước, mặt sau). PDF **luôn vẽ lại từ thiết kế đã lưu** tại lúc bấm: đổi màu, chữ, ảnh thì bản in đổi theo; đường cắt, gấp, dán cố định theo PRINT_CONFIG. Ảnh chụp mặt thiệp phải ẩn Transformer và khung lề. Có công tắc ẩn nền khi in.  
+Xuất PDF **2 trang = 2 mặt của 1 tờ A4** theo bảng 2.2: trang 1 phong bì C7 + mặt trước thiệp; trang 2 mặt sau thiệp. PDF **luôn vẽ lại từ thiết kế đã lưu** tại lúc bấm: đổi màu, chữ, ảnh thì bản in đổi theo; đường cắt, gấp, dán cố định theo PRINT_CONFIG. Ảnh chụp mặt thiệp phải ẩn Transformer và khung lề. Có công tắc ẩn nền khi in.  
 FR-08 — Trang Người nhận (/l/[slug]) & Cá nhân hóa theo URL (?to=...)  
 Ghi đè tên khách mời linh hoạt: Nếu URL có tham số ?to=Minh-Anh (decode URI, chuyển dấu gạch ngang thành khoảng trắng, giới hạn tối đa 50 ký tự và lọc XSS), hệ thống tự động hiển thị tên này trên vỏ phong bì và lời chào thay cho recipientName mặc định.  
 Hiệu ứng mở thư & Gửi phản hồi: Chạm dấu sáp → mở nắp (màu phong bì giống bản in) → bật nhạc từ startTime → trang web cuộn (FR-10) → phản hồi lưu vào bảng responses. view_count chỉ tăng khi bóc dấu sáp.  
@@ -150,8 +146,8 @@ FR-11 — Thư viết tay & Trang viết tay (v1.3) — **ĐÃ BỎ Ở V1.7**
 Bộ in không in thư gấp 3 hay trang viết tay. Trình thiết kế không còn mục này. Trường canvas_data.letter và canvas_data.writingPage vẫn nằm trong dữ liệu (chưa xóa) nhưng không được in và không hiển thị.  
 FR-12 — Trang trí phong bì (v1.8)  
 Người tạo nhập chữ lồng (tối đa 12 ký tự, ví dụ 'u ♡') và một câu ngắn (tối đa 80 ký tự), chọn phông; màu giấy là web_config.envelopeColor (đổi một chỗ, web và bản in cùng đổi). Chữ in trên nắp trên của phong bì. Mặt trước phong bì có thêm một dòng chữ (envelope.frontText, <= 60 ký tự): không đặt hoặc 'Gửi' thì tự thêm tên người nhận (chưa có tên thì để trơn), xóa trống thì không in. Có xem trước cả hai mặt phong bì. Không kéo thả.  
-FR-13 — Xem trước cả bộ (v1.9)  
-Một màn hình hiện cả ba trang sẽ in, mặt trước và mặt sau phong bì, hai mặt thiệp. Ba trang A4 vẽ bằng **cùng hàm** dùng để xuất PDF; thay đổi hiện ngay, không cần tải PDF.  
+FR-13 — Xem trước cả bộ (v1.8)  
+Một màn hình hiện cả hai trang sẽ in, mặt trước và mặt sau phong bì, hai mặt thiệp. Hai trang A4 vẽ bằng **cùng hàm** dùng để xuất PDF; thay đổi hiện ngay, không cần tải PDF.  
 Có nút **Tải PDF thử** ngay trên màn hình này để in kiểm tra khổ giấy mà chưa cần xuất bản. Mã QR của bản thử mở trang xem thử của mẫu đang dùng (/xem-thu/[mẫu], nội dung mẫu), nên màn hình cảnh báo không dùng bản này để tặng.  
 FR-14 — Tài khoản & Thiệp của tôi (v1.4)  
 Phạm vi bắt buộc đăng nhập: trình thiết kế (/editor), Thiệp của tôi và mọi API tạo, sửa, xóa, tải ảnh, xem phản hồi. **Không** cần đăng nhập: trang chủ, trang người nhận /l/[slug], gửi phản hồi, ghi lượt mở, trang đăng nhập, chính sách riêng tư. Chưa đăng nhập mà vào trang bắt buộc thì chuyển tới /dang-nhap, đăng nhập xong quay lại đúng trang (chỉ nhận đường dẫn nội bộ bắt đầu bằng một dấu '/', chặn chuyển hướng ra ngoài).  
@@ -190,7 +186,7 @@ Bảo mật & Chống Spam | Bắt buộc phiên đăng nhập cho API của ng�
 Bản quyền & Pháp lý | Bộ Meme dựng sẵn chỉ dùng doodle/chibi mở hoặc nguồn miễn phí thương mại; đặt ghi chú người dùng tự chịu trách nhiệm với ảnh cá nhân tải lên.  
 5.  KIẾN TRÚC HỆ THỐNG, DỮ LIỆU & ĐẶC TẢ API  
 5.1. Hằng số In ấn Chuẩn (lib/print-config.ts)  
-export const PRINT_CONFIG = {  CANVAS: { width: 1760, height: 1240, safeMarginPx: 84, minQrPx: 340, defaultQrPx: 380, minFontPx: 48 },  PAPER_A4_MM: { width: 210, height: 297 },  BLEED_MM: 2,  CARD_FACE_MM: { width: 105, height: 74 },  MINI_CARD_MM: { x: 52.5, y: 111.5 },  LETTER_MM: { width: 105, height: 222, offsetX: 52.5, offsetY: 37.5, panelHeight: 74, lineGap: 8 } /* không in từ v1.7 */,  ENVELOPE_C7_FLAT_MM: { bodyWidth: 114, bodyHeight: 81, sideFlap: 15, bottomFlap: 62, topFlap: 45, tuckTab: { width: 22, height: 10 }, tuckSlit: { width: 26, depth: 45 }, sideFlapTaper: 8, bottomFlapTaper: 8, glueInset: 8, offsetX: 33, offsetY: 54.5 },  EXPORT_PIXEL_RATIO: 2,} as const;  
+export const PRINT_CONFIG = {  CANVAS: { width: 1760, height: 1240, safeMarginPx: 84, minQrPx: 340, defaultQrPx: 380, minFontPx: 48 },  PAPER_A4_MM: { width: 210, height: 297 },  BLEED_MM: 2,  CARD_FACE_MM: { width: 105, height: 74 },  MINI_CARD_MM: { x: 52.5, y: 207 },  LETTER_MM: { width: 105, height: 222, offsetX: 52.5, offsetY: 37.5, panelHeight: 74, lineGap: 8 } /* không in từ v1.7 */,  ENVELOPE_C7_FLAT_MM: { bodyWidth: 114, bodyHeight: 81, sideFlap: 15, bottomFlap: 62, topFlap: 45, tuckTab: { width: 22, height: 10 }, tuckSlit: { width: 26, depth: 45 }, sideFlapTaper: 8, bottomFlapTaper: 8, glueInset: 8, offsetX: 33, offsetY: 8 },  EXPORT_PIXEL_RATIO: 2,} as const;  
 5.2. Thiết kế Cơ sở dữ liệu (Supabase / PostgreSQL)  
 CREATE TABLE letters (  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  slug VARCHAR(12) UNIQUE NOT NULL,  edit_token VARCHAR(32) UNIQUE NOT NULL,  template_type VARCHAR(20) NOT NULL CHECK (template_type IN ('confession','wedding','dinner','holiday')),  title VARCHAR(120),  canvas_data JSONB NOT NULL,  web_config JSONB NOT NULL,  view_count INT DEFAULT 0,  creator_ip_hash VARCHAR(64),  expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '60 days'),  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());CREATE INDEX idx_letters_slug ON letters(slug);CREATE INDEX idx_letters_expires_at ON letters(expires_at);CREATE TABLE responses (  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  letter_id UUID NOT NULL REFERENCES letters(id) ON DELETE CASCADE,  responder_name VARCHAR(100),  action_type VARCHAR(20) NOT NULL, -- 'accept' | 'rsvp' | 'poll'  status VARCHAR(30),               -- 'yes' | 'no' | 'attending' | 'not_attending'  guest_count INT DEFAULT 1,  poll_option VARCHAR(120),  message TEXT,  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());CREATE INDEX idx_responses_letter_id ON responses(letter_id);  
 **v1.4 (migration 0003):** letters thêm owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE kèm index, và **bỏ cột edit_token**; uploads thêm owner_id REFERENCES auth.users(id) ON DELETE SET NULL; set_letter_uploads chỉ nhận ảnh có owner_id trùng chủ thư. RLS vẫn bật và không có policy: trình duyệt chỉ dùng Supabase cho đăng nhập, mọi truy cập bảng qua server bằng service role. Migration không tự xóa dữ liệu; database thử đã có thư thì người vận hành tự xóa trước khi chạy. Biến môi trường mới: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY.  

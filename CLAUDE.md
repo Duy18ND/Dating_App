@@ -2,7 +2,7 @@
 
 # Phygital Letter Studio
 
-Đặc tả: `docs/SRS.md` (v1.9, chuẩn hơn file .docx). Backlog: `docs/BACKLOG.md` (T-01 → T-49; .xlsx chưa cập nhật).
+Đặc tả: `docs/SRS.md` (v1.8, chuẩn hơn file .docx). Backlog: `docs/BACKLOG.md` (T-01 → T-49; .xlsx chưa cập nhật).
 
 ## Quy tắc bắt buộc
 1. PDF nội dung thiệp = ảnh chụp Stage (`pixelRatio: 2`, đã ẩn Transformer và khung lề an toàn) nhúng vào jsPDF. Chữ trên phong bì cũng nhúng dạng ảnh. Không dùng `pdf.text()` cho các chữ này.
@@ -18,7 +18,7 @@
 - `view_count` chỉ tăng khi người nhận bóc dấu sáp, không tăng trong `GET`.
 - Supabase bật RLS, không có policy cho anon; chỉ server truy cập bằng service role key.
 - `/api/upload` chỉ nhận WebP.
-- v1.9 (thay bộ in v1.3, v1.7, v1.8): **2 tờ A4, 2 file PDF tải riêng**. File phong bì: 1 trang, in 1 mặt, giấy 120–160 gsm; phong bì C7 liền mảnh có tai cài + khe cài, canh giữa. File thiệp: 2 trang là hai mặt một tờ bìa 230–300 gsm (in đảo cạnh dài), thiệp phẳng 105 x 74 ở chính giữa, tự thiết kế cả hai mặt (`faces.front`, `faces.inside`), QR ở mặt sau. Không gộp 3 trang vào một file. Mặt trước phong bì in 'Gửi [tên]' (`envelope.frontText`). Không thiệp gập, thư gấp 3, trang viết tay. Bản in không có chữ hướng dẫn; hướng dẫn chỉ trên web. Tràn màu 2mm; một màu phong bì cho web và bản in.
+- v1.8 (thay bộ in v1.3 và v1.7): **đúng 1 tờ A4 in hai mặt** (PDF 2 trang, in đảo cạnh dài). Trang 1: phong bì C7 liền mảnh có tai cài + khe cài (nửa trên) và **mặt trước thiệp** (nửa dưới). Trang 2: chỉ **mặt sau thiệp có QR**, nằm đúng sau lưng mặt trước. Thiệp phẳng 105 x 74, tự thiết kế cả hai mặt (`faces.front`, `faces.inside`). Mặt trước phong bì in 'Gửi [tên]' (`envelope.frontText`). Không thiệp gập, thư gấp 3, trang viết tay. Bản in không có chữ hướng dẫn; hướng dẫn chỉ trên web. QR chỉ ở mặt sau; tràn màu 2mm; một màu phong bì cho web và bản in.
 - `LetterPanel.tsx`, `render-letter.ts`, `renderCardBack` và trường `letter`/`writingPage` đang để không (không in, không hiển thị); chỉ xóa khi chủ dự án yêu cầu.
 - v1.2: ảnh thiệp tối đa 4, ảnh trang web tối đa 8 (riêng); upload 20 ảnh/IP/giờ.
 

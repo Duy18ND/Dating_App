@@ -9,7 +9,7 @@ function PrintSize() {
   return (
     <Section title="Bộ in mini">
       <p className="text-sm text-muted-foreground">
-        Bộ in gồm 2 tờ A4: tờ phong bì (11,4 x 8,1 cm) và tờ thiệp phẳng 10,5 x 7,4 cm in 2 mặt.
+        Cả bộ in trên 1 tờ A4 hai mặt: phong bì 11,4 x 8,1 cm và tấm thiệp phẳng 10,5 x 7,4 cm.
         Bạn thiết kế cả mặt trước và mặt sau (có mã QR) của thiệp.
       </p>
     </Section>

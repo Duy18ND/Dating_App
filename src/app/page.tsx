@@ -17,7 +17,7 @@ const STEPS = [
   {
     icon: Scissors,
     title: "In và cắt dán",
-    body: "Tải 2 file PDF: phong bì mini và tấm thiệp 2 mặt có mã QR, mỗi thứ in trên loại giấy hợp với nó. Cắt, gấp, dán.",
+    body: "Tải PDF, in 2 mặt trên 1 tờ A4: phong bì mini và tấm thiệp 2 mặt có mã QR. Cắt, gấp, dán.",
   },
   {
     icon: MailOpen,
