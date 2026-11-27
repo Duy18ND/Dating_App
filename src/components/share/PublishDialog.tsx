@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { runCelebration } from "@/lib/celebrate";
 import { AuthRequiredError, createLetter, updateLetter } from "@/lib/client/api";
 import { useEditorStore } from "@/lib/editor/store";
 import { loginPath } from "@/lib/safe-redirect";
@@ -41,6 +42,7 @@ export function PublishDialog() {
         setPublished({ id: created.id, slug: created.slug });
         // Tải lại trang vẫn mở đúng thiệp này để sửa tiếp, không tạo thiệp mới.
         window.history.replaceState(null, "", `/editor?id=${created.id}`);
+        runCelebration("heart_rain", "medium");
       }
       markSaved(payload);
     } catch (cause) {
@@ -58,7 +60,7 @@ export function PublishDialog() {
       </Button>
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 z-40 bg-black/40" />
-        <Dialog.Popup className="fixed top-1/2 left-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl bg-background p-5 shadow-xl">
+        <Dialog.Popup className="anim-pop fixed top-1/2 left-1/2 z-50 max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl bg-background p-5 shadow-xl">
           <div className="flex items-start justify-between gap-4">
             <Dialog.Title className="text-lg font-semibold">
               {busy ? "Đang lưu lá thư..." : error ? "Chưa lưu được" : "Lá thư đã sẵn sàng"}
@@ -94,7 +96,7 @@ export function PublishDialog() {
 
           {!busy && !error && published && (
             // Mobile xếp một cột: link và PDF trước, donate bên dưới.
-            <div className="mt-4 grid gap-5 md:grid-cols-[3fr_2fr]">
+            <div className="mt-4 grid gap-5 md:has-[>aside]:grid-cols-[3fr_2fr]">
               <div className="space-y-4">
                 <SharePanel
                   slug={published.slug}

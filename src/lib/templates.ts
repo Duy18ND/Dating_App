@@ -91,7 +91,7 @@ export const TEMPLATES: Template[] = [
   {
     type: "confession",
     name: "Tỏ tình / Kỷ niệm",
-    description: "Thiệp mini gập ngang: bìa tim nhỏ gọn, mặt trong mở nhạc và lời tỏ tình.",
+    description: "Bìa tim nhỏ gọn, trang lời mời có mã QR mở nhạc và lời tỏ tình.",
     title: "Gửi cậu một điều nhỏ",
     front: {
       background: { type: "preset", value: "cream", overlayOpacity: 0 },
@@ -159,7 +159,7 @@ export const TEMPLATES: Template[] = [
   {
     type: "wedding",
     name: "Mời cưới / Đính hôn",
-    description: "Thiệp cưới mini tông kem – đỏ rượu vang, bìa tên đôi uyên ương, trong có QR.",
+    description: "Thiệp cưới mini tông kem – đỏ rượu vang, bìa tên đôi uyên ương, lời mời kèm mã QR.",
     title: "Thiệp mời thành hôn",
     front: {
       background: { type: "color", value: "#FBF6EE", overlayOpacity: 0 },
@@ -226,7 +226,7 @@ export const TEMPLATES: Template[] = [
   {
     type: "dinner",
     name: "Mời ăn / Hẹn hò",
-    description: "Vé mời đi ăn mini kèm 1 sticker meme, mặt trong hẹn lịch và bình chọn món.",
+    description: "Vé mời đi ăn mini kèm 1 sticker meme, trang lời mời hẹn lịch và mã QR bình chọn món.",
     title: "Vé mời đi ăn",
     front: {
       background: { type: "preset", value: "kraft", overlayOpacity: 0 },
@@ -310,7 +310,7 @@ export const TEMPLATES: Template[] = [
   {
     type: "holiday",
     name: "Sinh nhật / Giáng sinh",
-    description: "Thiệp chúc mini kẹp hộp quà: bìa sticker vui mắt, mặt trong quét QR mở quà.",
+    description: "Thiệp chúc mini kẹp hộp quà: bìa sticker vui mắt, quét mã QR để mở quà.",
     title: "Chúc ngày thật vui",
     front: {
       background: { type: "preset", value: "plaid", overlayOpacity: 0 },

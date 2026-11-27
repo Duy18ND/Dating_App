@@ -3,7 +3,7 @@
 import { AlertTriangle, ArrowLeft, Check, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 import { CopyButton } from "@/components/share/CopyButton";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,6 +88,24 @@ export function AuthForm() {
   const [againError, setAgainError] = useState<string>();
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
+
+  useEffect(() => {
+    if (linkFailed) return;
+    let active = true;
+    try {
+      authBrowser()
+        .auth.getUser()
+        .then(({ data }) => {
+          if (active && data.user) window.location.replace(next);
+        })
+        .catch(() => {});
+    } catch {
+      // Chưa cấu hình Supabase: cứ hiện biểu mẫu, lúc gửi sẽ báo thiếu biến.
+    }
+    return () => {
+      active = false;
+    };
+  }, [next, linkFailed]);
 
   function clearMessages() {
     setAccountError(undefined);
@@ -259,7 +277,11 @@ export function AuthForm() {
         </>
       )}
 
-      <form className="space-y-4" onSubmit={submit}>
+      {/* key theo lỗi để mỗi lần sai biểu mẫu rung lại một nhịp. */}
+      <form
+        className={cn("space-y-4", (error || accountError || againError) && "anim-shake")}
+        onSubmit={submit}
+      >
         <AuthField
           label={mode === "forgot" ? "Email đã đăng ký" : "Tên đăng nhập hoặc email"}
           name="username"

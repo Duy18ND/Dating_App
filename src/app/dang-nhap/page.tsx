@@ -1,3 +1,4 @@
+import { CuteLoader } from "@/components/cute/CuteLoader";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthForm } from "@/components/account/AuthForm";
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <AuthShell>
-      <Suspense fallback={<p className="py-24 text-center text-muted-foreground">Đang tải...</p>}>
+      <Suspense fallback={<CuteLoader label="Đang tải..." />}>
         <AuthForm />
       </Suspense>
     </AuthShell>

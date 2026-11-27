@@ -1,5 +1,7 @@
+import { CuteLoader } from "@/components/cute/CuteLoader";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CuteEnvelope } from "@/components/cute/CuteEnvelope";
 import { connection } from "next/server";
 import { cache, Suspense } from "react";
 import { LetterExperience } from "@/components/viewer/LetterExperience";
@@ -44,7 +46,7 @@ export async function generateMetadata({
 
 export default function LetterPage(props: PageProps<"/l/[slug]">) {
   return (
-    <Suspense fallback={<p className="p-8 text-center text-muted-foreground">Đang mở thư...</p>}>
+    <Suspense fallback={<CuteLoader label="Đang mở thư..." />}>
       <Letter {...props} />
     </Suspense>
   );
@@ -61,7 +63,8 @@ async function Letter({ params, searchParams }: PageProps<"/l/[slug]">) {
   } catch (error) {
     if (!(error instanceof ApiError)) throw error;
     return (
-      <main className="mx-auto max-w-md px-4 py-16 text-center">
+      <main className="mx-auto flex max-w-md flex-col items-center px-4 py-16 text-center">
+        <CuteEnvelope className="anim-float mb-4" />
         <h1 className="text-xl font-semibold">{error.message}</h1>
         <Link href="/" className="mt-4 inline-block text-primary underline">
           Làm một lá thư mới

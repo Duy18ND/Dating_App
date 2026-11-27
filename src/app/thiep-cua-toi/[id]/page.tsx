@@ -1,3 +1,4 @@
+import { CuteLoader } from "@/components/cute/CuteLoader";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LetterDetail } from "@/components/account/LetterDetail";
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 export default function LetterDetailPage(props: PageProps<"/thiep-cua-toi/[id]">) {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
-      <Suspense fallback={<p className="text-muted-foreground">Đang tải...</p>}>
+      <Suspense fallback={<CuteLoader label="Đang tải..." />}>
         <Detail {...props} />
       </Suspense>
     </main>

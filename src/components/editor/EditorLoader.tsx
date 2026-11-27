@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { CuteLoader } from "@/components/cute/CuteLoader";
 import { getMyLetter } from "@/lib/client/api";
 import { useEditorStore } from "@/lib/editor/store";
 import { createFromTemplate, findTemplate } from "@/lib/templates";
@@ -19,7 +20,14 @@ export function EditorLoader() {
   const key = letterId ? `id:${letterId}` : `template:${template}`;
   const [loaded, setLoaded] = useState<{ key: string; error?: string }>();
 
+  // Vừa xuất bản xong, URL đổi sang ?id= của chính tài liệu đang mở. Không được tải lại:
+  // tải lại sẽ gỡ trình soạn, đóng mất hộp thoại có link, mã QR và nút PDF.
+  const publishedId = useEditorStore((s) => s.published?.id);
+  const justPublished = Boolean(loaded && !loaded.error && letterId && letterId === publishedId);
+  if (justPublished && loaded && loaded.key !== key) setLoaded({ key });
+
   useEffect(() => {
+    if (justPublished) return;
     let active = true;
     const done = (error?: string) => active && setLoaded({ key, error });
     const { load } = useEditorStore.getState();
@@ -37,12 +45,12 @@ export function EditorLoader() {
     return () => {
       active = false;
     };
-  }, [key, letterId, template]);
+  }, [key, letterId, template, justPublished]);
 
-  if (loaded?.key !== key) {
-    return <p className="p-8 text-center text-muted-foreground">Đang mở trình thiết kế...</p>;
+  if (loaded?.key !== key && !justPublished) {
+    return <CuteLoader label="Đang mở trình thiết kế..." />;
   }
-  if (loaded.error) {
+  if (loaded?.error) {
     return (
       <main className="mx-auto max-w-md space-y-4 px-4 py-16 text-center">
         <p role="alert">{loaded.error}</p>

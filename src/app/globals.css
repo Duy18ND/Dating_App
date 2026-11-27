@@ -74,3 +74,104 @@
     @apply font-sans;
   }
 }
+
+/*
+ * Hiệu ứng dễ thương dùng chung. Chỉ đụng translate/scale/rotate/opacity để chạy mượt.
+ * Dùng thuộc tính `translate` và fill `backwards` để không đè lên transform khi rê chuột.
+ */
+@keyframes cute-rise {
+  from { opacity: 0; translate: 0 16px; }
+  to { opacity: 1; translate: 0 0; }
+}
+@keyframes cute-pop {
+  from { opacity: 0; scale: 0.9; }
+  70% { scale: 1.03; }
+  to { opacity: 1; scale: 1; }
+}
+@keyframes cute-float {
+  from { translate: 0 4px; }
+  to { translate: 0 -8px; }
+}
+@keyframes cute-twinkle {
+  0%, 100% { opacity: 0.2; scale: 0.8; translate: 0 6px; }
+  50% { opacity: 0.45; scale: 1.1; translate: 0 -10px; }
+}
+@keyframes cute-peek {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -12px; }
+}
+@keyframes cute-beat {
+  0%, 40%, 100% { scale: 1; }
+  10%, 30% { scale: 1.14; }
+}
+@keyframes cute-blink {
+  0%, 92%, 100% { scale: 1 1; }
+  96% { scale: 1 0.1; }
+}
+@keyframes cute-shake {
+  20%, 60% { translate: -6px 0; }
+  40%, 80% { translate: 6px 0; }
+}
+@keyframes cute-hop {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -10px; }
+}
+
+.anim-rise {
+  animation: cute-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: var(--delay, 0ms);
+}
+.anim-pop {
+  animation: cute-pop 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: var(--delay, 0ms);
+}
+.anim-float { animation: cute-float 3.2s ease-in-out infinite alternate; }
+.anim-twinkle {
+  animation: cute-twinkle var(--duration, 4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0ms);
+}
+.anim-peek { animation: cute-peek 3.6s ease-in-out infinite; }
+.anim-beat {
+  animation: cute-beat 1.8s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.anim-blink {
+  animation: cute-blink 4.5s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.anim-shake { animation: cute-shake 360ms ease-in-out; }
+.anim-hop { animation: cute-hop 900ms ease-in-out infinite; }
+
+/* Thẻ nhấc lên khi rê chuột; chỉ máy có chuột, để điện thoại không bị kẹt trạng thái hover. */
+.lift {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease, border-color 160ms ease;
+}
+.lift:active { transform: scale(0.985); }
+@media (hover: hover) {
+  .lift:hover {
+    transform: translateY(-6px) rotate(var(--tilt, 0deg));
+    box-shadow: 0 14px 28px rgba(142, 36, 36, 0.12);
+  }
+  .group:hover .wiggle-on-hover { rotate: -8deg; scale: 1.15; }
+}
+.wiggle-on-hover { transition: rotate 220ms ease, scale 220ms ease; }
+
+/* Hiện dần khi cuộn tới ở trình duyệt hỗ trợ; nơi khác hiện luôn, không ẩn nội dung. */
+@supports (animation-timeline: view()) {
+  .anim-reveal {
+    animation: cute-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 70%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise, .anim-pop, .anim-float, .anim-twinkle, .anim-peek, .anim-beat,
+  .anim-blink, .anim-shake, .anim-hop, .anim-reveal {
+    animation: none !important;
+  }
+  .lift, .wiggle-on-hover { transition: none; }
+  .lift:hover, .lift:active { transform: none; }
+}

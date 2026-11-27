@@ -1,3 +1,4 @@
+import { CuteLoader } from "@/components/cute/CuteLoader";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { EditorLoader } from "@/components/editor/EditorLoader";
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function EditorPage() {
   return (
-    <Suspense fallback={<p className="p-8 text-center text-muted-foreground">Đang tải...</p>}>
+    <Suspense fallback={<CuteLoader label="Đang tải..." />}>
       <EditorLoader />
     </Suspense>
   );

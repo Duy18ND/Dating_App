@@ -4,6 +4,7 @@ import { ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { CuteLoader } from "@/components/cute/CuteLoader";
 import { DonatePanel } from "@/components/share/DonatePanel";
 import { SharePanel } from "@/components/share/SharePanel";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -25,7 +26,7 @@ function BackLink() {
 
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="rounded-lg border bg-card p-3">
+    <div className="lift rounded-2xl border bg-card p-3">
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="mt-1 text-2xl font-semibold">{value}</dd>
     </div>
@@ -81,7 +82,7 @@ export function LetterDetail({ id }: { id: string }) {
         <BackLink />
       </div>
     ) : (
-      <p className="text-muted-foreground">Đang tải...</p>
+      <CuteLoader />
     );
   }
 
@@ -102,7 +103,7 @@ export function LetterDetail({ id }: { id: string }) {
   const { blocks } = letter.web_config;
 
   return (
-    <div className="space-y-8">
+    <div className="anim-rise space-y-8">
       <header className="space-y-2">
         <BackLink />
         <h1 className="text-2xl font-semibold">{letter.title || "Thiệp của bạn"}</h1>

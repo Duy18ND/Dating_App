@@ -1,3 +1,4 @@
+import { CuteLoader } from "@/components/cute/CuteLoader";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: PageProps<"/xem-thu/[mau]">):
 
 export default function PreviewTemplatePage(props: PageProps<"/xem-thu/[mau]">) {
   return (
-    <Suspense fallback={<p className="p-8 text-center text-muted-foreground">Đang mở thư...</p>}>
+    <Suspense fallback={<CuteLoader label="Đang mở thư..." />}>
       <Preview {...props} />
     </Suspense>
   );

@@ -1,5 +1,5 @@
 /** Trang mặc định sau khi đăng nhập. */
-export const AFTER_LOGIN = "/thiep-cua-toi";
+export const AFTER_LOGIN = "/";
 
 /**
  * Chỉ nhận đường dẫn nội bộ bắt đầu bằng một dấu "/" (FR-14). Chặn "//evil.com",

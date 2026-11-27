@@ -27,10 +27,8 @@ describe("/auth/callback", () => {
   });
 
   it("không chuyển hướng ra ngoài dù next trỏ site khác", async () => {
-    expect(await call("?code=abc&next=%2F%2Fevil.com")).toBe("https://site.test/thiep-cua-toi");
-    expect(await call("?code=abc&next=https%3A%2F%2Fevil.com")).toBe(
-      "https://site.test/thiep-cua-toi",
-    );
+    expect(await call("?code=abc&next=%2F%2Fevil.com")).toBe("https://site.test/");
+    expect(await call("?code=abc&next=https%3A%2F%2Fevil.com")).toBe("https://site.test/");
   });
 
   it("mã sai, thiếu mã hoặc link token_hash: về trang đăng nhập, không tạo phiên", async () => {
