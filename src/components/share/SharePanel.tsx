@@ -9,6 +9,7 @@ import { createQrBlob, letterUrl, quietZone } from "@/lib/render/qr";
 import { LIMITS } from "@/lib/validation";
 import type { CanvasData } from "@/types/letter";
 import { CopyButton } from "./CopyButton";
+import { PrintGuide } from "./PrintGuide";
 
 const QR_PNG_PX = 1024;
 
@@ -134,20 +135,7 @@ export function SharePanel({
           checked={hideBackground}
           onChange={setHideBackground}
         />
-        <div className="space-y-1.5 text-xs text-muted-foreground">
-          <p>
-            PDF chỉ 1 trang A4, in 1 mặt (giấy 180–220gsm), đúng 100%, không chọn &quot;Vừa
-            trang&quot;. Bản in không có chữ hướng dẫn, các bước ở đây:
-          </p>
-          {/* Hướng dẫn lắp ráp chỉ nằm trên web, không in lên giấy (v1.7). */}
-          <ol className="list-decimal space-y-0.5 pl-5">
-            <li>Cắt theo nét liền (chỗ có hình cây kéo), kể cả khe cong nhỏ trên nắp dưới.</li>
-            <li>Thiệp: cắt theo 4 dấu góc. Mặt sau để trắng, bạn viết tay lời nhắn ở đó.</li>
-            <li>Gấp theo nét đứt: hai tai bên vào trước, rồi nắp dưới lên.</li>
-            <li>Bôi keo vào ô gạch chéo trên hai tai bên rồi ép nắp dưới lên.</li>
-            <li>Bỏ thiệp vào, gấp nắp trên xuống và cài tai vào khe.</li>
-          </ol>
-        </div>
+        <PrintGuide />
         {pdfError && (
           <p role="alert" className="text-sm text-destructive">
             {pdfError}

@@ -4,6 +4,7 @@ import {
   bounds,
   cropMarks,
   envelopeC7,
+  foldedEnvelope,
   insidePolygon,
   letterSheet,
   miniCard,
@@ -148,6 +149,23 @@ describe("bộ in 1 trang A4 (v1.7)", () => {
     ];
     for (const point of corners) expect(insidePolygon(point, envelope.cut)).toBe(true);
     expect(overlaps(slitSide.box, bounds(envelope.slit))).toBe(false);
+  });
+
+  it("phong bì gấp xong: mọi nắp nằm trong thân 114 x 81, tai cài qua khe vừa đủ", () => {
+    const folded = foldedEnvelope();
+    const parts = [...folded.sides, folded.bottomFlap, folded.topFlap, folded.slit];
+    for (const [x, y] of parts.flat()) {
+      expect(x).toBeGreaterThanOrEqual(-1e-6);
+      expect(x).toBeLessThanOrEqual(folded.width + 1e-6);
+      expect(y).toBeGreaterThanOrEqual(-1e-6);
+      expect(y).toBeLessThanOrEqual(folded.height + 1e-6);
+    }
+    // Nắp trên gấp xuống cao 45 mm, quá khe (36 mm) một đoạn để cài.
+    expect(bounds(folded.topFlap).height).toBeCloseTo(45);
+    expect(folded.slitY).toBe(36);
+    expect(folded.slit[folded.slit.length >> 1][1]).toBeCloseTo(36);
+    // Nắp đáy phủ lên trên hai tai bên và che chỗ hở dưới nắp trên.
+    expect(bounds(folded.bottomFlap).y).toBeLessThan(folded.flapHeight);
   });
 
   it("thư gấp 3 (chưa in mặc định) vẫn chia đều 3 ô", () => {

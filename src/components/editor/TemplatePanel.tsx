@@ -9,8 +9,8 @@ function PrintSize() {
   return (
     <Section title="Bộ in mini">
       <p className="text-sm text-muted-foreground">
-        Thiệp gập 10,5 x 7,4 cm mở như cuốn sách, thư gấp 3 và phong bì 11,4 x 8,1 cm. Bạn thiết kế
-        bìa trước và trang Lời mời; trang bên trái để viết tay.
+        Cả bộ in trên 1 tờ A4: phong bì 11,4 x 8,1 cm và tấm thiệp 10,5 x 7,4 cm. Trang “Lời mời +
+        QR” được in; mặt sau thiệp để trắng cho bạn viết tay. Bìa trước hiện trên trang web.
       </p>
     </Section>
   );

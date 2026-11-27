@@ -27,7 +27,7 @@
 | Task | Scope | Acceptance Criteria | Owner | Est (h) | After |
 |---|---|---|---|---|---|
 | ~~`T-29`~~ ✅ | Clean **1-page A4 PDF** (v1.7 spec) | Top (`y=10..198mm`): continuous C7 envelope (`144×188mm`) with 22mm tuck tab, 26mm curved slit on bottom flap, 180° top flap text, hidden glue tabs (hatch + drop icon), 2mm bleed. Bottom (`y=211..285mm`): flat `105×74mm` mini card (Front: greeting + QR; Back: blank paper for handwriting; no folding/back-gluing), 2mm bleed. **Zero helper text on paper** (icon-only `✂` & thin marks). No `pdf.text()` for user copy; respect image `focus` & `borderWidth`; geometry tests | **Opus** | 3.5 | `T-34` |
-| `T-37` | Full-kit preview (FR-13) + draft PDF | Render via shared PDF functions; allow downloading draft PDF before publish; group mobile editor toolbar into Print / Web tabs (SRS 2.3) | **Sonnet** | 2.5 | `T-29` |
+| ~~`T-37`~~ ✅ | Full-kit preview (FR-13) + draft PDF | Render via shared PDF functions; allow downloading draft PDF before publish; group mobile editor toolbar into Print / Web tabs (SRS 2.3) | **Sonnet** | 2.5 | `T-29` |
 | `T-23A` | **Gate 2**: Print, cut, tuck & scan | Print 1 A4 sheet; cut envelope & flat mini card; tuck flap smoothly into slit; scan QR on 2 phones. **Must pass before Stage 4** | **Project Owner** | 2 | `T-37` |
 
 ## Stage 4: Accounts & Launch
@@ -43,8 +43,8 @@
 
 ## Remaining Workload & Next Prompts for Claude
 - **Claude Opus (7h)**: `T-38`, `T-41`, `T-36`
-- **Claude Sonnet (14h)**: `T-34`, `T-37`, `T-39`, `T-40`
+- **Claude Sonnet (6.5h)**: `T-39`, `T-40`
 - **Post-Launch V1.8 (after MVP launch — do not block Stage 1–4)**:
   - **Canva-style Smart Snap Guides** in `EditorStage` (center X/Y & safe-margin magnetic alignment lines).
   - **Hybrid Freeform Web Block (`scrapbook`, fixed `4:5` Konva canvas)** inside scrollable web pages so users can freely drag/rotate photos, stickers, and doodles while keeping text/forms 100% responsive across 360px Mobile, Tablet, and PC.
-- **Next**: owner runs `T-49` (Gate 1), then `/model sonnet` → `T-34` (use `useImageUpload("web")`), then `T-37`.
+- **Next**: owner runs `T-49` (Gate 1, if not done) and `T-23A` (Gate 2: print the A4 sheet from "Xem cả bộ → Tải PDF thử"), then `/model opus` → `T-38`.

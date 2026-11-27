@@ -10,7 +10,7 @@ const STEPS = [
   ],
   [
     "In và cắt dán",
-    "Tải PDF in trên giấy A4: phong bì mini, thiệp gập có bìa và thư gấp 3. Cắt theo dấu, dán lại.",
+    "Tải PDF 1 trang A4: phong bì mini và tấm thiệp có mã QR. Cắt, gấp, dán, rồi viết tay ở mặt sau.",
   ],
   ["Mở thư", "Người nhận quét mã QR trên thiệp để bóc dấu sáp, nghe nhạc và trả lời bạn."],
 ] as const;

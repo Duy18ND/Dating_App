@@ -11,7 +11,10 @@ export const QR_CARD_COLOR = "#FFFFFF";
 /** URL tạm để xem trước. Khi đã xuất bản, renderer nhận URL thật nên QR tự đúng. */
 export const previewQrUrl = (origin: string) => `${origin}/l/xemthu`;
 
-export const letterUrl = (origin: string, slug: string) => `${origin}/l/${slug}`;
+/** PDF thử in trước khi xuất bản: mã QR mở được trang xem thử của mẫu đang dùng (FR-13). */
+export const draftQrUrl = (origin: string, template: string) => `${origin}/xem-thu/${template}`;
+
+export const letterUrl =(origin: string, slug: string) => `${origin}/l/${slug}`;
 
 function luminance(hex: string): number {
   const [r, g, b] = [1, 3, 5].map((i) => {

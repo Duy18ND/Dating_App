@@ -4,8 +4,6 @@ import {
   ChevronDown,
   Image as ImageIcon,
   LayoutTemplate,
-  Mail,
-  NotebookPen,
   Palette,
   PenLine,
   QrCode,
@@ -27,7 +25,7 @@ import { ElementToolbar } from "./ElementToolbar";
 import { EnvelopePanel } from "./EnvelopePanel";
 import { HandwritingPanel } from "./HandwritingPanel";
 import { ImagePanel } from "./ImagePanel";
-import { LetterPanel } from "./LetterPanel";
+import { KitPreview } from "./print/KitPreview";
 import { QrPanel } from "./QrPanel";
 import { StickerPanel } from "./StickerPanel";
 import { TemplatePanel } from "./TemplatePanel";
@@ -42,9 +40,7 @@ type TabId =
   | "background"
   | "sticker"
   | "draw"
-  | "qr"
-  | "letter"
-  | "envelope";
+  | "qr";
 
 const TABS: { id: TabId; label: string; icon: ComponentType; Panel: ComponentType }[] = [
   { id: "template", label: "Mẫu", icon: LayoutTemplate, Panel: TemplatePanel },
@@ -63,8 +59,6 @@ const TABS: { id: TabId; label: string; icon: ComponentType; Panel: ComponentTyp
   { id: "background", label: "Nền", icon: Palette, Panel: BackgroundPanel },
   { id: "sticker", label: "Sticker", icon: Smile, Panel: StickerPanel },
   { id: "draw", label: "Vẽ tay", icon: PenLine, Panel: HandwritingPanel },
-  { id: "letter", label: "Thư", icon: NotebookPen, Panel: LetterPanel },
-  { id: "envelope", label: "Phong bì", icon: Mail, Panel: EnvelopePanel },
   { id: "qr", label: "Mã QR", icon: QrCode, Panel: QrPanel },
 ];
 
@@ -191,11 +185,6 @@ function HistoryButtons() {
   );
 }
 
-const FACES: { value: FaceId; label: string }[] = [
-  { value: "front", label: "Bìa trước" },
-  { value: "inside", label: "Lời mời + QR" },
-];
-
 type Mode = "print" | "web";
 const MODES: { value: Mode; label: string }[] = [
   { value: "print", label: "Bản in" },
@@ -223,18 +212,35 @@ function ModeSwitch({ mode, onChange }: { mode: Mode; onChange: (mode: Mode) => 
   );
 }
 
-/** Chọn mặt thiệp đang thiết kế. */
-function FaceSwitch() {
-  const face = useEditorStore((s) => s.face);
+/** Các màn con của "Bản in" (SRS 2.3). Hai mặt thiệp dùng chung bộ công cụ canvas. */
+type PrintView = FaceId | "envelope" | "kit";
+const PRINT_VIEWS: { value: PrintView; label: string }[] = [
+  { value: "front", label: "Bìa trước" },
+  { value: "inside", label: "Lời mời + QR" },
+  { value: "envelope", label: "Phong bì" },
+  { value: "kit", label: "Xem cả bộ" },
+];
+
+function PrintViewSwitch({
+  view,
+  onChange,
+}: {
+  view: PrintView;
+  onChange: (view: PrintView) => void;
+}) {
   return (
-    <div role="group" aria-label="Mặt thiệp" className="flex rounded-lg border bg-card p-0.5">
-      {FACES.map(({ value, label }) => (
+    <div
+      role="group"
+      aria-label="Phần bản in"
+      className="flex shrink-0 gap-1 border-b bg-card px-2 py-1.5 md:justify-center"
+    >
+      {PRINT_VIEWS.map(({ value, label }) => (
         <button
           key={value}
           type="button"
-          aria-pressed={face === value}
-          onClick={() => useEditorStore.getState().setFace(value)}
-          className="rounded-md px-3 py-1.5 text-sm aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+          aria-pressed={view === value}
+          onClick={() => onChange(value)}
+          className="flex-auto rounded-md border px-1.5 py-1.5 text-xs whitespace-nowrap aria-pressed:border-primary aria-pressed:bg-accent aria-pressed:font-medium aria-pressed:text-primary md:flex-none md:px-4 md:text-sm"
         >
           {label}
         </button>
@@ -246,6 +252,9 @@ function FaceSwitch() {
 export function EditorShell() {
   const desktop = useDesktop();
   const [mode, setMode] = useState<Mode>("print");
+  const [extraView, setExtraView] = useState<"envelope" | "kit" | null>(null);
+  const face = useEditorStore((s) => s.face);
+  const printView: PrintView = extraView ?? face;
   const [tab, setTab] = useState<TabId>("template");
   const [sheetOpen, setSheetOpen] = useState(false);
   const title = useEditorStore((s) => s.doc.title);
@@ -270,16 +279,31 @@ export function EditorShell() {
     setTab(id);
   }
 
-  function changeMode(next: Mode) {
-    // Bỏ chọn để phím Delete hay mũi tên không sửa vật thể trên canvas đang bị ẩn.
+  /** Rời canvas thì bỏ chọn, để phím Delete hay mũi tên không sửa vật thể đang bị ẩn. */
+  function leaveCanvas() {
     useEditorStore.getState().setTool("select");
     setSheetOpen(false);
+  }
+
+  function changeMode(next: Mode) {
+    leaveCanvas();
     setMode(next);
+  }
+
+  function changeView(next: PrintView) {
+    if (next === "envelope" || next === "kit") {
+      leaveCanvas();
+      setExtraView(next);
+    } else {
+      setExtraView(null);
+      useEditorStore.getState().setFace(next);
+    }
   }
 
   const active = TABS.find((t) => t.id === tab)!;
   const printing = mode === "print";
-  const showPanel = printing && (desktop || sheetOpen);
+  const onCard = printing && extraView === null;
+  const showPanel = onCard && (desktop || sheetOpen);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
@@ -309,8 +333,17 @@ export function EditorShell() {
       <ModeSwitch mode={mode} onChange={changeMode} />
 
       {!printing && <WebEditor desktop={desktop} />}
+      {printing && <PrintViewSwitch view={printView} onChange={changeView} />}
+      {printing && extraView === "kit" && <KitPreview />}
+      {printing && extraView === "envelope" && (
+        <div className="min-h-0 flex-1 overflow-y-auto bg-canvas p-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-6">
+          <div className="mx-auto max-w-md rounded-lg border bg-card p-4">
+            <EnvelopePanel />
+          </div>
+        </div>
+      )}
 
-      <div className={cn("flex min-h-0 flex-1", !printing && "hidden")}>
+      <div className={cn("flex min-h-0 flex-1", !onCard && "hidden")}>
         {desktop && (
           <nav
             aria-label="Công cụ"
@@ -356,10 +389,11 @@ export function EditorShell() {
         )}
 
         <main className="flex min-w-0 flex-1 flex-col">
-          <div className="flex min-h-12 items-center gap-3 border-b bg-card px-3 py-1.5">
-            <FaceSwitch />
-            {desktop && <ElementToolbar className="ml-auto" />}
-          </div>
+          {desktop && (
+            <div className="flex min-h-12 items-center border-b bg-card px-3 py-1.5">
+              <ElementToolbar className="ml-auto" />
+            </div>
+          )}
           <EditorCanvas />
           {!desktop && !sheetOpen && (
             // Thanh nổi trên điện thoại, chỉ hiện khi đang chọn một thành phần.
@@ -371,10 +405,10 @@ export function EditorShell() {
         </main>
       </div>
 
-      {!desktop && printing && (
+      {!desktop && onCard && (
         <nav
           aria-label="Công cụ"
-          className="flex h-16 shrink-0 items-stretch overflow-x-auto border-t bg-card pb-[env(safe-area-inset-bottom)]"
+          className="flex h-16 shrink-0 items-stretch border-t bg-card pb-[env(safe-area-inset-bottom)]"
         >
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
@@ -382,7 +416,7 @@ export function EditorShell() {
               type="button"
               aria-pressed={sheetOpen && tab === id}
               onClick={() => openTab(id)}
-              className="flex min-w-16 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] aria-pressed:text-primary"
+              className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] whitespace-nowrap aria-pressed:text-primary"
             >
               <Icon />
               {label}

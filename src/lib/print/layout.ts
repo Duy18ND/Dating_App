@@ -166,6 +166,51 @@ export function envelopeC7() {
   };
 }
 
+/**
+ * Phong bì đã gấp xong, nhìn từ phía các nắp, tọa độ mm tính từ góc trên trái thân 114 x 81.
+ * Lấy từ chính phôi in bằng phép lật qua các nếp gấp, nên hình xem trước khớp bản in.
+ * Thứ tự vẽ: hai tai bên, nắp đáy, nắp trên; phần tai cài qua khe nằm dưới nắp đáy.
+ */
+export function foldedEnvelope() {
+  const e = envelopeC7();
+  const c = PRINT_CONFIG.ENVELOPE_C7_FLAT_MM;
+  const { x: left, y: top, width, height } = e.body;
+  const right = left + width;
+  const bottom = top + height;
+  const local = ([x, y]: Point): Point => [x - left, y - top];
+  const overX = (axis: number) => ([x, y]: Point): Point => local([2 * axis - x, y]);
+  const overY = (axis: number) => ([x, y]: Point): Point => local([x, 2 * axis - y]);
+
+  const side = (fold: number, outer: number): Point[] =>
+    (
+      [
+        [fold, top],
+        [outer, top + c.sideFlapTaper],
+        [outer, bottom - c.sideFlapTaper],
+        [fold, bottom],
+      ] as Point[]
+    ).map(overX(fold));
+
+  return {
+    width,
+    height,
+    sides: [side(left, left - c.sideFlap), side(right, right + c.sideFlap)],
+    bottomFlap: (
+      [
+        [right, bottom],
+        [right - c.bottomFlapTaper, bottom + c.bottomFlap],
+        [left + c.bottomFlapTaper, bottom + c.bottomFlap],
+        [left, bottom],
+      ] as Point[]
+    ).map(overY(bottom)),
+    topFlap: e.cut.filter(([, y]) => y <= top + 1e-6).map(overY(top)),
+    slit: e.slit.map(overY(bottom)),
+    /** Tai cài chui vào khe: từ tung độ này trở xuống bị nắp đáy che. */
+    slitY: e.foldedSlitFromTop,
+    flapHeight: c.topFlap,
+  };
+}
+
 /** Thiệp mini phẳng 105 x 74 mm ở nửa dưới tờ A4. */
 export function miniCard(): Rect {
   const { MINI_CARD_MM: at, CARD_FACE_MM: face } = PRINT_CONFIG;
