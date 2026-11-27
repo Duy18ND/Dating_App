@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
-import { EditorPlaceholder } from "./EditorPlaceholder";
+import { EditorLoader } from "@/components/editor/EditorLoader";
 
-export const metadata: Metadata = { title: "Trình thiết kế | Phygital Letter Studio" };
+export const metadata: Metadata = {
+  title: "Trình thiết kế | Phygital Letter Studio",
+  // ?edit= chứa mã bí mật: không lập chỉ mục, không gửi URL sang trang khác.
+  robots: { index: false, follow: false },
+  referrer: "no-referrer",
+};
 
-// TRANG TẠM. T-09 thay bằng trình thiết kế thật (Konva Stage + Transformer + các panel
-// trong src/components/editor).
 export default function EditorPage() {
   return (
-    <main className="mx-auto w-full max-w-md px-4 py-8">
-      <Link href="/" className="text-sm text-primary underline">
-        Về trang chủ
-      </Link>
-      <Suspense fallback={<p className="mt-4">Đang tải...</p>}>
-        <EditorPlaceholder />
-      </Suspense>
-    </main>
+    <Suspense fallback={<p className="p-8 text-center text-muted-foreground">Đang tải...</p>}>
+      <EditorLoader />
+    </Suspense>
   );
 }

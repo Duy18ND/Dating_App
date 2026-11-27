@@ -7,6 +7,7 @@ import { PRINT_CONFIG } from "@/lib/print-config";
 import { coverCrop } from "@/lib/render/image-frame";
 import { PRESET_STYLES } from "@/lib/render/presets";
 import type { BackgroundConfig, BackgroundPreset } from "@/types/letter";
+import { PENDING } from "./ElementNode";
 import { useImage } from "./hooks";
 
 const { width: W, height: H } = PRINT_CONFIG.CANVAS;
@@ -63,7 +64,7 @@ function PhotoBackground({ background }: { background: BackgroundConfig }) {
 
   return (
     <>
-      <Rect width={W} height={H} fill="#F9F6F1" />
+      <Rect name={image ? undefined : PENDING} width={W} height={H} fill="#F9F6F1" />
       {image && crop && (
         <KonvaImage
           ref={ref}

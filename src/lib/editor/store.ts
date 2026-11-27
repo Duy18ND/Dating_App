@@ -10,6 +10,12 @@ export type NewElement = Omit<CanvasElement, "id" | "zIndex" | "rotation"> & { r
 export type LayerMove = "front" | "back" | "forward" | "backward";
 /** Thư đã xuất bản của tài liệu đang mở: lần sau cập nhật thay vì tạo mới. */
 export type Published = { slug: string; editToken: string };
+/** select: chọn/kéo; pen: vẽ tay; eraser: chạm vào nét vẽ để xóa. */
+export type Tool = "select" | "pen" | "eraser";
+export interface PenSettings {
+  color: string;
+  width: number;
+}
 
 interface EditorState {
   /** Phần được lưu và nằm trong lịch sử Undo/Redo. Không bao giờ sửa tại chỗ. */
@@ -23,9 +29,16 @@ interface EditorState {
   editingTextId: string | null;
   printHideBackground: boolean;
   published: Published | null;
+  /** Bản đã lưu gần nhất; khác `doc` nghĩa là còn thay đổi chưa lưu. */
+  savedDoc: LetterPayload | null;
+  tool: Tool;
+  pen: PenSettings;
 
   load: (doc: LetterPayload, published?: Published) => void;
   setPublished: (published: Published) => void;
+  markSaved: (doc: LetterPayload) => void;
+  setTool: (tool: Tool) => void;
+  setPen: (patch: Partial<PenSettings>) => void;
   select: (id: string | null) => void;
   setEditingText: (id: string | null) => void;
   setPrintHideBackground: (hide: boolean) => void;
@@ -103,11 +116,17 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   editingTextId: null,
   printHideBackground: false,
   published: null,
+  savedDoc: null,
+  tool: "select",
+  pen: { color: "#2B2623", width: 4 },
 
   load: (doc, published) =>
     set({
       doc,
       published: published ?? null,
+      savedDoc: doc,
+      tool: "select",
+      printHideBackground: false,
       past: [],
       future: [],
       coalesceKey: null,
@@ -115,6 +134,10 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       editingTextId: null,
     }),
   setPublished: (published) => set({ published }),
+  markSaved: (savedDoc) => set({ savedDoc }),
+  // Đổi công cụ thì bỏ chọn, để khung kéo giãn không cản nét vẽ.
+  setTool: (tool) => set({ tool, selectedId: null, editingTextId: null, coalesceKey: null }),
+  setPen: (patch) => set({ pen: { ...get().pen, ...patch } }),
   select: (selectedId) => set({ selectedId, coalesceKey: null }),
   setEditingText: (editingTextId) => set({ editingTextId, coalesceKey: null }),
   setPrintHideBackground: (printHideBackground) => set({ printHideBackground }),

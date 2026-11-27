@@ -7,7 +7,7 @@ import { sortByLayer } from "@/lib/editor/store";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import type { CanvasData } from "@/types/letter";
 import { BackgroundLayer } from "./BackgroundLayer";
-import { ElementNode } from "./ElementNode";
+import { ElementNode, type ElementHandlers } from "./ElementNode";
 import { useFontsKey } from "./hooks";
 
 const { width: W, height: H } = PRINT_CONFIG.CANVAS;
@@ -22,14 +22,17 @@ export interface LetterStageProps {
   stageRef?: Ref<Konva.Stage>;
   onSelect?: (id: string | null) => void;
   onEdit?: (id: string) => void;
+  onChange?: ElementHandlers["onChange"];
+  /** Chặn chọn/kéo phần tử, ví dụ khi đang vẽ tay. */
+  listening?: boolean;
   /** Layer bổ sung của editor: Transformer, khung lề an toàn, nếp gấp A5 (T-09). */
   children?: ReactNode;
 }
 
 /** Bộ vẽ lá thư dùng chung cho editor và trang người nhận. */
 export default function LetterStage(props: LetterStageProps) {
-  const { canvas, scale, qrUrl, stageRef, hideBackground, hiddenElementId, onSelect, onEdit, children } =
-    props;
+  const { canvas, scale, qrUrl, stageRef, hideBackground, hiddenElementId, onSelect, onEdit } = props;
+  const { onChange, listening = true, children } = props;
   const texts = canvas.elements.filter((el) => el.type === "text");
   const fontsKey = useFontsKey(
     texts.map((el) => el.fontFamily ?? "Be Vietnam Pro"),
@@ -47,7 +50,7 @@ export default function LetterStage(props: LetterStageProps) {
       onTap={(event) => event.target === event.target.getStage() && onSelect?.(null)}
     >
       <BackgroundLayer background={canvas.background} hidden={hideBackground} />
-      <Layer name="content">
+      <Layer name="content" listening={listening}>
         {sortByLayer(canvas.elements).map((element) => (
           <ElementNode
             key={element.id}
@@ -57,6 +60,7 @@ export default function LetterStage(props: LetterStageProps) {
             hidden={element.id === hiddenElementId}
             onSelect={onSelect}
             onEdit={onEdit}
+            onChange={onChange}
           />
         ))}
       </Layer>

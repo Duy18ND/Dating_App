@@ -1,5 +1,6 @@
 "use client";
 
+import type Konva from "konva";
 import { useEffect, useMemo, useState } from "react";
 import { Circle, Group, Image as KonvaImage, Line, Path, Rect, Text } from "react-konva";
 import { findIcon, ICON_VIEWBOX } from "@/lib/icons";
@@ -9,6 +10,9 @@ import { createQrBlob, QR_CARD_COLOR, quietZone } from "@/lib/render/qr";
 import { TEXT_DEFAULTS } from "@/lib/render/text";
 import type { CanvasElement } from "@/types/letter";
 import { fontFamilyOf, useImage } from "./hooks";
+
+/** Node có tên này là phần chưa tải xong; xuất PDF chờ tới khi không còn node nào như vậy. */
+export const PENDING = "pending";
 
 interface Props {
   element: CanvasElement;
@@ -26,7 +30,7 @@ function Photo({ element }: { element: CanvasElement }) {
       renderFramedImage(image, width, height, frame, filter, PRINT_CONFIG.EXPORT_PIXEL_RATIO),
     [image, width, height, frame, filter],
   );
-  if (!framed) return <Rect width={width} height={height} fill="#EFECE6" />;
+  if (!framed) return <Rect name={PENDING} width={width} height={height} fill="#EFECE6" />;
   return (
     <KonvaImage
       image={framed}
@@ -45,7 +49,7 @@ function Sticker({ element }: { element: CanvasElement }) {
   return image ? (
     <KonvaImage image={image} width={element.width} height={element.height} />
   ) : (
-    <Rect width={element.width} height={element.height} fill="rgba(0,0,0,0.05)" />
+    <Rect name={PENDING} width={element.width} height={element.height} fill="rgba(0,0,0,0.05)" />
   );
 }
 
@@ -129,7 +133,11 @@ function QrCode({ element, qrUrl }: { element: CanvasElement; qrUrl: string }) {
         fill={QR_CARD_COLOR}
         cornerRadius={pad}
       />
-      {image && <KonvaImage image={image} width={size} height={size} />}
+      {image ? (
+        <KonvaImage image={image} width={size} height={size} />
+      ) : (
+        <Rect name={PENDING} width={size} height={size} fill={QR_CARD_COLOR} />
+      )}
     </>
   );
 }
@@ -140,6 +148,7 @@ function content({ element, qrUrl, fontsKey }: Props) {
       return (
         <Text
           key={fontsKey}
+          name={fontsKey ? undefined : PENDING}
           text={element.text ?? ""}
           width={element.width ?? TEXT_DEFAULTS.width}
           fontFamily={fontFamilyOf(element.fontFamily)}
@@ -173,10 +182,24 @@ function content({ element, qrUrl, fontsKey }: Props) {
   }
 }
 
-export function ElementNode(
-  props: Props & { onSelect?: (id: string) => void; onEdit?: (id: string) => void },
-) {
-  const { element, hidden, onSelect, onEdit } = props;
+/** Kết quả một lần kéo hoặc kéo giãn trên canvas, theo tọa độ logic. */
+export interface NodeChange {
+  x: number;
+  y: number;
+  rotation?: number;
+  scaleX?: number;
+  scaleY?: number;
+}
+
+export interface ElementHandlers {
+  onSelect?: (id: string) => void;
+  onEdit?: (id: string) => void;
+  /** Có hàm này thì phần tử kéo được (trừ khi bị khóa). */
+  onChange?: (id: string, change: NodeChange) => void;
+}
+
+export function ElementNode(props: Props & ElementHandlers) {
+  const { element, hidden, onSelect, onEdit, onChange } = props;
   return (
     <Group
       id={element.id}
@@ -185,10 +208,29 @@ export function ElementNode(
       y={element.y}
       rotation={element.rotation}
       visible={!hidden}
+      draggable={!!onChange && !element.locked}
       onClick={() => onSelect?.(element.id)}
       onTap={() => onSelect?.(element.id)}
       onDblClick={() => onEdit?.(element.id)}
       onDblTap={() => onEdit?.(element.id)}
+      onDragStart={() => onSelect?.(element.id)}
+      onDragEnd={(event) => {
+        const node = event.target;
+        onChange?.(element.id, { x: node.x(), y: node.y() });
+      }}
+      onTransformEnd={(event) => {
+        const node: Konva.Node = event.target;
+        const change = {
+          x: node.x(),
+          y: node.y(),
+          rotation: node.rotation(),
+          scaleX: node.scaleX(),
+          scaleY: node.scaleY(),
+        };
+        // Dữ liệu luôn lưu với scale = 1; kích thước mới đi vào width/height/fontSize.
+        node.scale({ x: 1, y: 1 });
+        onChange?.(element.id, change);
+      }}
     >
       {content(props)}
     </Group>
