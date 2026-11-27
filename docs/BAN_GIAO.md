@@ -15,6 +15,12 @@
 - Full-kit preview and PDF share `renderPrintKit` (`export-pdf.tsx`) and `drawSheetVectors` (`print/sheet.ts`); the folded envelope comes from `foldedEnvelope()` in `print/layout.ts`.
 - Draft PDF QR points to `/xem-thu/<template>` (`draftQrUrl`), a real page showing sample content.
 
+## Accounts (`T-38` → `T-41`)
+- Sessions: `@supabase/ssr` cookies. `src/lib/server/auth.ts` `getUser()/requireUser()` verify with Supabase Auth (`getUser`). `src/proxy.ts` refreshes the session and redirects `/editor`, `/thiep-cua-toi`, `/doi-mat-khau` to `/dang-nhap?next=` (optimistic only; APIs enforce).
+- APIs: `POST /api/letters` and `POST /api/upload` (login + Origin + Turnstile + per-IP and per-account limits); `/api/me/letters`, `/api/me/letters/[id]` (GET/PATCH/DELETE, filtered by `owner_id`, foreign = 404); `DELETE /api/me/account` (body `{ confirm: "XOA TAI KHOAN" }`). `assertSameOrigin` guards every mutating authenticated route.
+- Pages: `/dang-nhap` (email, Google hidden in in-app browsers, reset), `/auth/callback` (PKCE `?code=` only), `/doi-mat-khau`, `/thiep-cua-toi`, `/thiep-cua-toi/[id]`, `/chinh-sach-rieng-tu`.
+- Migration `0003_accounts.sql`: delete test letters/uploads first. Env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Supabase dashboard settings: see `docs/REVIEW_OPUS.md` (T-41).
+
 ## Owner Infrastructure Checklist (`T-02`)
 - **Audio**: Upload licensed MP3s (128kbps) to R2 at `audio/<id>.mp3` matching `src/lib/audio-tracks.ts`.
 - **Donate**: Add `public/donate-qr-bank.webp` and/or `public/donate-qr-zalo.webp`, set `NEXT_PUBLIC_DONATE_*`.

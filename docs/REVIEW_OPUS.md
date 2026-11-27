@@ -56,3 +56,18 @@ Phạm vi: T-38 → T-40 (đăng nhập Supabase, `/api/me/*`, Thiệp của tô
 ## Còn mở
 - Ba mục "Chưa sửa" ở trên (quét slug, hostname Turnstile, IP từ header) vẫn còn nguyên.
 - Chưa thử đăng nhập thật (email, Google, đặt lại mật khẩu) vì máy này chưa có project Supabase: cần chủ dự án thử ở T-23B.
+
+# Review cuối trước ra mắt (T-36, 27/11/2026)
+
+## Kết luận
+Không tìm thấy lỗi mới ngoài hai mục đã sửa ở T-41. Bộ kiểm tra cuối: 186 test, typecheck, lint, build đều đạt.
+
+## Đã soát
+- **XSS:** không có `dangerouslySetInnerHTML` hay gán `innerHTML`. Chữ người dùng hiển thị dạng văn bản (React escape) hoặc vẽ trên canvas. URL ảnh, nền, ảnh web phải là `http(s)` (Zod) **và** là ảnh chính chủ đã tải lên (`set_letter_uploads`), nên không chèn được URL lạ. Link bản đồ chỉ nhận `http(s)`. Tên `?to=` lọc còn chữ, số, vài dấu câu. Sticker chỉ trong kho `/stickers`.
+- **Ảnh:** chỉ người tải lên gắn được vào thiệp của mình; thiệp tạo xong mà gắn ảnh thất bại thì bị xóa ngay.
+- **Cron:** chỉ xóa thư quá hạn và ảnh mồ côi đủ 24 giờ (tính từ lúc bị gỡ); R2 lỗi thì trả bản ghi (đã gồm `owner_id`) để lần sau xóa tiếp. Xóa thiệp hoặc tài khoản thì ảnh thành mồ côi theo cùng cơ chế.
+- **Dữ liệu công khai:** `/api/letters/[slug]` và `/l/[slug]` chỉ trả các trường liệt kê trong `toPublicLetter` (không `owner_id`, `id`, IP hash).
+
+## Chưa kiểm chứng được trên máy này
+- **Luồng thật với Supabase** (đăng ký, xác nhận email, Google, đặt lại mật khẩu, tạo/sửa/xóa thiệp, danh sách có đếm phản hồi). Truy vấn danh sách dùng cú pháp PostgREST `canvas_data->faces->front` và `responses(count)`: đúng theo tài liệu nhưng chưa chạy trên PostgREST thật. Cần chạy ở T-23B với project Supabase đã cấu hình.
+- Trang `/thiep-cua-toi` chưa được chụp màn hình vì proxy cần phiên Supabase thật.

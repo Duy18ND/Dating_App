@@ -37,14 +37,14 @@
 | ~~`T-39`~~ ✅ | Auth UI & Privacy Policy | Sign up/in, password reset, Google (disabled with Open-in-Browser guide in Threads/Zalo in-app browsers), `/chinh-sach-rieng-tu`, 360px ready, 60-day QR expiry notice | **Sonnet** | 3 | `T-38` |
 | ~~`T-40`~~ ✅ | `/thiep-cua-toi` dashboard (replaces `/manage`) | Full FR-14 actions, `/editor?id=`, remove `edit_token` code, expiry date & `<= 7d` warning, screen-record tip | **Sonnet** | 3.5 | `T-39` |
 | ~~`T-41`~~ ✅ | Account security review | Cross-account access tests on all APIs, CSRF, open redirects, no secret keys in client bundle, account deletion cascade | **Opus** | 1.5 | `T-40` |
-| `T-36` | Final pre-launch review | XSS safety, image URL ownership, cron cleanup safety, end-to-end flow | **Opus** | 1.5 | `T-41` |
+| ~~`T-36`~~ ✅ | Final pre-launch review | XSS safety, image URL ownership, cron cleanup safety, end-to-end flow | **Opus** | 1.5 | `T-41` |
 | `T-23B` | Real-device E2E QA | iPhone & Android full flow (auth incl. in-app browser, audio, scroll, `?to=`, responses, PDF, QR) | **Project Owner** | 1.5 | `T-36` |
 | `T-25` | Production deploy & Threads launch | Launch script: `docs/gemini-output/T-25-threads-launch-script.md` | **Project Owner** | 3 | `T-23B` |
 
 ## Remaining Workload & Next Prompts for Claude
-- **Claude Opus (7h)**: `T-38`, `T-41`, `T-36`
-- **Claude Sonnet (6.5h)**: `T-39`, `T-40`
+- **Claude Opus**: Stage 4 done (`T-38`, `T-41`, `T-36`)
+- **Claude Sonnet**: Stage 4 done (`T-39`, `T-40`)
 - **Post-Launch V1.8 (after MVP launch — do not block Stage 1–4)**:
   - **Canva-style Smart Snap Guides** in `EditorStage` (center X/Y & safe-margin magnetic alignment lines).
   - **Hybrid Freeform Web Block (`scrapbook`, fixed `4:5` Konva canvas)** inside scrollable web pages so users can freely drag/rotate photos, stickers, and doodles while keeping text/forms 100% responsive across 360px Mobile, Tablet, and PC.
-- **Next**: owner runs `T-49` (Gate 1, if not done) and `T-23A` (Gate 2: print the A4 sheet from "Xem cả bộ → Tải PDF thử"), then `/model opus` → `T-38`.
+- **Next (owner)**: configure Supabase per `docs/REVIEW_OPUS.md` (T-41), run `0003_accounts.sql`, set `NEXT_PUBLIC_SUPABASE_*`, then `T-23A`, `T-23B` (real sign-in flows), `T-25`.
