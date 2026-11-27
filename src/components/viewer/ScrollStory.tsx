@@ -202,7 +202,8 @@ function StoryPhoto({
   const fit = image.fit ?? defaultFit;
   const fx = Math.round((image.focus?.x ?? 0.5) * 100);
   const fy = Math.round((image.focus?.y ?? 0.5) * 100);
-  return (
+  const zoom = image.zoom ?? 1;
+  const picture = (
     // eslint-disable-next-line @next/next/no-img-element -- ảnh người dùng R2 động, cần tải lười và object-position chính xác
     <img
       src={image.src}
@@ -214,10 +215,23 @@ function StoryPhoto({
         fit === "cover" ? "h-full object-cover" : "h-auto max-h-[70dvh] object-contain",
         className,
       )}
-      style={fit === "cover" ? { objectPosition: `${fx}% ${fy}%` } : undefined}
+      style={{
+        ...(fit === "cover" && { objectPosition: `${fx}% ${fy}%` }),
+        ...(zoom > 1 && { transform: `scale(${zoom})`, transformOrigin: `${fx}% ${fy}%` }),
+      }}
     />
   );
+  // Phần phóng to bị cắt gọn trong khung.
+  return zoom > 1 ? (
+    <div className={cn("overflow-hidden", fit === "cover" && "h-full")}>{picture}</div>
+  ) : (
+    picture
+  );
 }
+
+/** Thu nhỏ cả khung ảnh và đặt giữa (WebImage.size). */
+const frameSize = (image: WebImage): CSSProperties | undefined =>
+  image.size && image.size < 100 ? { width: `${image.size}%`, marginInline: "auto" } : undefined;
 
 function daysBetween(dateIso: string, mode: CounterMode): number | null {
   const target = parseLocalDate(dateIso);
@@ -352,7 +366,7 @@ function MemoryCard({
               {item.image ? (
                 <div
                   className="mb-3 overflow-hidden rounded-lg"
-                  style={{ backgroundColor: t.surfaceAlt }}
+                  style={{ backgroundColor: t.surfaceAlt, ...frameSize(item.image) }}
                 >
                   <StoryPhoto image={item.image} alt={item.caption || label} />
                 </div>
@@ -405,7 +419,10 @@ function MemoryCard({
         style={{ borderColor: t.border, backgroundColor: t.surface }}
       >
         {item.image ? (
-          <div className="mb-3 overflow-hidden rounded-lg" style={{ backgroundColor: t.surfaceAlt }}>
+          <div
+            className="mb-3 overflow-hidden rounded-lg"
+            style={{ backgroundColor: t.surfaceAlt, ...frameSize(item.image) }}
+          >
             <StoryPhoto image={item.image} alt={item.caption || label} />
           </div>
         ) : (
@@ -464,6 +481,7 @@ export function ScrollStory({
     photo,
     counter: counterMode,
     celebrate,
+    textScale,
   } = resolvedStyle;
   const t = theme.tokens;
 
@@ -480,6 +498,7 @@ export function ScrollStory({
     "--accent-foreground": t.ink,
     "--border": t.border,
     "--input": t.border,
+    "--story-text": textScale,
     fontFamily: cssFontVar(bodyFont),
     backgroundColor: t.bg,
     backgroundImage: t.bgPattern,
@@ -495,7 +514,7 @@ export function ScrollStory({
     <div
       data-theme={theme.id}
       style={themeVars}
-      className="relative min-h-dvh w-full overflow-x-clip pb-[max(4rem,env(safe-area-inset-bottom))]"
+      className="story-text relative min-h-dvh w-full overflow-x-clip pb-[max(4rem,env(safe-area-inset-bottom))]"
     >
       <ParticleLayer kind={particle} intensity={intensity} color={accent} />
 
@@ -535,7 +554,11 @@ export function ScrollStory({
                     {section.image && (
                       <div
                         className={cn("w-full max-w-lg overflow-hidden p-2", t.photoFrameClass)}
-                        style={{ borderColor: t.border, backgroundColor: t.surface }}
+                        style={{
+                          borderColor: t.border,
+                          backgroundColor: t.surface,
+                          ...frameSize(section.image),
+                        }}
                       >
                         <div className="aspect-[4/3] w-full overflow-hidden rounded-xl">
                           <StoryPhoto
@@ -585,7 +608,10 @@ export function ScrollStory({
                       style={{ borderColor: t.border, backgroundColor: t.surface }}
                     >
                       {section.image && (
-                        <div className="overflow-hidden rounded-xl md:col-span-5">
+                        <div
+                          className="overflow-hidden rounded-xl md:col-span-5"
+                          style={frameSize(section.image)}
+                        >
                           <StoryPhoto image={section.image} alt="Ngày đầu tiên" />
                         </div>
                       )}

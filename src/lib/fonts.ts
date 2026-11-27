@@ -1,10 +1,16 @@
 import {
+  Baloo_2,
   Be_Vietnam_Pro,
   Charm,
   Cormorant_Garamond,
   Dancing_Script,
+  Great_Vibes,
+  Lobster,
   Mali,
+  Pacifico,
+  Patrick_Hand,
   Playfair_Display,
+  Quicksand,
 } from "next/font/google";
 
 const beVietnam = Be_Vietnam_Pro({
@@ -40,6 +46,38 @@ const mali = Mali({
   preload: false,
 });
 
+// Phông thêm để trang trí; chỉ tải khi thật sự được dùng (preload: false).
+const baloo = Baloo_2({ subsets: ["latin", "vietnamese"], variable: "--nf-baloo", preload: false });
+const quicksand = Quicksand({
+  subsets: ["latin", "vietnamese"],
+  variable: "--nf-quicksand",
+  preload: false,
+});
+const patrick = Patrick_Hand({
+  subsets: ["latin", "vietnamese"],
+  weight: "400",
+  variable: "--nf-patrick",
+  preload: false,
+});
+const lobster = Lobster({
+  subsets: ["latin", "vietnamese"],
+  weight: "400",
+  variable: "--nf-lobster",
+  preload: false,
+});
+const pacifico = Pacifico({
+  subsets: ["latin", "vietnamese"],
+  weight: "400",
+  variable: "--nf-pacifico",
+  preload: false,
+});
+const greatVibes = Great_Vibes({
+  subsets: ["latin", "vietnamese"],
+  weight: "400",
+  variable: "--nf-great-vibes",
+  preload: false,
+});
+
 /**
  * canvas_data lưu tên font logic (khóa của object này). Canvas không hiểu biến CSS,
  * nên khi vẽ phải đổi sang `style.fontFamily` mà next/font sinh ra.
@@ -51,6 +89,12 @@ export const LETTER_FONTS = {
   Charm: charm,
   "Dancing Script": dancing,
   Mali: mali,
+  "Baloo 2": baloo,
+  Quicksand: quicksand,
+  "Patrick Hand": patrick,
+  Lobster: lobster,
+  Pacifico: pacifico,
+  "Great Vibes": greatVibes,
 } as const;
 
 export const fontVariables = Object.values(LETTER_FONTS)

@@ -117,3 +117,23 @@ describe("store: vẽ trên khung tự do", () => {
     expect(currentElements(store())).toBe(store().doc.canvas_data.faces.front.elements);
   });
 });
+
+describe("cỡ chữ và cỡ ảnh trang web", () => {
+  const image = (patch: object) =>
+    web([
+      { id: "h", type: "hero", enabled: true, lead: "a", image: { src: PHOTO, ...patch } },
+    ]);
+
+  it("nhận trong khoảng cho phép, từ chối ngoài khoảng", () => {
+    expect(webConfigSchema.safeParse(image({ size: 60, zoom: 2.5 })).success).toBe(true);
+    expect(webConfigSchema.safeParse(image({ size: 10 })).success).toBe(false);
+    expect(webConfigSchema.safeParse(image({ zoom: 9 })).success).toBe(false);
+    const style = { theme: "pastel" as const, intensity: "medium" as const };
+    const withScale = (textScale: number) => ({
+      ...samplePayload().web_config,
+      style: { ...style, textScale },
+    });
+    expect(webConfigSchema.safeParse(withScale(1.2)).success).toBe(true);
+    expect(webConfigSchema.safeParse(withScale(3)).success).toBe(false);
+  });
+});

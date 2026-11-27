@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/lib/editor/store";
 import type { ImageFit, WebImage } from "@/types/letter";
 import { FocusPicker } from "../FocusPicker";
-import { Choice } from "../ui";
+import { Choice, Slider } from "../ui";
 import { useImageUpload } from "../useImageUpload";
 
 const FITS: { value: ImageFit; label: string }[] = [
@@ -61,9 +61,31 @@ export function WebImageField({
             onCommit={endCoalesce}
           />
           <Choice options={FITS} value={fit} onChange={(next) => onChange({ ...image, fit: next })} />
-          {fit === "contain" && (
+          <Slider
+            label="Cỡ ảnh"
+            min={40}
+            max={100}
+            step={5}
+            value={image.size ?? 100}
+            format={(v) => `${v}%`}
+            onChange={(size) => onChange({ ...image, size }, `${focusKey}:size`)}
+            onCommit={endCoalesce}
+          />
+          <Slider
+            label="Phóng to trong khung"
+            min={1}
+            max={3}
+            step={0.1}
+            value={image.zoom ?? 1}
+            format={(v) => `${Math.round(v * 100)}%`}
+            onChange={(zoom) =>
+              onChange({ ...image, zoom: Math.round(zoom * 10) / 10 }, `${focusKey}:zoom`)
+            }
+            onCommit={endCoalesce}
+          />
+          {fit === "contain" && (image.zoom ?? 1) === 1 && (
             <p className="text-xs text-muted-foreground">
-              Điểm giữ chỉ có tác dụng khi chọn “Phủ kín khung”.
+              Điểm giữ có tác dụng khi chọn “Phủ kín khung” hoặc khi phóng to.
             </p>
           )}
         </>

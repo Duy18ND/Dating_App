@@ -1,6 +1,7 @@
 "use client";
 
 import { AlignCenter, AlignLeft, AlignRight, Type } from "lucide-react";
+import { fontFamilyOf } from "@/components/letter/hooks";
 import { Button } from "@/components/ui/button";
 import { currentElements, currentHeight, useEditorStore } from "@/lib/editor/store";
 import { FONT_NAMES, type FontName } from "@/lib/font-names";
@@ -74,11 +75,12 @@ export function TextPanel() {
       <Field label="Phông chữ">
         <select
           className={inputClass}
+          style={{ fontFamily: fontFamilyOf(element.fontFamily) }}
           value={element.fontFamily ?? "Be Vietnam Pro"}
           onChange={(event) => update(element.id, { fontFamily: event.target.value as FontName })}
         >
           {FONT_NAMES.map((name) => (
-            <option key={name} value={name}>
+            <option key={name} value={name} style={{ fontFamily: fontFamilyOf(name) }}>
               {name}
             </option>
           ))}

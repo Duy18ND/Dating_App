@@ -6,6 +6,7 @@ import { useEditorStore } from "@/lib/editor/store";
 import { FONT_NAMES, type FontName } from "@/lib/font-names";
 import { cn } from "@/lib/utils";
 import {
+  cssFontVar,
   defaultWebStyle,
   EFFECT_CATALOG,
   isReadableAccent,
@@ -16,7 +17,7 @@ import {
 } from "@/lib/web-styles";
 import type { WebStyleConfig, WebThemeId } from "@/types/letter";
 import { ColorField } from "../ColorField";
-import { Choice, Field, inputClass, Section } from "../ui";
+import { Choice, Field, inputClass, Section, Slider } from "../ui";
 
 /** Xóa mọi tùy chỉnh riêng: chọn một phong cách là đủ bộ (FR-15). */
 const NO_OVERRIDES: Omit<WebStyleConfig, "theme" | "intensity"> = {
@@ -137,6 +138,21 @@ export function StylePicker() {
         )}
       </Section>
 
+      <Section title="Cỡ chữ">
+        <Slider
+          label="Phóng to, thu nhỏ chữ trên trang web"
+          min={0.85}
+          max={1.35}
+          step={0.05}
+          value={resolved.textScale}
+          format={(v) => `${Math.round(v * 100)}%`}
+          onChange={(textScale) =>
+            setWebStyle({ textScale: Math.round(textScale * 100) / 100 }, "style-text")
+          }
+          onCommit={endCoalesce}
+        />
+      </Section>
+
       <Section title="Độ sôi động">
         <Choice
           options={EFFECT_CATALOG.intensity.map((o) => ({ value: o.id, label: o.label }))}
@@ -191,7 +207,9 @@ export function StylePicker() {
           >
             <option value="">Theo phong cách ({theme.fonts.heading})</option>
             {FONT_NAMES.map((name) => (
-              <option key={name}>{name}</option>
+              <option key={name} style={{ fontFamily: cssFontVar(name) }}>
+                {name}
+              </option>
             ))}
           </select>
         </Field>

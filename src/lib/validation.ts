@@ -71,6 +71,8 @@ export const webImageSchema = z.strictObject({
   src: z.string().max(500).refine(isHttpUrl, "URL ảnh không hợp lệ"),
   fit: z.enum(IMAGE_FITS).optional(),
   focus: imageFocusSchema.optional(),
+  size: z.number().min(40).max(100).optional(),
+  zoom: z.number().min(1).max(3).optional(),
 });
 
 export const backgroundSchema = z
@@ -371,6 +373,7 @@ export const webStyleSchema = z.strictObject({
   intensity: z.enum(WEB_INTENSITIES),
   accent: hexColor.optional(),
   font: z.enum(FONT_NAMES).optional(),
+  textScale: z.number().min(0.85).max(1.35).optional(),
   open: z.enum(WEB_OPEN_EFFECTS).optional(),
   textReveal: z.enum(WEB_TEXT_REVEALS).optional(),
   photo: z.enum(WEB_PHOTO_EFFECTS).optional(),

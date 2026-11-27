@@ -45,6 +45,10 @@ export interface WebImage {
   src: string;
   fit?: ImageFit;
   focus?: ImageFocus;
+  /** Bề rộng khung ảnh tính theo % chỗ dành cho nó (40..100, mặc định 100). */
+  size?: number;
+  /** Phóng to ảnh bên trong khung quanh điểm giữ (1..3, mặc định 1). */
+  zoom?: number;
 }
 
 export interface CanvasElement {
@@ -210,6 +214,8 @@ export interface WebStyleConfig {
   intensity: WebIntensity;
   accent?: string;
   font?: FontName;
+  /** Phóng to, thu nhỏ chữ trên trang web (0.85..1.35, mặc định 1). */
+  textScale?: number;
   open?: WebOpenEffect;
   textReveal?: WebTextReveal;
   photo?: WebPhotoEffect;

@@ -16,6 +16,9 @@
 - Web preview: same-origin iframe `/editor/xem-truoc` fed by `postMessage` (`src/lib/preview-bridge.ts`, origin + source checked). Phone 390px / PC 1366px give real breakpoints. When `T-38` guards `/editor`, this child route is covered too.
 - Full-kit preview and PDF share `renderPrintKit` (`export-pdf.tsx`) and `drawSheetVectors` (`print/sheet.ts`); the folded envelope comes from `foldedEnvelope()` in `print/layout.ts`.
 - Draft PDF QR points to `/xem-thu/<template>` (`draftQrUrl`), a real page showing sample content.
+- Freeform web section `board`: the card editor edits it when `store.boardId` is set (`currentElements/currentBackground/currentHeight`). Board images must stay in `collectWebImageUrls`, otherwise the nightly cron deletes them.
+- Section order is drag-only (`useDragReorder`, `lib/reorder.ts`). Optional sizing fields: `WebImage.size/zoom`, `WebStyleConfig.textScale` (CSS `zoom` on `.story-text h1/h2/p`).
+- Dev server note: after editing `globals.css`, Turbopack has twice served stale CSS; make a real edit to the file or restart `npm run dev`.
 
 ## Accounts (`T-38` → `T-41`)
 - Sessions: `@supabase/ssr` cookies. `src/lib/server/auth.ts` `getUser()/requireUser()` verify with Supabase Auth (`getUser`). `src/proxy.ts` refreshes the session and redirects `/editor`, `/thiep-cua-toi`, `/doi-mat-khau` to `/dang-nhap?next=` (optimistic only; APIs enforce).

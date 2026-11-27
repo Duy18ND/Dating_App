@@ -58,7 +58,7 @@ Hệ sinh thái mẫu | 4 mẫu dựng sẵn, mỗi mẫu gồm bìa trước, t
 Cá nhân hóa (Customize) | Mini-Canva Responsive PC & Mobile; Custom Background (Preset/Màu/Ảnh + Blur/Overlay), Ảnh WebP (khung Polaroid/Tem/Tròn/Đám mây + filter), 20 Icon SVG đổi màu, 25 Sticker Meme WebP, Ghi tay 2 chế độ, đổi màu phong bì/dấu sáp/QR. | AI tự động tách nền ảnh tải lên, hiệu ứng chữ uốn cong/3D, upload font cá nhân.  
 Cá nhân hóa người nhận | Nhập tên người gửi/nhận mặc định + hỗ trợ đổi tên từng khách qua tham số URL (?to=Ten-Khach) kèm ô tạo nhanh link theo tên. | Mail Merge tạo hàng loạt hàng trăm thiệp PDF từ file Excel/CSV.  
 Xuất bản & In ấn | Mã QR động (/l/[slug]); PDF 1 tờ A4 hai mặt (phong bì C7 có tai cài + thiệp mini phẳng) có đường cắt, đường gấp, vùng dán; tắt nền để in giấy màu. | Mô phỏng gấp 3D, các khổ khác, in hai mặt.  
-Trải nghiệm Web & Nhạc | Bóc dấu sáp phát nhạc, trang cuộn dọc kể chuyện (FR-10), Block tương tác (Đồng ý, RSVP + Maps, Poll). | Thẻ cào, câu đố mở khóa, ghi âm giọng nói, cuộn kiểu từng màn (story), hồi âm hai chiều, upload MP3 riêng, kéo thả tự do trên trang web.  
+Trải nghiệm Web & Nhạc | Bóc dấu sáp phát nhạc, trang cuộn dọc kể chuyện (FR-10), Block tương tác (Đồng ý, RSVP + Maps, Poll). | Thẻ cào, câu đố mở khóa, ghi âm giọng nói, cuộn kiểu từng màn (story), hồi âm hai chiều, upload MP3 riêng. (Kéo thả tự do trên trang web chỉ có trong phần 'Khung tự do', xem FR-10.)  
 Quản lý & Vận hành | Tài khoản bắt buộc cho người tạo (email + mật khẩu, Google); trang Thiệp của tôi; Free + Donate ảnh QR tĩnh; thư tự hết hạn sau 60 ngày. | Dashboard thống kê chi tiết, gói trả phí (lưu vĩnh viễn/bỏ credit), đăng nhập mạng xã hội khác, nhiều người cùng sửa một thiệp.  
 2.  HỆ THỐNG THIẾT KẾ (UI/UX) & CHUẨN KÍCH THƯỚC IN ẤN  
 2.1. Định hướng thẩm mỹ & Design Tokens  
@@ -70,7 +70,8 @@ Màu nhấn phụ (Secondary) | #C8A882 (Nâu giấy Kraft) | Vỏ phong bì m�
 Màu chữ (Ink & Muted) | #2B2623 / #7A7067 | Chữ chính đậm mềm như mực tàu; chữ phụ nâu xám.  
 Font giao diện (UI) | Be Vietnam Pro | Hiển thị chuẩn dấu tiếng Việt ở kích thước nhỏ trên PC & Mobile.  
 Font trang trọng (Serif) | Cormorant Garamond, Playfair Display | Tiêu đề thiệp cưới, thư tỏ tình phong cách cổ điển.  
-Font viết tay (Script) | Charm, Dancing Script, Mali | Hỗ trợ đầy đủ dấu tiếng Việt trên Canvas, không nhảy font.  
+Font viết tay (Script) | Charm, Dancing Script, Mali, Patrick Hand, Great Vibes, Pacifico | Hỗ trợ đầy đủ dấu tiếng Việt trên Canvas, không nhảy font.  
+Font trang trí & tròn | Lobster, Baloo 2, Quicksand | Chỉ tải khi được dùng.  
 2.2. Chuẩn Kích thước Bộ in Mini (PRINT_CONFIG)  
 Cả bộ in trên **đúng 1 tờ A4 dọc, hai mặt**, người dùng tự cắt, gấp, dán. Thiệp 105 x 74 mm bỏ vào phong bì 114 x 81 mm, hở 9 mm chiều dài và 7 mm chiều cao.  
 Hạng mục | Thông số chuẩn | Quy tắc triển khai  
@@ -130,7 +131,7 @@ Tạo nhanh link cá nhân hóa theo khách: Trong Modal Xuất bản và trang 
 Sau khi xuất bản, modal dẫn tới trang chi tiết thiệp trong Thiệp của tôi (không còn link quản lý bí mật).  
 Khung Donate Ảnh QR Tĩnh (Ngân hàng / ZaloPay): Sử dụng trực tiếp ảnh tĩnh tối ưu sẵn (public/donate-qr-bank.webp và/hoặc public/donate-qr-zalo.webp, chia 2 tab nhỏ nếu dùng cả hai). Bắt buộc đặt kèm 2 nút hỗ trợ người dùng điện thoại: (1) Nút 'Lưu ảnh QR' (download 1 chạm) và (2) Nút 'Copy số tài khoản' (hiển thị tên ngân hàng, STK, tên chủ TK; cắt gọn ảnh QR không để lộ SĐT cá nhân).  
 FR-10 — Trang web bày tỏ dạng cuộn dọc (v1.2)  
-Sau khi bóc dấu sáp, người nhận lướt dọc qua các phần; mỗi phần hiện dần khi cuộn tới, nhạc phát xuyên suốt. Bố cục dựng sẵn, **không kéo thả**. Mỗi phần bật/tắt và đổi thứ tự được; phần bật nhưng để trống thì tự ẩn trên trang người nhận.  
+Sau khi bóc dấu sáp, người nhận lướt dọc qua các phần; mỗi phần hiện dần khi cuộn tới, nhạc phát xuyên suốt. Các phần có sẵn dùng bố cục dựng sẵn; riêng phần **Khung tự do** được kéo thả như thiệp. Mỗi phần bật/tắt và đổi thứ tự được; phần bật nhưng để trống thì tự ẩn trên trang người nhận.  
 Phần | type | Nội dung & giới hạn  
 Mở đầu | hero | Ảnh bìa (tùy chọn), 'Gửi [tên]' (theo ?to=), câu dẫn <= 200 ký tự, mũi tên mời lướt.  
 Ngày đầu tiên | first_day | 1 ảnh (tùy chọn), ngày, đoạn <= 500 ký tự.  
@@ -140,9 +141,11 @@ Con số | counter | Một ngày mốc + nhãn; chế độ đếm số ngày đ
 Lời bày tỏ / Lời chúc | message | Tiêu đề + đoạn dài <= 5000 ký tự, xuống đoạn bằng dòng trống.  
 Câu hỏi & Tương tác | interact | Hiển thị các Block đang bật ở FR-06 (Đồng ý, RSVP + Maps, Poll).  
 Lời kết | ending | Câu kết, chữ ký, nút 'Xem lại tấm thiệp' (hiện bìa trước và trang Lời mời khi bấm), dòng credit.  
-Ảnh web: tối đa 8 ảnh cho toàn trang (hero + first_day + memories), tách khỏi 4 ảnh của thiệp. URL phải là ảnh đã tải qua /api/upload và được gắn với thư đó (nếu không, cron sẽ xóa).  
-Yêu cầu: dùng được tốt trên màn hình 360px; ảnh tải lười; tôn trọng prefers-reduced-motion (hiện ngay, không trượt); nội dung văn bản là chữ thật (không nằm trong canvas) để đọc được bằng trình đọc màn hình. Chữ người dùng nhập luôn hiển thị dạng văn bản thuần.  
-Editor tab 'Trang web': danh sách phần (bật/tắt, đổi thứ tự bằng nút lên/xuống), ô nhập cho từng phần, khung xem trước cỡ điện thoại.  
+Khung tự do | board | Banner/góc trang trí tự thiết kế: chữ, ảnh, nền, sticker, vẽ tay; kéo, xoay, phóng to thu nhỏ, đường gióng, hoàn tác như thiệp. 3 cỡ (rộng 1760, cao 880 / 1240 / 2200). Tối đa 3 khung, mỗi khung 60 phần tử, không có mã QR. Cả khung co giãn theo bề rộng màn hình; chữ trong khung được lặp lại cho trình đọc màn hình.  
+Cỡ ảnh: ảnh bìa, ngày đầu tiên và kỷ niệm chỉnh được cỡ khung (size 40–100%) và phóng to trong khung quanh điểm giữ (zoom 1–3).  
+Ảnh web: tối đa 8 ảnh cho toàn trang (hero + first_day + memories + ảnh và ảnh nền trong khung tự do), tách khỏi 4 ảnh của thiệp. URL phải là ảnh đã tải qua /api/upload và được gắn với thư đó (nếu không, cron sẽ xóa).  
+Yêu cầu: dùng được tốt trên màn hình 360px; ảnh tải lười; tôn trọng prefers-reduced-motion (hiện ngay, không trượt); nội dung văn bản của các phần có sẵn là chữ thật (không nằm trong canvas) để đọc được bằng trình đọc màn hình. Chữ người dùng nhập luôn hiển thị dạng văn bản thuần.  
+Editor tab 'Trang web': danh sách phần (bật/tắt, đổi thứ tự bằng cách nắm nút ⠿ rồi kéo bằng chuột hoặc ngón tay; bàn phím dùng mũi tên trên nút đó), ô nhập cho từng phần, khung xem trước cỡ điện thoại.  
 FR-11 — Thư viết tay & Trang viết tay (v1.3) — **ĐÃ BỎ Ở V1.7**  
 Bộ in không in thư gấp 3 hay trang viết tay. Trình thiết kế không còn mục này. Trường canvas_data.letter và canvas_data.writingPage vẫn nằm trong dữ liệu (chưa xóa) nhưng không được in và không hiển thị.  
 FR-12 — Trang trí phong bì (v1.8)  
@@ -169,9 +172,9 @@ Chữ xuất hiện (textReveal) | slide Trượt nhẹ; typewriter Gõ từng c
 Hiệu ứng nền (particle) | none; hearts Tim bay; stars Sao; petals Cánh hoa | Tuyết, đom đóm, bong bóng  
 Con số (counter) | count_up Đếm tăng; flip_calendar Lịch lật | Vòng tròn chạy  
 Khi bấm Đồng ý (celebrate) | confetti Hoa giấy; fireworks Pháo hoa; heart_rain Mưa tim | —  
-Màu & phông | Màu nhấn tự chọn (phải đủ tương phản với nền), 6 phông tiếng Việt | —  
+Màu & phông | Màu nhấn tự chọn (phải đủ tương phản với nền), 12 phông tiếng Việt; cỡ chữ cả trang 85–135% (textScale) | —  
 Độ sôi động (intensity) | light Nhẹ; medium Vừa (mặc định); rich Rực rỡ — chỉnh cùng lúc số hạt và cường độ chuyển động | —  
-Dữ liệu: web_config.style = { theme; intensity; accent?; font?; open?; textReveal?; photo?; particle?; counter?; celebrate? }. Mục để trống thì theo phong cách. Giá trị chỉ nhận trong danh sách trên; thư không có style dùng warm_letter.  
+Dữ liệu: web_config.style = { theme; intensity; accent?; font?; textScale?; open?; textReveal?; photo?; particle?; counter?; celebrate? }. Mục để trống thì theo phong cách. Giá trị chỉ nhận trong danh sách trên; thư không có style dùng warm_letter.  
 Hiệu năng & dễ dùng: mỗi lúc tối đa một lớp hạt, tạm dừng khi tab ẩn; số hạt trên điện thoại ít hơn; ưu tiên transform/opacity; không dùng 3D nặng; mượt trên điện thoại tầm trung. prefers-reduced-motion: tắt hạt, gõ chữ và chuyển động, nội dung hiện ngay. Hiệu ứng không được che nút bấm hay cản việc đọc; chữ gõ dần vẫn đọc được đầy đủ bằng trình đọc màn hình. Cách 'Nhấn giữ' và 'Kéo nơ' phải có cách bấm thay thế bằng bàn phím. Mọi cách mở thư đều phải gọi phát nhạc ngay trong thao tác chạm của người dùng (iOS).  
 FR-16 — Hiển thị nhất quán PC & điện thoại (v1.6)  
 Thiệp: mặt thiệp là khung cố định 1760 x 1240, mọi máy chỉ phóng/thu đều cả khung. Mọi thành phần trừ vùng dòng kẻ **giữ tỷ lệ khi kéo giãn** (chữ, ảnh, sticker, icon, QR, nét vẽ không bị bóp méo). Ảnh trong khung được cắt cho vừa chứ không kéo giãn; người dùng **chọn điểm cần giữ** (focus x, y từ 0 đến 1, mặc định giữa). Trang người nhận cho **chạm để phóng to thiệp**.  

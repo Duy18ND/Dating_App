@@ -303,6 +303,8 @@ export function isReadableAccent(accentHex: string, surfaceHex: string): boolean
 export interface ResolvedWebStyle {
   theme: ThemeDefinition;
   intensity: WebIntensity;
+  /** Hệ số cỡ chữ trang web (1 = chuẩn). */
+  textScale: number;
   accent: string;
   accentInk: string;
   headingFont: FontName;
@@ -332,6 +334,7 @@ export function resolveWebStyle(style?: WebStyleConfig): ResolvedWebStyle {
   return {
     theme,
     intensity: style?.intensity ?? "medium",
+    textScale: style?.textScale ?? 1,
     accent,
     accentInk: inkOn(accent),
     headingFont,
@@ -384,6 +387,12 @@ const FONT_CSS_VAR: Record<FontName, string> = {
   Charm: "var(--nf-charm), cursive",
   "Dancing Script": "var(--nf-dancing), cursive",
   Mali: "var(--nf-mali), cursive",
+  "Baloo 2": "var(--nf-baloo), sans-serif",
+  Quicksand: "var(--nf-quicksand), sans-serif",
+  "Patrick Hand": "var(--nf-patrick), cursive",
+  Lobster: "var(--nf-lobster), cursive",
+  Pacifico: "var(--nf-pacifico), cursive",
+  "Great Vibes": "var(--nf-great-vibes), cursive",
 };
 
 export const cssFontVar = (name: FontName): string => FONT_CSS_VAR[name];

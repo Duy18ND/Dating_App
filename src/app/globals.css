@@ -175,3 +175,8 @@
   .lift, .wiggle-on-hover { transition: none; }
   .lift:hover, .lift:active { transform: none; }
 }
+
+/* Cỡ chữ trang người nhận (FR-15): chỉ phóng chữ, ảnh và khung giữ nguyên. */
+.story-text :is(h1, h2, p) {
+  zoom: var(--story-text, 1);
+}

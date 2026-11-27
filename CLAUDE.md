@@ -20,6 +20,7 @@
 - `/api/upload` chỉ nhận WebP.
 - v1.8 (thay bộ in v1.3 và v1.7): **đúng 1 tờ A4 in hai mặt** (PDF 2 trang, in đảo cạnh dài). Trang 1: phong bì C7 liền mảnh có tai cài + khe cài (nửa trên) và **mặt trước thiệp** (nửa dưới). Trang 2: chỉ **mặt sau thiệp có QR**, nằm đúng sau lưng mặt trước. Thiệp phẳng 105 x 74, tự thiết kế cả hai mặt (`faces.front`, `faces.inside`). Mặt trước phong bì in 'Gửi [tên]' (`envelope.frontText`). Không thiệp gập, thư gấp 3, trang viết tay. Bản in không có chữ hướng dẫn; hướng dẫn chỉ trên web. QR chỉ ở mặt sau; tràn màu 2mm; một màu phong bì cho web và bản in.
 - `LetterPanel.tsx`, `render-letter.ts`, `renderCardBack` và trường `letter`/`writingPage` đang để không (không in, không hiển thị); chỉ xóa khi chủ dự án yêu cầu.
+- Trang web có phần **Khung tự do** (`board`, tối đa 3) dùng lại trình soạn thiệp; ảnh trong khung phải nằm trong `collectWebImageUrls` (nếu không cron xóa). Đổi thứ tự phần bằng kéo tay. Ảnh web có `size`/`zoom`, chữ web có `style.textScale`; các trường này đều không bắt buộc.
 - v1.2: ảnh thiệp tối đa 4, ảnh trang web tối đa 8 (riêng); upload 20 ảnh/IP/giờ.
 
 ## Phân công model

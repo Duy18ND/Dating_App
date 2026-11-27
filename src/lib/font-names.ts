@@ -6,6 +6,12 @@ export const FONT_NAMES = [
   "Charm",
   "Dancing Script",
   "Mali",
+  "Baloo 2",
+  "Quicksand",
+  "Patrick Hand",
+  "Lobster",
+  "Pacifico",
+  "Great Vibes",
 ] as const;
 
 export type FontName = (typeof FONT_NAMES)[number];
