@@ -28,7 +28,8 @@ export interface LetterStageProps {
 
 /** Bộ vẽ lá thư dùng chung cho editor và trang người nhận. */
 export default function LetterStage(props: LetterStageProps) {
-  const { canvas, scale, qrUrl, onSelect, onEdit } = props;
+  const { canvas, scale, qrUrl, stageRef, hideBackground, hiddenElementId, onSelect, onEdit, children } =
+    props;
   const texts = canvas.elements.filter((el) => el.type === "text");
   const fontsKey = useFontsKey(
     texts.map((el) => el.fontFamily ?? "Be Vietnam Pro"),
@@ -37,7 +38,7 @@ export default function LetterStage(props: LetterStageProps) {
 
   return (
     <Stage
-      ref={props.stageRef}
+      ref={stageRef}
       width={W * scale}
       height={H * scale}
       scaleX={scale}
@@ -45,7 +46,7 @@ export default function LetterStage(props: LetterStageProps) {
       onClick={(event) => event.target === event.target.getStage() && onSelect?.(null)}
       onTap={(event) => event.target === event.target.getStage() && onSelect?.(null)}
     >
-      <BackgroundLayer background={canvas.background} hidden={props.hideBackground} />
+      <BackgroundLayer background={canvas.background} hidden={hideBackground} />
       <Layer name="content">
         {sortByLayer(canvas.elements).map((element) => (
           <ElementNode
@@ -53,13 +54,13 @@ export default function LetterStage(props: LetterStageProps) {
             element={element}
             qrUrl={qrUrl}
             fontsKey={fontsKey}
-            hidden={element.id === props.hiddenElementId}
+            hidden={element.id === hiddenElementId}
             onSelect={onSelect}
             onEdit={onEdit}
           />
         ))}
       </Layer>
-      {props.children}
+      {children}
     </Stage>
   );
 }

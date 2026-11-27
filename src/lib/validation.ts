@@ -17,6 +17,7 @@ export const LIMITS = {
   maxPointNumbers: 4000,
   maxBodyBytes: 1_000_000,
   maxNameLength: 50,
+  maxTextLength: 2000,
 } as const;
 
 export function isHttpUrl(value: string): boolean {
@@ -60,7 +61,7 @@ export const elementSchema = z
     rotation: z.number().min(-360).max(360),
     zIndex: z.number().int().min(0).max(10_000),
     locked: z.boolean().optional(),
-    text: z.string().max(2000).optional(),
+    text: z.string().max(LIMITS.maxTextLength).optional(),
     fontFamily: z.enum(FONT_NAMES).optional(),
     fontSize: z.number().min(8).max(400).optional(),
     fill: hexColor.optional(),
