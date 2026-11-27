@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import { create } from "zustand";
 import { PRINT_CONFIG } from "@/lib/print-config";
+import { moveItem } from "@/lib/reorder";
 import { defaultWebStyle } from "@/lib/web-styles";
 import {
   FACE_IDS,
@@ -82,7 +83,7 @@ interface EditorState {
   setWebStyle: (patch: Partial<WebStyleConfig>, key?: string) => void;
   setWebSections: (sections: WebSection[], key?: string) => void;
   updateWebSection: (id: string, patch: Partial<WebSection>, key?: string) => void;
-  moveWebSection: (id: string, direction: "up" | "down") => void;
+  reorderWebSections: (from: number, to: number) => void;
   toggleWebSection: (id: string, enabled?: boolean) => void;
   setTitle: (title: string, key?: string) => void;
 }
@@ -340,17 +341,12 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         },
       };
     }, key),
-  moveWebSection: (id, direction) =>
+  reorderWebSections: (from, to) =>
     get().commit((doc) => {
       const sections = doc.web_config.sections;
       if (!sections) return doc;
-      const from = sections.findIndex((s) => s.id === id);
-      const to = direction === "up" ? from - 1 : from + 1;
-      if (from < 0 || to < 0 || to >= sections.length) return doc;
-      const next = [...sections];
-      const [item] = next.splice(from, 1);
-      next.splice(to, 0, item);
-      return { ...doc, web_config: { ...doc.web_config, sections: next } };
+      const next = moveItem(sections, from, to);
+      return next === sections ? doc : { ...doc, web_config: { ...doc.web_config, sections: next } };
     }),
   toggleWebSection: (id, enabled) =>
     get().commit((doc) => {

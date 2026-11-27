@@ -166,7 +166,7 @@ describe("T-45: Hợp đồng dữ liệu trang web (sections, style, fit/focus)
       { id: "s1", type: "hero", enabled: true, lead: "A" },
       { id: "s2", type: "ending", enabled: true, text: "B" },
     ]);
-    store.moveWebSection("s2", "up");
+    store.reorderWebSections(1, 0);
     expect(useEditorStore.getState().doc.web_config.sections?.map((s) => s.id)).toEqual(["s2", "s1"]);
     store.toggleWebSection("s1", false);
     expect(useEditorStore.getState().doc.web_config.sections?.find((s) => s.id === "s1")?.enabled).toBe(false);

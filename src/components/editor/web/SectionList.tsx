@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, GripVertical, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/lib/editor/store";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/web-sections";
 import { BlockSettings } from "../WebPanel";
 import { SectionFields } from "./SectionFields";
+import { useDragReorder } from "./useDragReorder";
 
 /** FR-10: bật/tắt, đổi thứ tự bằng nút lên/xuống và ô nhập cho từng phần. */
 export function SectionList({
@@ -29,7 +30,11 @@ export function SectionList({
   const hasBlocks = Boolean(
     blocks.acceptButton?.enabled || blocks.rsvp?.enabled || blocks.poll?.enabled,
   );
-  const { moveWebSection, toggleWebSection, setWebSections } = useEditorStore.getState();
+  const { reorderWebSections, toggleWebSection, setWebSections } = useEditorStore.getState();
+  const { list, drag, handleProps, markerFor } = useDragReorder(
+    sections?.length ?? 0,
+    reorderWebSections,
+  );
 
   if (!sections?.length) {
     return (
@@ -60,13 +65,25 @@ export function SectionList({
 
   return (
     <div className="space-y-3">
-      <ol className="space-y-2">
+      <p className="text-xs text-muted-foreground">Nắm nút ⠿ rồi kéo để đổi thứ tự.</p>
+      <ol ref={list} className="space-y-2">
         {sections.map((section, index) => {
           const open = openId === section.id;
           const label = SECTION_LABELS[section.type];
           const hidden = section.enabled && isSectionEmpty(section, hasBlocks);
           return (
-            <li key={section.id} className="rounded-lg border bg-card">
+            <li
+              key={section.id}
+              className={cn(
+                "relative rounded-lg border bg-card",
+                drag?.from === index && "z-10 border-primary opacity-90 shadow-lg",
+                markerFor(index) === "before" &&
+                  "before:absolute before:inset-x-0 before:-top-1.5 before:h-1 before:rounded before:bg-primary",
+                markerFor(index) === "after" &&
+                  "after:absolute after:inset-x-0 after:-bottom-1.5 after:h-1 after:rounded after:bg-primary",
+              )}
+              style={drag?.from === index ? { transform: `translateY(${drag.offset}px)` } : undefined}
+            >
               <div className="flex items-center gap-1 p-1.5">
                 <label className="flex size-10 shrink-0 cursor-pointer items-center justify-center">
                   <input
@@ -103,26 +120,14 @@ export function SectionList({
                     )}
                   </span>
                 </button>
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Đưa phần ${label} lên`}
-                  disabled={index === 0}
-                  onClick={() => moveWebSection(section.id, "up")}
+                  aria-label={`Kéo để đổi chỗ phần ${label}, hoặc bấm mũi tên lên xuống`}
+                  className="flex size-11 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground select-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                  {...handleProps(index)}
                 >
-                  <ArrowUp />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Đưa phần ${label} xuống`}
-                  disabled={index === sections.length - 1}
-                  onClick={() => moveWebSection(section.id, "down")}
-                >
-                  <ArrowDown />
-                </Button>
+                  <GripVertical aria-hidden className="size-5" />
+                </button>
               </div>
               {open && (
                 <div className="space-y-3 border-t p-3">
