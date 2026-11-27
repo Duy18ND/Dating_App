@@ -79,3 +79,13 @@ describe("editor store", () => {
     expect(state().past).toHaveLength(steps);
   });
 });
+
+describe("khóa kích thước mã QR", () => {
+  it("không cho thu nhỏ dưới 240px và luôn vuông", () => {
+    const id = state().addElement({ type: "qr_code", x: 0, y: 0, width: 280, height: 280 });
+    state().updateElement(id, { width: 100, height: 90 });
+    expect(elements()[0]).toMatchObject({ width: 240, height: 240 });
+    state().updateElement(id, { width: 400 });
+    expect(elements()[0]).toMatchObject({ width: 400, height: 400 });
+  });
+});

@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { create } from "zustand";
-import type { PrintSize } from "@/lib/print-config";
+import { PRINT_CONFIG, type PrintSize } from "@/lib/print-config";
 import type { BackgroundConfig, CanvasElement, LetterPayload, WebConfig } from "@/types/letter";
 import { blankLetter } from "./defaults";
 
@@ -57,6 +57,13 @@ const withElements = (
 
 export const sortByLayer = (elements: CanvasElement[]) =>
   [...elements].sort((a, b) => a.zIndex - b.zIndex);
+
+/** Mã QR luôn vuông và không nhỏ hơn mức còn quét được trên giấy A6. */
+function lockQrSize(el: CanvasElement): CanvasElement {
+  if (el.type !== "qr_code") return el;
+  const size = Math.max(el.width ?? 0, PRINT_CONFIG.CANVAS.minQrPx);
+  return { ...el, width: size, height: size };
+}
 
 /** Đánh lại zIndex 0..n-1 theo thứ tự trong mảng. */
 const renumber = (ordered: CanvasElement[]) =>
@@ -155,7 +162,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       (doc) =>
         withElements(doc, (elements) =>
           elements.some((el) => el.id === id)
-            ? elements.map((el) => (el.id === id ? { ...el, ...patch, id } : el))
+            ? elements.map((el) => (el.id === id ? lockQrSize({ ...el, ...patch, id }) : el))
             : elements,
         ),
       key,
