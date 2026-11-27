@@ -4,17 +4,24 @@ import { requireEnv } from "./env";
 
 let client: S3Client | undefined;
 function r2(): S3Client {
-  client ??= new S3Client({
-    region: "auto",
-    endpoint: `https://${requireEnv("R2_ACCOUNT_ID")}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId: requireEnv("R2_ACCESS_KEY_ID"),
-      secretAccessKey: requireEnv("R2_SECRET_ACCESS_KEY"),
-    },
-    // SDK mặc định tự thêm checksum mà một số kho tương thích S3 không nhận.
-    requestChecksumCalculation: "WHEN_REQUIRED",
-    responseChecksumValidation: "WHEN_REQUIRED",
-  });
+  if (!client) {
+    const customEndpoint = process.env.R2_ENDPOINT?.trim();
+    const endpoint =
+      customEndpoint || `https://${requireEnv("R2_ACCOUNT_ID")}.r2.cloudflarestorage.com`;
+    client = new S3Client({
+      region: process.env.R2_REGION?.trim() || "auto",
+      endpoint,
+      // Supabase Storage S3 yêu cầu path-style URL (/bucket/key).
+      forcePathStyle: Boolean(customEndpoint),
+      credentials: {
+        accessKeyId: requireEnv("R2_ACCESS_KEY_ID"),
+        secretAccessKey: requireEnv("R2_SECRET_ACCESS_KEY"),
+      },
+      // SDK mặc định tự thêm checksum mà một số kho tương thích S3 không nhận.
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
+    });
+  }
   return client;
 }
 
