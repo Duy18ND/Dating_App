@@ -1,4 +1,4 @@
-// Bộ in mini (SRS v1.3, mục 2.2). Mọi số đo in ấn chỉ lấy từ đây.
+// Bộ in mini (SRS v1.7, mục 2.2). Mọi số đo in ấn chỉ lấy từ đây.
 export const PRINT_CONFIG = {
   /** Mỗi mặt thiệp: 105 x 74 mm ↔ 1760 x 1240 px logic (~16,76 px/mm). */
   CANVAS: {
