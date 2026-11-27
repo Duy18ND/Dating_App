@@ -4,13 +4,20 @@ import { useState } from "react";
 import { uploadImage } from "@/lib/client/api";
 import { compressToWebp } from "@/lib/client/compress-image";
 import { useEditorStore } from "@/lib/editor/store";
-import { collectUserImageUrls, LIMITS } from "@/lib/validation";
+import { collectUserImageUrls, collectWebImageUrls, LIMITS } from "@/lib/validation";
 
-export function useImageUpload() {
+/**
+ * Tải ảnh lên R2 (nén WebP trước). Hai hạn mức tính riêng (v1.2):
+ * - `card`: ảnh trên 2 mặt thiệp, tối đa `LIMITS.maxUserImages`.
+ * - `web`: ảnh trong các phần trang web cuộn, tối đa `LIMITS.maxWebImages`.
+ */
+export function useImageUpload(scope: "card" | "web" = "card") {
   const canvas = useEditorStore((s) => s.doc.canvas_data);
+  const web = useEditorStore((s) => s.doc.web_config);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const used = collectUserImageUrls(canvas).length;
+  const used = scope === "web" ? collectWebImageUrls(web).length : collectUserImageUrls(canvas).length;
+  const max = scope === "web" ? LIMITS.maxWebImages : LIMITS.maxUserImages;
 
   async function upload(
     file: File | undefined,
@@ -29,5 +36,5 @@ export function useImageUpload() {
     }
   }
 
-  return { upload, busy, error, used, full: used >= LIMITS.maxUserImages };
+  return { upload, busy, error, used, max, full: used >= max };
 }

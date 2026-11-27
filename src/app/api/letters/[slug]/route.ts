@@ -22,8 +22,14 @@ export async function PATCH(request: Request, ctx: RouteContext<"/api/letters/[s
     if (!safeEqual(token, row.edit_token)) throw new ApiError(403, "Mã chỉnh sửa không đúng");
 
     const patch = parse(letterPatchSchema, await readJson(request, LIMITS.maxBodyBytes));
-    if (patch.canvas_data) {
-      const claimed = await setLetterUploads(row.id, collectUserImageUrls(patch.canvas_data));
+    if (patch.canvas_data || patch.web_config) {
+      // set_letter_uploads gỡ mọi ảnh KHÔNG có trong danh sách. Sửa một bên thì vẫn phải
+      // gửi đủ ảnh của bên kia (lấy từ bản đang lưu), nếu không cron sẽ xóa mất chúng.
+      const urls = collectUserImageUrls(
+        patch.canvas_data ?? row.canvas_data,
+        patch.web_config ?? row.web_config,
+      );
+      const claimed = await setLetterUploads(row.id, urls);
       if (!claimed) throw new ApiError(400, "Có ảnh không hợp lệ, hãy tải ảnh lên lại");
     }
     await updateLetter(row.id, patch);

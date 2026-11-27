@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { samplePayload } from "@/lib/test-fixtures";
+import type { CanvasData, WebConfig } from "@/types/letter";
 
 vi.mock("@/lib/server/repo", () => ({
   consumeRateLimit: vi.fn(),
@@ -38,6 +39,44 @@ const row = () => ({
   created_at: new Date().toISOString(),
   expires_at: new Date(Date.now() + 86_400_000).toISOString(),
 });
+const OLD_CARD = "https://cdn.test/uploads/card-old.webp";
+const NEW_CARD = "https://cdn.test/uploads/card-new.webp";
+const WEB_A = "https://cdn.test/uploads/web-a.webp";
+const WEB_B = "https://cdn.test/uploads/web-b.webp";
+
+function withCardImage(canvas: CanvasData, src: string): CanvasData {
+  const next = structuredClone(canvas);
+  next.faces.front.elements.push({
+    id: "img1",
+    type: "image",
+    x: 200,
+    y: 200,
+    width: 400,
+    height: 400,
+    rotation: 0,
+    zIndex: 1,
+    src,
+  });
+  return next;
+}
+
+/** Ảnh đầu cho phần hero, còn lại là các kỷ niệm. */
+function withWebImages(web: WebConfig, urls: string[]): WebConfig {
+  const [first, ...rest] = urls;
+  return {
+    ...web,
+    sections: [
+      { id: "s-hero", type: "hero", enabled: true, lead: "Chào", image: first ? { src: first } : undefined },
+      {
+        id: "s-mem",
+        type: "memories",
+        enabled: true,
+        items: rest.map((src, i) => ({ id: `m${i}`, caption: `Kỷ niệm ${i}`, image: { src } })),
+      },
+    ],
+  };
+}
+
 const params = <T,>(value: T) => ({ params: Promise.resolve(value) });
 const slugCtx = params({ slug: "k9x2m1" });
 const send = (method: string, body: unknown, headers: Record<string, string> = {}) =>
@@ -73,6 +112,24 @@ describe("POST /api/letters", () => {
   it("429 khi vượt giới hạn, không ghi database", async () => {
     vi.mocked(repo.consumeRateLimit).mockResolvedValue(false);
     expect((await createLetter(send("POST", samplePayload()))).status).toBe(429);
+    expect(repo.insertLetter).not.toHaveBeenCalled();
+  });
+
+  it("gắn cả ảnh thiệp và ảnh trang web (bỏ trùng)", async () => {
+    const payload = samplePayload();
+    payload.canvas_data = withCardImage(payload.canvas_data, NEW_CARD);
+    payload.web_config = withWebImages(payload.web_config, [WEB_A, WEB_B, NEW_CARD]);
+    expect((await createLetter(send("POST", payload))).status).toBe(201);
+    expect(vi.mocked(repo.setLetterUploads).mock.calls[0][1].sort()).toEqual(
+      [NEW_CARD, WEB_A, WEB_B].sort(),
+    );
+  });
+
+  it("từ chối trang web quá 8 ảnh mà không ghi database", async () => {
+    const payload = samplePayload();
+    const urls = Array.from({ length: 9 }, (_, i) => `https://cdn.test/uploads/w${i}.webp`);
+    payload.web_config = withWebImages(payload.web_config, urls);
+    expect((await createLetter(send("POST", payload))).status).toBe(400);
     expect(repo.insertLetter).not.toHaveBeenCalled();
   });
 
@@ -132,6 +189,39 @@ describe("PATCH /api/letters/[slug]", () => {
     expect((await editLetter(request, slugCtx)).status).toBe(200);
     expect(repo.updateLetter).toHaveBeenCalledWith(row().id, { title: "Mới" });
     expect(repo.setLetterUploads).not.toHaveBeenCalled();
+  });
+
+  it("chỉ sửa thiệp: vẫn gắn ảnh trang web đang lưu để cron không xóa", async () => {
+    vi.mocked(repo.findLetterBy).mockResolvedValue({
+      ...row(),
+      canvas_data: withCardImage(samplePayload().canvas_data, OLD_CARD),
+      web_config: withWebImages(samplePayload().web_config, [WEB_A, WEB_B]),
+    });
+    const canvas = withCardImage(samplePayload().canvas_data, NEW_CARD);
+    const request = send("PATCH", { canvas_data: canvas }, { "x-edit-token": TOKEN });
+    expect((await editLetter(request, slugCtx)).status).toBe(200);
+    expect(vi.mocked(repo.setLetterUploads).mock.calls[0][1].sort()).toEqual(
+      [NEW_CARD, WEB_A, WEB_B].sort(),
+    );
+  });
+
+  it("chỉ sửa trang web: vẫn gắn ảnh thiệp đang lưu, kiểm tra ảnh web mới", async () => {
+    vi.mocked(repo.findLetterBy).mockResolvedValue({
+      ...row(),
+      canvas_data: withCardImage(samplePayload().canvas_data, OLD_CARD),
+    });
+    const web = withWebImages(samplePayload().web_config, [WEB_A]);
+    const request = send("PATCH", { web_config: web }, { "x-edit-token": TOKEN });
+    expect((await editLetter(request, slugCtx)).status).toBe(200);
+    expect(vi.mocked(repo.setLetterUploads).mock.calls[0][1].sort()).toEqual([OLD_CARD, WEB_A].sort());
+  });
+
+  it("ảnh trang web lạ (không có trong uploads) thì 400, không cập nhật", async () => {
+    vi.mocked(repo.setLetterUploads).mockResolvedValue(false);
+    const web = withWebImages(samplePayload().web_config, ["https://evil.test/x.webp"]);
+    const request = send("PATCH", { web_config: web }, { "x-edit-token": TOKEN });
+    expect((await editLetter(request, slugCtx)).status).toBe(400);
+    expect(repo.updateLetter).not.toHaveBeenCalled();
   });
 
   it("không cho sửa slug hay lượt xem", async () => {

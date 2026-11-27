@@ -25,7 +25,11 @@ export async function POST(request: Request) {
     }
     if (!row) throw new Error("Không sinh được slug mới");
 
-    const claimed = await setLetterUploads(row.id, collectUserImageUrls(payload.canvas_data));
+    // Gắn cả ảnh thiệp lẫn ảnh trang web: ảnh nào không gắn sẽ bị cron coi là mồ côi và xóa.
+    const claimed = await setLetterUploads(
+      row.id,
+      collectUserImageUrls(payload.canvas_data, payload.web_config),
+    );
     if (!claimed) {
       await deleteLetter(row.id);
       throw new ApiError(400, "Có ảnh không hợp lệ, hãy tải ảnh lên lại");
