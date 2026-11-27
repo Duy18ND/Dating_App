@@ -23,7 +23,7 @@ export const HISTORY_LIMIT = 50;
 export type NewElement = Omit<CanvasElement, "id" | "zIndex" | "rotation"> & { rotation?: number };
 export type LayerMove = "front" | "back" | "forward" | "backward";
 /** Thư đã xuất bản của tài liệu đang mở: lần sau cập nhật thay vì tạo mới. */
-export type Published = { slug: string; editToken: string };
+export type Published = { id: string; slug: string };
 /** select: chọn/kéo; pen: vẽ tay; eraser: chạm vào nét vẽ để xóa. */
 export type Tool = "select" | "pen" | "eraser";
 export interface PenSettings {

@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { LetterPayload, LetterResponse } from "@/types/letter";
+import type { LetterPayload, LetterResponse, LetterSummary } from "@/types/letter";
 import { requireEnv } from "./env";
 
 // Toàn bộ truy cập database nằm ở đây. Dùng service role key nên chỉ chạy phía server.
@@ -16,14 +16,14 @@ function db(): SupabaseClient {
 export interface LetterRow extends LetterPayload {
   id: string;
   slug: string;
-  edit_token: string;
+  owner_id: string;
   view_count: number;
   expires_at: string;
   created_at: string;
 }
 
 const LETTER_COLUMNS =
-  "id, slug, edit_token, template_type, title, canvas_data, web_config, view_count, expires_at, created_at";
+  "id, slug, owner_id, template_type, title, canvas_data, web_config, view_count, expires_at, created_at";
 
 function unwrap<T>({ data, error }: { data: T; error: { message: string } | null }): T {
   if (error) throw new Error(`Supabase: ${error.message}`);
@@ -40,32 +40,88 @@ export async function consumeRateLimit(bucket: string, max: number, windowSecond
   ) as boolean;
 }
 
-/** Trả về null nếu trùng slug/token để nơi gọi sinh mã khác. */
+/** Trả về null nếu trùng slug để nơi gọi sinh mã khác. */
 export async function insertLetter(
-  row: LetterPayload & { slug: string; edit_token: string; creator_ip_hash: string },
+  row: LetterPayload & { slug: string; owner_id: string; creator_ip_hash: string },
 ): Promise<LetterRow | null> {
   const { data, error } = await db().from("letters").insert(row).select(LETTER_COLUMNS).single();
   if (error?.code === "23505") return null;
   return unwrap({ data, error }) as LetterRow;
 }
 
-export async function findLetterBy(column: "slug" | "edit_token", value: string) {
+export async function findLetterBySlug(slug: string) {
   return unwrap(
-    await db().from("letters").select(LETTER_COLUMNS).eq(column, value).maybeSingle(),
+    await db().from("letters").select(LETTER_COLUMNS).eq("slug", slug).maybeSingle(),
   ) as LetterRow | null;
 }
 
-export async function updateLetter(id: string, patch: Partial<LetterPayload>): Promise<void> {
-  unwrap(
+/** Mọi truy vấn của chủ thiệp lọc theo owner_id: thiệp của người khác coi như không tồn tại. */
+export async function findOwnedLetter(id: string, ownerId: string) {
+  return unwrap(
     await db()
       .from("letters")
-      .update({ ...patch, updated_at: new Date().toISOString() })
-      .eq("id", id),
-  );
+      .select(LETTER_COLUMNS)
+      .eq("id", id)
+      .eq("owner_id", ownerId)
+      .maybeSingle(),
+  ) as LetterRow | null;
 }
 
+export async function listOwnedLetters(ownerId: string): Promise<LetterSummary[]> {
+  const rows = unwrap(
+    await db()
+      .from("letters")
+      .select(
+        "id, slug, title, template_type, canvas_data->faces->front, view_count, expires_at, created_at, responses(count)",
+      )
+      .eq("owner_id", ownerId)
+      .order("created_at", { ascending: false })
+      .limit(200),
+  ) as unknown as (Omit<LetterSummary, "response_count" | "front"> & {
+    front: LetterSummary["front"];
+    responses: { count: number }[];
+  })[];
+  return rows.map(({ responses, ...row }) => ({
+    ...row,
+    response_count: responses[0]?.count ?? 0,
+  }));
+}
+
+/** Cập nhật thư của đúng chủ. Trả false nếu không có thư đó. */
+export async function updateOwnedLetter(
+  id: string,
+  ownerId: string,
+  patch: Partial<LetterPayload>,
+): Promise<boolean> {
+  const { count, error } = await db()
+    .from("letters")
+    .update({ ...patch, updated_at: new Date().toISOString() }, { count: "exact" })
+    .eq("id", id)
+    .eq("owner_id", ownerId);
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return (count ?? 0) > 0;
+}
+
+/** Xóa thư của đúng chủ (phản hồi xóa theo, ảnh thành mồ côi). Trả false nếu không có. */
+export async function deleteOwnedLetter(id: string, ownerId: string): Promise<boolean> {
+  const { count, error } = await db()
+    .from("letters")
+    .delete({ count: "exact" })
+    .eq("id", id)
+    .eq("owner_id", ownerId);
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return (count ?? 0) > 0;
+}
+
+/** Chỉ dùng để hoàn tác thư vừa tạo khi gắn ảnh thất bại. */
 export async function deleteLetter(id: string): Promise<void> {
   unwrap(await db().from("letters").delete().eq("id", id));
+}
+
+/** Xóa tài khoản Supabase Auth; thư và phản hồi xóa theo khóa ngoại (0003). */
+export async function deleteAuthUser(userId: string): Promise<void> {
+  const { error } = await db().auth.admin.deleteUser(userId);
+  if (error) throw new Error(`Supabase: ${error.message}`);
 }
 
 export async function setLetterUploads(letterId: string, urls: string[]): Promise<boolean> {
@@ -99,6 +155,7 @@ export interface UploadRow {
   object_key: string;
   url: string;
   ip_hash: string | null;
+  owner_id: string | null;
 }
 
 export async function insertUpload(row: UploadRow): Promise<void> {

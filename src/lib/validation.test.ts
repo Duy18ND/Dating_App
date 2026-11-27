@@ -112,7 +112,7 @@ describe("letterPayloadSchema", () => {
   });
 
   it("chặn trường lạ và sticker ngoài kho", () => {
-    expect(ok({ ...samplePayload(), edit_token: "x" })).toBe(false);
+    expect(ok({ ...samplePayload(), owner_id: "x" })).toBe(false);
     const p = samplePayload();
     p.canvas_data.faces.front.elements = [
       { ...image("s", "https://evil.test/a.webp"), type: "sticker_img" },

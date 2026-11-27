@@ -238,14 +238,30 @@ export interface LetterResponse {
   created_at: string;
 }
 
-/** Dữ liệu công khai của thư: không bao giờ chứa edit_token hay IP hash. */
+/** Dữ liệu công khai của thư: không bao giờ chứa owner_id hay IP hash. */
 export interface PublicLetter extends LetterPayload {
   slug: string;
   expires_at: string;
 }
 
+/** Chi tiết thiệp cho chính chủ (/api/me/letters/[id]). */
 export interface ManagedLetter extends PublicLetter {
+  id: string;
   view_count: number;
   created_at: string;
   responses: LetterResponse[];
+}
+
+/** Một dòng trong danh sách Thiệp của tôi (/api/me/letters). */
+export interface LetterSummary {
+  id: string;
+  slug: string;
+  title: string;
+  template_type: TemplateType;
+  /** Bìa trước, để vẽ ảnh thu nhỏ. */
+  front: CardFace | null;
+  view_count: number;
+  response_count: number;
+  expires_at: string;
+  created_at: string;
 }

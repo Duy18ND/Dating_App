@@ -20,6 +20,7 @@ const orphan = {
   object_key: "uploads/a.webp",
   url: "https://cdn.test/uploads/a.webp",
   ip_hash: null,
+  owner_id: null,
   letter_id: null,
   created_at: "2026-01-01T00:00:00Z",
 };

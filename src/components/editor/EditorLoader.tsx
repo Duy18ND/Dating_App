@@ -3,31 +3,31 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getManagedLetter } from "@/lib/client/api";
+import { getMyLetter } from "@/lib/client/api";
 import { useEditorStore } from "@/lib/editor/store";
 import { createFromTemplate, findTemplate } from "@/lib/templates";
 import { EditorShell } from "./EditorShell";
 
 /**
- * ?template=<loại>: bắt đầu từ mẫu. ?edit=<editToken>: mở lại thư đã xuất bản để sửa;
- * lần lưu sau cập nhật đúng thư đó nên mã QR đã in vẫn dùng được.
+ * ?template=<loại>: bắt đầu từ mẫu. ?id=<id thiệp>: mở lại thiệp của chính mình để sửa;
+ * lần lưu sau cập nhật đúng thiệp đó (giữ slug) nên mã QR đã in vẫn dùng được.
  */
 export function EditorLoader() {
   const query = useSearchParams();
-  const editToken = query.get("edit");
+  const letterId = query.get("id");
   const template = findTemplate(query.get("template"))?.type ?? "confession";
-  const key = editToken ? `edit:${editToken}` : `template:${template}`;
+  const key = letterId ? `id:${letterId}` : `template:${template}`;
   const [loaded, setLoaded] = useState<{ key: string; error?: string }>();
 
   useEffect(() => {
     let active = true;
     const done = (error?: string) => active && setLoaded({ key, error });
     const { load } = useEditorStore.getState();
-    const task = editToken
-      ? getManagedLetter(editToken).then((letter) => {
+    const task = letterId
+      ? getMyLetter(letterId).then((letter) => {
           if (!active) return;
           const { template_type, title, canvas_data, web_config } = letter;
-          load({ template_type, title, canvas_data, web_config }, { slug: letter.slug, editToken });
+          load({ template_type, title, canvas_data, web_config }, { id: letter.id, slug: letter.slug });
         })
       : Promise.resolve().then(() => active && load(createFromTemplate(template)));
     task.then(
@@ -37,7 +37,7 @@ export function EditorLoader() {
     return () => {
       active = false;
     };
-  }, [key, editToken, template]);
+  }, [key, letterId, template]);
 
   if (loaded?.key !== key) {
     return <p className="p-8 text-center text-muted-foreground">Đang mở trình thiết kế...</p>;

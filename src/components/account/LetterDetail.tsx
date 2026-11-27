@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { DonatePanel } from "@/components/share/DonatePanel";
 import { SharePanel } from "@/components/share/SharePanel";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { getManagedLetter } from "@/lib/client/api";
+import { getMyLetter } from "@/lib/client/api";
 import { describeResponse, summarizeResponses } from "@/lib/responses";
 import type { ManagedLetter } from "@/types/letter";
 
@@ -21,8 +20,8 @@ function Stat({ label, value }: { label: string; value: number | string }) {
   );
 }
 
-export function ManageDashboard() {
-  const { editToken } = useParams<{ editToken: string }>();
+/** Chi tiết một thiệp của chính chủ: số liệu, phản hồi, chia sẻ. */
+export function LetterDetail({ id }: { id: string }) {
   const [letter, setLetter] = useState<ManagedLetter>();
   const [error, setError] = useState<string>();
   const [attempt, setAttempt] = useState(0);
@@ -30,7 +29,7 @@ export function ManageDashboard() {
 
   useEffect(() => {
     let active = true;
-    getManagedLetter(editToken).then(
+    getMyLetter(id).then(
       (data) => {
         if (!active) return;
         setLetter(data);
@@ -41,7 +40,7 @@ export function ManageDashboard() {
     return () => {
       active = false;
     };
-  }, [editToken, attempt]);
+  }, [id, attempt]);
 
   if (!letter) {
     return error ? (
@@ -69,7 +68,7 @@ export function ManageDashboard() {
           Tạo lúc {date(letter.created_at)}. Hết hạn lúc {date(letter.expires_at)}.
         </p>
         <div className="flex flex-wrap gap-2">
-          <Link href={`/editor?edit=${editToken}`} className={buttonVariants()}>
+          <Link href={`/editor?id=${letter.id}`} className={buttonVariants()}>
             Chỉnh sửa thư
           </Link>
           <Button type="button" variant="outline" onClick={reload}>

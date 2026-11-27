@@ -25,3 +25,13 @@ export async function enforceRateLimit(
   if (!allowed) throw new ApiError(429, message);
   return ipHash;
 }
+
+/** Giới hạn theo tài khoản, chặn một người đổi mạng liên tục để lách giới hạn theo IP. */
+export async function enforceAccountLimit(
+  action: keyof typeof RATE_LIMITS,
+  userId: string,
+): Promise<void> {
+  const { max, windowSeconds, message } = RATE_LIMITS[action];
+  const allowed = await consumeRateLimit(`${action}:user:${userId}`, max, windowSeconds);
+  if (!allowed) throw new ApiError(429, message);
+}

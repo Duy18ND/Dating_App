@@ -70,6 +70,6 @@ async function Letter({ params, searchParams }: PageProps<"/l/[slug]">) {
     );
   }
 
-  // toPublicLetter loại edit_token trước khi dữ liệu sang trình duyệt.
+  // toPublicLetter loại owner_id trước khi dữ liệu sang trình duyệt.
   return <LetterExperience letter={toPublicLetter(row)} recipient={sanitizeRecipient(query.to)} />;
 }

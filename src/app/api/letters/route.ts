@@ -1,6 +1,7 @@
-import { customAlphabet, nanoid } from "nanoid";
-import { ApiError, handle, json, parse, readJson } from "@/lib/server/http";
-import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { customAlphabet } from "nanoid";
+import { requireUser } from "@/lib/server/auth";
+import { ApiError, assertSameOrigin, handle, json, parse, readJson } from "@/lib/server/http";
+import { enforceAccountLimit, enforceRateLimit } from "@/lib/server/rate-limit";
 import { deleteLetter, insertLetter, setLetterUploads } from "@/lib/server/repo";
 import { verifyTurnstile } from "@/lib/server/turnstile";
 import { collectUserImageUrls, letterPayloadSchema, LIMITS } from "@/lib/validation";
@@ -10,16 +11,19 @@ const newSlug = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 6);
 
 export async function POST(request: Request) {
   return handle(async () => {
+    assertSameOrigin(request);
+    const user = await requireUser();
     const payload = parse(letterPayloadSchema, await readJson(request, LIMITS.maxBodyBytes));
     await verifyTurnstile(request);
     const ipHash = await enforceRateLimit(request, "createLetter");
+    await enforceAccountLimit("createLetter", user.id);
 
     let row = null;
     for (let attempt = 0; attempt < 5 && !row; attempt++) {
       row = await insertLetter({
         ...payload,
         slug: newSlug(),
-        edit_token: nanoid(24),
+        owner_id: user.id,
         creator_ip_hash: ipHash,
       });
     }
@@ -34,6 +38,6 @@ export async function POST(request: Request) {
       await deleteLetter(row.id);
       throw new ApiError(400, "Có ảnh không hợp lệ, hãy tải ảnh lên lại");
     }
-    return json({ slug: row.slug, edit_token: row.edit_token }, 201);
+    return json({ id: row.id, slug: row.slug }, 201);
   });
 }

@@ -33,7 +33,7 @@
 ## Stage 4: Accounts & Launch
 | Task | Scope | Acceptance Criteria | Owner | Est (h) | After |
 |---|---|---|---|---|---|
-| `T-38` | Auth & ownership (`0003`, `/api/me/*`) | Read `node_modules/next/dist/docs/`; verify session with Supabase; remove `edit_token`; owner + Origin checks; foreign card returns 404; upload ownership check; server-side route guards; internal-only redirects; migration & API tests | **Opus** | 4 | `T-23A` |
+| ~~`T-38`~~ ✅ | Auth & ownership (`0003`, `/api/me/*`) | Read `node_modules/next/dist/docs/`; verify session with Supabase; remove `edit_token`; owner + Origin checks; foreign card returns 404; upload ownership check; server-side route guards; internal-only redirects; migration & API tests | **Opus** | 4 | `T-23A` |
 | `T-39` | Auth UI & Privacy Policy | Sign up/in, password reset, Google (disabled with Open-in-Browser guide in Threads/Zalo in-app browsers), `/chinh-sach-rieng-tu`, 360px ready, 60-day QR expiry notice | **Sonnet** | 3 | `T-38` |
 | `T-40` | `/thiep-cua-toi` dashboard (replaces `/manage`) | Full FR-14 actions, `/editor?id=`, remove `edit_token` code, expiry date & `<= 7d` warning, screen-record tip | **Sonnet** | 3.5 | `T-39` |
 | `T-41` | Account security review | Cross-account access tests on all APIs, CSRF, open redirects, no secret keys in client bundle, account deletion cascade | **Opus** | 1.5 | `T-40` |

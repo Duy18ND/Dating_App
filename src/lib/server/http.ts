@@ -29,6 +29,18 @@ export async function handle(run: () => Promise<Response>): Promise<Response> {
   }
 }
 
+/**
+ * Chống CSRF cho API thay đổi dữ liệu: cookie phiên tự đi kèm mọi request nên phải chắc
+ * request xuất phát từ chính trang này. Trình duyệt luôn gửi Origin với POST/PATCH/DELETE.
+ */
+export function assertSameOrigin(request: Request): void {
+  const origin = request.headers.get("origin");
+  const allowed = new Set([new URL(request.url).origin]);
+  const site = process.env.NEXT_PUBLIC_SITE_URL;
+  if (site) allowed.add(new URL(site).origin);
+  if (!origin || !allowed.has(origin)) throw new ApiError(403, "Yêu cầu không hợp lệ");
+}
+
 export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
   const result = schema.safeParse(value);
   if (!result.success) {

@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { ApiError, handle, json } from "@/lib/server/http";
+import { requireUser } from "@/lib/server/auth";
+import { ApiError, assertSameOrigin, handle, json } from "@/lib/server/http";
 import { publicUrl, putWebp } from "@/lib/server/r2";
-import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { enforceAccountLimit, enforceRateLimit } from "@/lib/server/rate-limit";
 import { deleteUpload, insertUpload } from "@/lib/server/repo";
 import { verifyTurnstile } from "@/lib/server/turnstile";
 
@@ -15,6 +16,8 @@ function isWebp(bytes: Uint8Array): boolean {
 
 export async function POST(request: Request) {
   return handle(async () => {
+    assertSameOrigin(request);
+    const user = await requireUser();
     if (Number(request.headers.get("content-length") ?? 0) > MAX_REQUEST_BYTES) {
       throw new ApiError(413, "Ảnh tối đa 500KB");
     }
@@ -29,11 +32,13 @@ export async function POST(request: Request) {
 
     await verifyTurnstile(request);
     const ipHash = await enforceRateLimit(request, "upload");
+    await enforceAccountLimit("upload", user.id);
 
     const key = `uploads/${randomUUID()}.webp`;
     const url = publicUrl(key);
     // Ghi database trước: mọi file trên R2 đều có bản ghi để cron dọn được.
-    await insertUpload({ object_key: key, url, ip_hash: ipHash });
+    // owner_id: chỉ chính người này gắn được ảnh vào thiệp của mình (0003).
+    await insertUpload({ object_key: key, url, ip_hash: ipHash, owner_id: user.id });
     try {
       await putWebp(key, bytes);
     } catch (error) {
