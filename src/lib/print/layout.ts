@@ -1,9 +1,9 @@
 import { PRINT_CONFIG } from "@/lib/print-config";
 
 // Hình học bản in, đơn vị mm trên A4 dọc. Mọi số đo lấy từ PRINT_CONFIG.
-// v1.7: cả bộ nằm trên ĐÚNG 1 trang A4 in một mặt:
+// v1.8: cả bộ nằm trên ĐÚNG 1 tờ A4 in hai mặt (PDF 2 trang):
 // - nửa trên: phôi phong bì C7 liền một mảnh có tai cài + khe cài,
-// - nửa dưới: thiệp mini phẳng 105 x 74 mm.
+// - nửa dưới: thiệp mini phẳng 105 x 74 mm; mặt sau của nó in ở trang 2.
 // Bản in không có chữ hướng dẫn: chỉ nét cắt, nét gấp và vài biểu tượng nhỏ.
 
 export type Point = [number, number];
@@ -66,7 +66,7 @@ export function insidePolygon([px, py]: Point, polygon: Point[]): boolean {
 }
 
 /**
- * Phôi phong bì C7 trải phẳng, liền một mảnh (144 x 188 mm, y = 10..198).
+ * Phôi phong bì C7 trải phẳng, liền một mảnh (144 x 188 mm, y = 8..196).
  *
  * Gấp: hai tai bên vào trước, nắp đáy lên đè lên tai bên (dính keo), nắp trên xuống
  * rồi cài tai vào khe trên nắp đáy. Mặt in là mặt ngoài phong bì.
@@ -215,6 +215,15 @@ export function foldedEnvelope() {
 export function miniCard(): Rect {
   const { MINI_CARD_MM: at, CARD_FACE_MM: face } = PRINT_CONFIG;
   return { x: at.x, y: at.y, width: face.width, height: face.height };
+}
+
+/**
+ * Vị trí mặt sau thiệp trên trang 2, khi in đảo theo cạnh dài (giấy dọc): lật trái-phải nên
+ * hoành độ lấy đối xứng qua giữa trang, tung độ và chiều đứng giữ nguyên.
+ */
+export function miniCardBack(): Rect {
+  const front = miniCard();
+  return { ...front, x: PRINT_CONFIG.PAPER_A4_MM.width - front.x - front.width };
 }
 
 /** Biểu tượng kéo nhỏ vẽ bằng nét (không phải chữ): hai vòng tay cầm và hai lưỡi bắt chéo. */

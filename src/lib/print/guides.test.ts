@@ -8,6 +8,7 @@ import {
   letterRows,
   MARGIN_X_MM,
   panelRows,
+  resolveEnvelopeFront,
   resolveGreeting,
   wrapWords,
 } from "./guides";
@@ -47,6 +48,19 @@ describe("thư gấp 3", () => {
     expect(resolveGreeting("Gửi", "")).toBe("Gửi");
     expect(resolveGreeting("Cậu ơi,", "Minh Anh")).toBe("Cậu ơi,");
     expect(resolveGreeting("   ", "Minh Anh")).toBe("");
+  });
+});
+
+describe("mặt trước phong bì", () => {
+  it("mặc định ghi Gửi kèm tên; chưa có tên thì để trơn", () => {
+    expect(resolveEnvelopeFront(undefined, "Minh Anh")).toBe("Gửi Minh Anh");
+    expect(resolveEnvelopeFront("Gửi", " Minh Anh ")).toBe("Gửi Minh Anh");
+    expect(resolveEnvelopeFront(undefined, "")).toBe("");
+  });
+
+  it("chữ tự đặt được giữ nguyên, xóa trống thì không in", () => {
+    expect(resolveEnvelopeFront("Cho người thương", "Minh Anh")).toBe("Cho người thương");
+    expect(resolveEnvelopeFront("  ", "Minh Anh")).toBe("");
   });
 });
 

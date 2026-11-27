@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 import type { FaceId, PublicLetter } from "@/types/letter";
 
 const FACE_LABELS: Record<FaceId, string> = {
-  front: "Bìa trước",
-  inside: "Mặt trong & QR",
+  front: "Mặt trước",
+  inside: "Mặt sau & QR",
 };
 
 function ModalBody({

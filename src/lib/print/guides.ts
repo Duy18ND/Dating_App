@@ -51,6 +51,16 @@ export function resolveGreeting(greeting: string, recipient: string): string {
   return text === "Gửi" && recipient.trim() ? `Gửi ${recipient.trim()},` : text;
 }
 
+/**
+ * Chữ ở mặt trước phong bì. Mặc định (không đặt, hoặc để "Gửi") tự thêm tên người nhận,
+ * chưa có tên thì để trơn. Người dùng sửa chữ khác thì in đúng chữ đó; xóa trống thì để trơn.
+ */
+export function resolveEnvelopeFront(frontText: string | undefined, recipient: string): string {
+  const text = (frontText ?? "Gửi").trim();
+  if (text !== "Gửi") return text;
+  return recipient.trim() ? `Gửi ${recipient.trim()}` : "";
+}
+
 export type Measure = (text: string) => number;
 
 /** Xuống dòng theo từ, mỗi dòng có bề rộng tối đa riêng. Trả null nếu không vừa số dòng. */

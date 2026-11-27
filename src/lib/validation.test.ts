@@ -145,9 +145,9 @@ describe("PRINT_CONFIG", () => {
 
   it("phong bì C7 và thiệp mini căn giữa ngang trên cùng một tờ A4", () => {
     expect(2 * env.offsetX + env.bodyWidth + 2 * env.sideFlap).toBe(a4.width);
-    expect(env.offsetY + env.topFlap + env.bodyHeight + env.bottomFlap).toBe(198);
+    expect(env.offsetY + env.topFlap + env.bodyHeight + env.bottomFlap).toBe(196);
     expect(2 * card.x + CARD_FACE_MM.width).toBe(a4.width);
-    expect(card.y + CARD_FACE_MM.height).toBe(285);
+    expect(card.y + CARD_FACE_MM.height).toBe(281);
   });
 
   it("QR tối thiểu in ra rộng ít nhất 20 mm", () => {

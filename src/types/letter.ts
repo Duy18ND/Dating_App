@@ -85,7 +85,7 @@ export interface CardFace {
   elements: CanvasElement[];
 }
 
-/** front = bìa trước; inside = trang bên phải khi mở thiệp (lời mời + mã QR). */
+/** Thiệp phẳng in 2 mặt: front = mặt trước; inside = mặt sau, nơi đặt mã QR. */
 export const FACE_IDS = ["front", "inside"] as const;
 export type FaceId = (typeof FACE_IDS)[number];
 
@@ -109,10 +109,12 @@ export interface LetterSheetConfig {
   decorIconId?: string;
 }
 
-/** Chữ trang trí trên nắp phong bì và bìa sau (FR-12). Màu giấy là web_config.envelopeColor. */
+/** Chữ trên phong bì (FR-12). Màu giấy là web_config.envelopeColor. */
 export interface EnvelopeDecor {
   monogram: string;
   line: string;
+  /** Chữ ở mặt trước phong bì. Không có hoặc "Gửi": tự thêm tên người nhận; rỗng: để trơn. */
+  frontText?: string;
   fontFamily: FontName;
 }
 

@@ -102,6 +102,7 @@ export function PublishDialog() {
                   slug={published.slug}
                   canvas={doc.canvas_data}
                   envelopeColor={doc.web_config.envelopeColor}
+                  recipientName={doc.web_config.recipientName}
                   defaultHideBackground={hideBackground}
                 />
                 <div className="space-y-2 rounded-lg border bg-accent p-3 text-sm">

@@ -9,8 +9,8 @@ function PrintSize() {
   return (
     <Section title="Bộ in mini">
       <p className="text-sm text-muted-foreground">
-        Cả bộ in trên 1 tờ A4: phong bì 11,4 x 8,1 cm và tấm thiệp 10,5 x 7,4 cm. Trang “Lời mời +
-        QR” được in; mặt sau thiệp để trắng cho bạn viết tay. Bìa trước hiện trên trang web.
+        Cả bộ in trên 1 tờ A4 hai mặt: phong bì 11,4 x 8,1 cm và tấm thiệp phẳng 10,5 x 7,4 cm.
+        Bạn thiết kế cả mặt trước và mặt sau (có mã QR) của thiệp.
       </p>
     </Section>
   );

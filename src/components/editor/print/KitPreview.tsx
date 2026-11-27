@@ -1,15 +1,16 @@
 "use client";
 
 import { FileText } from "lucide-react";
-import { useCallback, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { LetterView } from "@/components/letter/LetterView";
 import { PrintGuide } from "@/components/share/PrintGuide";
 import { Button } from "@/components/ui/button";
+import type { SheetSide } from "@/lib/client/export-pdf";
 import { useEditorStore } from "@/lib/editor/store";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { draftQrUrl } from "@/lib/render/qr";
 import { Toggle } from "../ui";
-import { FoldedEnvelope } from "./FoldedEnvelope";
+import { EnvelopeFront, FoldedEnvelope } from "./FoldedEnvelope";
 import { RenderedCanvas } from "./RenderedCanvas";
 
 /** 6 px/mm: trang A4 xem trước 1260 x 1782 px, đủ nét mà nhẹ cho điện thoại. */
@@ -17,7 +18,6 @@ const SHEET_PX_PER_MM = 6;
 const CARD_PIXEL_RATIO = 0.75;
 
 const A4 = PRINT_CONFIG.PAPER_A4_MM;
-const FACE = PRINT_CONFIG.CARD_FACE_MM;
 
 const noSubscribe = () => () => {};
 
@@ -38,6 +38,7 @@ export function KitPreview() {
   const canvas = useEditorStore((s) => s.doc.canvas_data);
   const envelopeColor = useEditorStore((s) => s.doc.web_config.envelopeColor);
   const template = useEditorStore((s) => s.doc.template_type);
+  const recipientName = useEditorStore((s) => s.doc.web_config.recipientName);
   const hideBackground = useEditorStore((s) => s.printHideBackground);
   const setHideBackground = useEditorStore((s) => s.setPrintHideBackground);
   const origin = useSyncExternalStore(
@@ -49,15 +50,22 @@ export function KitPreview() {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string>();
 
-  const drawSheet = useCallback(async () => {
-    // Konva và hàm xuất nặng, chỉ tải khi mở màn hình này.
-    const { renderPrintKit, composeSheetCanvas } = await import("@/lib/client/export-pdf");
-    const kit = await renderPrintKit(
-      { canvas, qrUrl, envelopeColor, background: !hideBackground },
-      { pxPerMm: SHEET_PX_PER_MM, cardPixelRatio: CARD_PIXEL_RATIO },
-    );
-    return composeSheetCanvas(kit, SHEET_PX_PER_MM);
-  }, [canvas, qrUrl, envelopeColor, hideBackground]);
+  // Hai mặt giấy dùng chung một lần vẽ các lớp ảnh.
+  const kit = useMemo(() => {
+    let pending: Promise<(side: SheetSide) => HTMLCanvasElement> | undefined;
+    return () =>
+      (pending ??= (async () => {
+        // Konva và hàm xuất nặng, chỉ tải khi mở màn hình này.
+        const { renderPrintKit, composeSheetCanvas } = await import("@/lib/client/export-pdf");
+        const layers = await renderPrintKit(
+          { canvas, qrUrl, envelopeColor, recipientName, background: !hideBackground },
+          { pxPerMm: SHEET_PX_PER_MM, cardPixelRatio: CARD_PIXEL_RATIO },
+        );
+        return (side: SheetSide) => composeSheetCanvas(layers, SHEET_PX_PER_MM, side);
+      })());
+  }, [canvas, qrUrl, envelopeColor, recipientName, hideBackground]);
+  const drawFront = useCallback(async () => (await kit())("front"), [kit]);
+  const drawBack = useCallback(async () => (await kit())("back"), [kit]);
 
   async function downloadDraft() {
     setExporting(true);
@@ -68,6 +76,7 @@ export function KitPreview() {
         canvas,
         qrUrl,
         envelopeColor,
+        recipientName,
         background: !hideBackground,
         fileName: "ban-in-thu.pdf",
       });
@@ -102,10 +111,21 @@ export function KitPreview() {
             )}
             <PrintGuide />
           </div>
-          <Part title="Tờ A4 sẽ in (gồm phong bì trải phẳng và thiệp)">
+          <Part title="Trang 1: mặt trước tờ giấy (phong bì và mặt trước thiệp)">
             <RenderedCanvas
-              draw={drawSheet}
-              label="Xem trước trang A4 in phong bì và thiệp"
+              draw={drawFront}
+              label="Xem trước trang 1: phong bì và mặt trước thiệp"
+              ratio={A4.width / A4.height}
+              className="border bg-white shadow-md"
+            />
+          </Part>
+          <Part
+            title="Trang 2: mặt sau tờ giấy (mặt sau thiệp)"
+            note="In lên mặt sau của đúng tờ giấy trang 1, lật theo cạnh dài. Phần còn lại để trắng."
+          >
+            <RenderedCanvas
+              draw={drawBack}
+              label="Xem trước trang 2: mặt sau thiệp"
               ratio={A4.width / A4.height}
               className="border bg-white shadow-md"
             />
@@ -113,32 +133,20 @@ export function KitPreview() {
         </div>
 
         <div className="space-y-6">
-          <Part title="Phong bì sau khi gấp">
+          <Part title="Phong bì: mặt trước">
+            <EnvelopeFront />
+          </Part>
+          <Part title="Phong bì: mặt sau (đã gấp, cài nắp)">
             <FoldedEnvelope />
           </Part>
-          <Part title="Thiệp: mặt in">
+          <Part title="Thiệp: mặt trước">
             <div className="overflow-hidden rounded-sm border shadow-sm">
-              <LetterView
-                face={canvas.faces.inside}
-                qrUrl={qrUrl}
-                hideBackground={hideBackground}
-              />
+              <LetterView face={canvas.faces.front} qrUrl={qrUrl} hideBackground={hideBackground} />
             </div>
           </Part>
-          <Part title="Thiệp: mặt sau" note="Là mặt trắng của tờ A4, dành để bạn viết tay.">
-            <div
-              role="img"
-              aria-label="Mặt sau thiệp để trắng"
-              className="w-full rounded-sm border bg-white shadow-sm"
-              style={{ aspectRatio: FACE.width / FACE.height }}
-            />
-          </Part>
-          <Part
-            title="Bìa trước (chỉ trên web)"
-            note="Không in ra giấy. Người nhận xem bằng nút “Xem lại tấm thiệp” trên trang web."
-          >
+          <Part title="Thiệp: mặt sau">
             <div className="overflow-hidden rounded-sm border shadow-sm">
-              <LetterView face={canvas.faces.front} qrUrl={qrUrl} />
+              <LetterView face={canvas.faces.inside} qrUrl={qrUrl} hideBackground={hideBackground} />
             </div>
           </Part>
         </div>

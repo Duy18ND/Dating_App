@@ -3,7 +3,7 @@ import { inkOn } from "@/lib/render/ink";
 import { PRESET_STYLES } from "@/lib/render/presets";
 import type { BackgroundConfig, BackgroundPreset, EnvelopeDecor } from "@/types/letter";
 import { fillTextMm, fillWithBleed, loadFont, measureMm } from "./draw";
-import { fitText, flapWidthAt } from "./guides";
+import { fitText, flapWidthAt, resolveEnvelopeFront } from "./guides";
 import { bounds, envelopeC7, type Point, type Rect } from "./layout";
 import { createPartCanvas, MAX_CANVAS_PIXELS, type PartRenderer, type RenderOptions } from "./parts";
 
@@ -86,6 +86,45 @@ function drawGlueDrop(ctx: CanvasRenderingContext2D, x: number, y: number, size:
   ctx.stroke();
 }
 
+const FRONT_TEXT = { max: 8, min: 3.5, step: 0.25 };
+/** Chừa lề hai bên mặt trước để chữ không chạm nếp gấp. */
+const FRONT_MARGIN_MM = 14;
+
+/**
+ * Chữ ở mặt trước phong bì (thân, mặt không có nắp), canh giữa `body`. Dùng chung cho phôi in
+ * và hình xem trước. Mặt in của thân quay ra ngoài nên vẽ xuôi, không xoay.
+ */
+export async function drawEnvelopeFront(
+  ctx: CanvasRenderingContext2D,
+  pxPerMm: number,
+  body: Rect,
+  input: { decor: EnvelopeDecor; color: string; recipient: string },
+): Promise<void> {
+  const text = resolveEnvelopeFront(input.decor.frontText, input.recipient);
+  if (!text) return;
+  const font = input.decor.fontFamily;
+  await loadFont(font, text);
+  const width = body.width - FRONT_MARGIN_MM * 2;
+  const fitted = fitText(text, [width, width], FRONT_TEXT, (sizeMm) =>
+    measureMm(ctx, pxPerMm, font, sizeMm),
+  );
+  const lineHeight = fitted.size * 1.35;
+  const firstBaseline =
+    body.y + body.height / 2 + fitted.size * 0.35 - ((fitted.lines.length - 1) * lineHeight) / 2;
+  fitted.lines.forEach((content, i) => {
+    fillTextMm(ctx, pxPerMm, {
+      text: content,
+      x: body.x + body.width / 2,
+      y: firstBaseline + i * lineHeight,
+      font,
+      sizeMm: fitted.size,
+      color: inkOn(input.color),
+      align: "center",
+      maxWidth: width,
+    });
+  });
+}
+
 export interface EnvelopeSheet {
   canvas: HTMLCanvasElement;
   /** Vùng trên A4 (mm) mà canvas phủ: bao của phôi cộng tràn màu. */
@@ -101,7 +140,7 @@ export interface EnvelopeSheet {
  * Ngoài phôi là màu trắng (không tốn mực) để nhúng JPEG gọn nhẹ.
  */
 export async function renderEnvelopeSheet(
-  input: { decor: EnvelopeDecor; color: string },
+  input: { decor: EnvelopeDecor; color: string; recipient: string },
   options: RenderOptions,
 ): Promise<EnvelopeSheet> {
   const envelope = envelopeC7();
@@ -160,6 +199,8 @@ export async function renderEnvelopeSheet(
     drawGlueDrop(ctx, midX, box.y + box.height / 2, 3);
     ctx.restore();
   }
+
+  await drawEnvelopeFront(ctx, options.pxPerMm, envelope.body, input);
 
   const flap = await renderEnvelopeFlap(input, {
     pxPerMm: options.pxPerMm,

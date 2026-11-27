@@ -193,6 +193,7 @@ export function LetterDetail({ id }: { id: string }) {
           slug={letter.slug}
           canvas={letter.canvas_data}
           envelopeColor={letter.web_config.envelopeColor}
+          recipientName={letter.web_config.recipientName}
         />
       </section>
 

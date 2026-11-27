@@ -215,8 +215,8 @@ function ModeSwitch({ mode, onChange }: { mode: Mode; onChange: (mode: Mode) => 
 /** Các màn con của "Bản in" (SRS 2.3). Hai mặt thiệp dùng chung bộ công cụ canvas. */
 type PrintView = FaceId | "envelope" | "kit";
 const PRINT_VIEWS: { value: PrintView; label: string }[] = [
-  { value: "front", label: "Bìa trước" },
-  { value: "inside", label: "Lời mời + QR" },
+  { value: "front", label: "Mặt trước" },
+  { value: "inside", label: "Mặt sau + QR" },
   { value: "envelope", label: "Phong bì" },
   { value: "kit", label: "Xem cả bộ" },
 ];

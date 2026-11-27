@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client";
 import { PENDING } from "@/components/letter/ElementNode";
 import LetterStage from "@/components/letter/LetterStage";
 import { PRINT_CONFIG } from "@/lib/print-config";
-import { printKitLayout, type Point } from "@/lib/print/layout";
+import { miniCardBack, printKitLayout, type Point, type Rect } from "@/lib/print/layout";
 import { PART_SIZE_MM, PRINT_PX_PER_MM, type RenderedPart } from "@/lib/print/parts";
 import { renderEnvelopeSheet } from "@/lib/print/render-envelope";
 import { drawSheetVectors, SHEET_INK, type LineStyle } from "@/lib/print/sheet";
@@ -109,41 +109,56 @@ export interface PrintKitInput {
   qrUrl: string;
   /** Màu phong bì, dùng chung cho web và bản in. */
   envelopeColor: string;
+  /** Tên người nhận, in ở mặt trước phong bì. */
+  recipientName: string;
   /** false: bỏ nền phong bì và thiệp để in lên giấy màu/Kraft. */
   background: boolean;
 }
 
-/** Hai lớp ảnh của trang in. PDF và bản xem trước chỉ khác độ phân giải. */
+/** Vùng đặt ảnh thiệp trên A4, gồm tràn màu. */
+const withBleedArea = ({ x, y, width, height }: Rect): Rect => ({
+  x: x - PRINT_CONFIG.BLEED_MM,
+  y: y - PRINT_CONFIG.BLEED_MM,
+  width: width + PRINT_CONFIG.BLEED_MM * 2,
+  height: height + PRINT_CONFIG.BLEED_MM * 2,
+});
+
+/** Các lớp ảnh của hai mặt giấy. PDF và bản xem trước chỉ khác độ phân giải. */
 export async function renderPrintKit(
   input: PrintKitInput,
   quality: { pxPerMm: number; cardPixelRatio?: number } = { pxPerMm: PRINT_PX_PER_MM },
 ) {
   const bleed = PRINT_CONFIG.BLEED_MM;
-  const [card, envelope] = await Promise.all([
-    renderCardFace(input.canvas.faces.inside, input.qrUrl, input.background, quality.cardPixelRatio),
+  const face = (side: CardFace) =>
+    renderCardFace(side, input.qrUrl, input.background, quality.cardPixelRatio).then((part) =>
+      withEdgeBleed(part, bleed),
+    );
+  const [front, back, envelope] = await Promise.all([
+    face(input.canvas.faces.front),
+    face(input.canvas.faces.inside),
     renderEnvelopeSheet(
-      { decor: input.canvas.envelope, color: input.envelopeColor },
+      {
+        decor: input.canvas.envelope,
+        color: input.envelopeColor,
+        recipient: input.recipientName,
+      },
       { pxPerMm: quality.pxPerMm, background: input.background, bleedMm: bleed },
     ),
   ]);
-  const { x, y, width, height } = printKitLayout().card;
   return {
     envelope,
-    card: withEdgeBleed(card, bleed),
-    /** Vùng đặt ảnh thiệp trên A4, gồm tràn màu. */
-    cardArea: {
-      x: x - bleed,
-      y: y - bleed,
-      width: width + bleed * 2,
-      height: height + bleed * 2,
-    },
+    front: { part: front, area: withBleedArea(printKitLayout().card) },
+    back: { part: back, area: withBleedArea(miniCardBack()) },
   };
 }
 
-/** Ghép nguyên trang A4 lên canvas, đúng thứ tự lớp như trong PDF. */
+export type SheetSide = "front" | "back";
+
+/** Ghép một mặt của tờ A4 lên canvas, đúng thứ tự lớp như trong PDF. */
 export function composeSheetCanvas(
   kit: Awaited<ReturnType<typeof renderPrintKit>>,
   pxPerMm: number,
+  side: SheetSide,
 ): HTMLCanvasElement {
   const paper = PRINT_CONFIG.PAPER_A4_MM;
   const canvas = document.createElement("canvas");
@@ -153,10 +168,15 @@ export function composeSheetCanvas(
   ctx.scale(pxPerMm, pxPerMm);
   ctx.fillStyle = "#FFFFFF";
   ctx.fillRect(0, 0, paper.width, paper.height);
-  const { area } = kit.envelope;
-  ctx.drawImage(kit.envelope.canvas, area.x, area.y, area.width, area.height);
-  const slot = kit.cardArea;
-  ctx.drawImage(kit.card.canvas, slot.x, slot.y, slot.width, slot.height);
+  const { part, area } = kit[side];
+  const placeCard = () => ctx.drawImage(part.canvas, area.x, area.y, area.width, area.height);
+  if (side === "back") {
+    placeCard();
+    return canvas;
+  }
+  const sheet = kit.envelope.area;
+  ctx.drawImage(kit.envelope.canvas, sheet.x, sheet.y, sheet.width, sheet.height);
+  placeCard();
 
   ctx.strokeStyle = SHEET_INK;
   ctx.lineCap = "round";
@@ -183,9 +203,9 @@ export function composeSheetCanvas(
 }
 
 /**
- * Bộ in v1.7: ĐÚNG 1 trang A4 in một mặt.
- * - Nửa trên: phôi phong bì C7 có tai cài và khe cài.
- * - Nửa dưới: thiệp mini 105 x 74 mm (trang Lời mời có QR); mặt sau để trắng viết tay.
+ * Bộ in v1.8: ĐÚNG 1 tờ A4 in hai mặt (PDF 2 trang, in đảo theo cạnh dài).
+ * - Trang 1: phong bì C7 (nửa trên) và mặt trước thiệp (nửa dưới), kèm mọi nét cắt, gấp.
+ * - Trang 2: chỉ mặt sau thiệp (có QR), nằm đúng sau lưng mặt trước.
  * Không có chữ hướng dẫn trên giấy: chỉ nét cắt (liền), nét gấp (đứt), dấu cắt góc và biểu
  * tượng kéo / giọt keo. Hướng dẫn lắp ráp nằm trên web.
  */
@@ -196,17 +216,18 @@ export async function exportLetterPdf(options: PrintKitInput & { fileName: strin
   // Lớp ảnh: phôi phong bì (nền + vùng keo + chữ nắp) và thiệp đã có tràn màu.
   const env = kit.envelope.area;
   pdf.addImage(kit.envelope.canvas, "JPEG", env.x, env.y, env.width, env.height, undefined, "FAST");
-  const slot = kit.cardArea;
-  pdf.addImage(
-    kit.card.canvas,
-    kit.card.opaque ? "JPEG" : "PNG",
-    slot.x,
-    slot.y,
-    slot.width,
-    slot.height,
-    undefined,
-    "FAST",
-  );
+  const placeCard = ({ part, area }: (typeof kit)["front"]) =>
+    pdf.addImage(
+      part.canvas,
+      part.opaque ? "JPEG" : "PNG",
+      area.x,
+      area.y,
+      area.width,
+      area.height,
+      undefined,
+      "FAST",
+    );
+  placeCard(kit.front);
 
   // Lớp vector đè lên.
   pdf.setDrawColor(...INK);
@@ -233,6 +254,10 @@ export async function exportLetterPdf(options: PrintKitInput & { fileName: strin
       pdf.circle(x, y, radius, "S");
     },
   });
+
+  // Mặt sau không có nét nào: cắt theo dấu ở trang 1.
+  pdf.addPage("a4", "portrait");
+  placeCard(kit.back);
 
   pdf.save(options.fileName);
 }

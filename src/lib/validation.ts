@@ -34,6 +34,7 @@ export const LIMITS = {
   maxTextLength: 2000,
   maxMonogram: 12,
   maxEnvelopeLine: 80,
+  maxEnvelopeFront: 60,
   maxLetterLine: 60,
   maxWebSections: 16,
   maxMemories: 8,
@@ -201,6 +202,7 @@ export const canvasDataSchema = z
     envelope: z.strictObject({
       monogram: shortText(LIMITS.maxMonogram),
       line: shortText(LIMITS.maxEnvelopeLine),
+      frontText: shortText(LIMITS.maxEnvelopeFront).optional(),
       fontFamily: z.enum(FONT_NAMES),
     }),
   })
@@ -217,9 +219,9 @@ export const canvasDataSchema = z
     if (collectUserImageUrls(canvas).length > LIMITS.maxUserImages) {
       fail(["faces"], `Mỗi thiệp tối đa ${LIMITS.maxUserImages} ảnh tải lên`);
     }
-    // Mã QR chỉ nằm ở trang Lời mời, và chỉ một mã.
+    // Mã QR chỉ nằm ở mặt sau thiệp (inside), và chỉ một mã.
     if (canvas.faces.front.elements.some((el) => el.type === "qr_code")) {
-      fail(["faces", "front"], "Mã QR chỉ đặt ở trang Lời mời");
+      fail(["faces", "front"], "Mã QR chỉ đặt ở mặt sau thiệp");
     }
     if (canvas.faces.inside.elements.filter((el) => el.type === "qr_code").length > 1) {
       fail(["faces", "inside"], "Mỗi thiệp chỉ có một mã QR");

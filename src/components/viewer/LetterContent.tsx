@@ -65,7 +65,7 @@ export function LetterContent({
             key={id}
             type="button"
             onClick={() => setZoomFace(id)}
-            aria-label={`Phóng to ${id === "front" ? letter.title || "bìa trước" : "bên trong thiệp"}. ${texts.join(". ")}`}
+            aria-label={`Phóng to ${id === "front" ? letter.title || "mặt trước thiệp" : "mặt sau thiệp"}. ${texts.join(". ")}`}
             className="group relative overflow-hidden rounded-lg border text-left shadow-sm focus-visible:ring-2 focus-visible:ring-ring"
           >
             <LetterView face={face} qrUrl={qrUrl} />

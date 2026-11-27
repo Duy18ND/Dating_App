@@ -4,7 +4,7 @@ import { useEditorStore } from "@/lib/editor/store";
 import { FONT_NAMES, type FontName } from "@/lib/font-names";
 import { LIMITS } from "@/lib/validation";
 import { ColorField } from "./ColorField";
-import { FoldedEnvelope } from "./print/FoldedEnvelope";
+import { EnvelopeFront, FoldedEnvelope } from "./print/FoldedEnvelope";
 import { TextInput } from "./TextInput";
 import { Field, inputClass, Section } from "./ui";
 
@@ -14,13 +14,29 @@ export const ENVELOPE_COLORS = ["#F2D7D5", "#F4E9DA", "#C8A882", "#E8B4BC", "#DD
 export function EnvelopePanel() {
   const decor = useEditorStore((s) => s.doc.canvas_data.envelope);
   const color = useEditorStore((s) => s.doc.web_config.envelopeColor);
+  const recipient = useEditorStore((s) => s.doc.web_config.recipientName);
   const setEnvelope = useEditorStore((s) => s.setEnvelope);
   const setWebConfig = useEditorStore((s) => s.setWebConfig);
   const endCoalesce = useEditorStore((s) => s.endCoalesce);
 
   return (
     <div className="space-y-6">
-      <Section title="Phong bì">
+      <Section title="Mặt trước phong bì">
+        <EnvelopeFront />
+        <TextInput
+          label='Chữ mặt trước (để "Gửi" sẽ tự thêm tên người nhận, xóa trống nếu muốn viết tay)'
+          value={decor.frontText ?? "Gửi"}
+          maxLength={LIMITS.maxEnvelopeFront}
+          onChange={(frontText) => setEnvelope({ frontText }, "envelope-front")}
+        />
+        <TextInput
+          label="Tên người nhận"
+          value={recipient}
+          maxLength={LIMITS.maxNameLength}
+          onChange={(recipientName) => setWebConfig({ recipientName }, "recipient")}
+        />
+      </Section>
+      <Section title="Mặt sau phong bì (nắp)">
         <FoldedEnvelope />
         <TextInput
           label="Chữ lồng tên, ví dụ: u ♡"

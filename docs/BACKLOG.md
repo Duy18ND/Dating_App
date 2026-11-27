@@ -28,7 +28,7 @@
 |---|---|---|---|---|---|
 | ~~`T-29`~~ ✅ | Clean **1-page A4 PDF** (v1.7 spec) | Top (`y=10..198mm`): continuous C7 envelope (`144×188mm`) with 22mm tuck tab, 26mm curved slit on bottom flap, 180° top flap text, hidden glue tabs (hatch + drop icon), 2mm bleed. Bottom (`y=211..285mm`): flat `105×74mm` mini card (Front: greeting + QR; Back: blank paper for handwriting; no folding/back-gluing), 2mm bleed. **Zero helper text on paper** (icon-only `✂` & thin marks). No `pdf.text()` for user copy; respect image `focus` & `borderWidth`; geometry tests | **Opus** | 3.5 | `T-34` |
 | ~~`T-37`~~ ✅ | Full-kit preview (FR-13) + draft PDF | Render via shared PDF functions; allow downloading draft PDF before publish; group mobile editor toolbar into Print / Web tabs (SRS 2.3) | **Sonnet** | 2.5 | `T-29` |
-| `T-23A` | **Gate 2**: Print, cut, tuck & scan | Print 1 A4 sheet; cut envelope & flat mini card; tuck flap smoothly into slit; scan QR on 2 phones. **Must pass before Stage 4** | **Project Owner** | 2 | `T-37` |
+| `T-23A` | **Gate 2**: Print, cut, tuck & scan | **v1.8:** print the 2-page PDF duplex (long edge) on 1 A4 sheet; check front/back of the card line up within 2 mm; cut envelope & card; tuck flap into slit; scan QR (card back) on 2 phones. **Must pass before Stage 4** | **Project Owner** | 2 | `T-37` |
 
 ## Stage 4: Accounts & Launch
 | Task | Scope | Acceptance Criteria | Owner | Est (h) | After |

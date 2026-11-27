@@ -3,7 +3,8 @@
 import { useCallback } from "react";
 import { useEditorStore } from "@/lib/editor/store";
 import { foldedEnvelope, type Point } from "@/lib/print/layout";
-import { renderEnvelopeFlap } from "@/lib/print/render-envelope";
+import { PRINT_CONFIG } from "@/lib/print-config";
+import { drawEnvelopeFront, renderEnvelopeFlap } from "@/lib/print/render-envelope";
 import { RenderedCanvas } from "./RenderedCanvas";
 
 const PX_PER_MM = 8;
@@ -76,6 +77,41 @@ export function FoldedEnvelope() {
       draw={draw}
       label="Phong bì sau khi gấp"
       ratio={shape.width / shape.height}
+      className="rounded-md border shadow-sm"
+    />
+  );
+}
+
+const { bodyWidth, bodyHeight } = PRINT_CONFIG.ENVELOPE_C7_FLAT_MM;
+
+/** Mặt trước phong bì thành phẩm (mặt không có nắp), vẽ chữ bằng hàm dùng cho bản in. */
+export function EnvelopeFront() {
+  const decor = useEditorStore((s) => s.doc.canvas_data.envelope);
+  const color = useEditorStore((s) => s.doc.web_config.envelopeColor);
+  const recipient = useEditorStore((s) => s.doc.web_config.recipientName);
+
+  const draw = useCallback(async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = bodyWidth * PX_PER_MM;
+    canvas.height = bodyHeight * PX_PER_MM;
+    const ctx = canvas.getContext("2d")!;
+    ctx.scale(PX_PER_MM, PX_PER_MM);
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, bodyWidth, bodyHeight);
+    await drawEnvelopeFront(
+      ctx,
+      PX_PER_MM,
+      { x: 0, y: 0, width: bodyWidth, height: bodyHeight },
+      { decor, color, recipient },
+    );
+    return canvas;
+  }, [decor, color, recipient]);
+
+  return (
+    <RenderedCanvas
+      draw={draw}
+      label="Mặt trước phong bì"
+      ratio={bodyWidth / bodyHeight}
       className="rounded-md border shadow-sm"
     />
   );

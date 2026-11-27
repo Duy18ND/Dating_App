@@ -56,7 +56,7 @@ function QrPreview({ color, iconId }: { color: string; iconId?: string }) {
   );
 }
 
-/** Mã QR đổi màu, chèn icon giữa. Mỗi thiệp có một mã, luôn ở trang Lời mời (mặt inside). */
+/** Mã QR đổi màu, chèn icon giữa. Mỗi thiệp có một mã, luôn ở mặt sau (inside). */
 export function QrPanel() {
   const element = useEditorStore((s) =>
     s.doc.canvas_data.faces.inside.elements.find((el) => el.type === "qr_code"),
@@ -76,7 +76,7 @@ export function QrPanel() {
           variant="outline"
           onClick={() => {
             setFace("inside");
-            // Đặt ở nửa phải trang Lời mời, chừa nửa trái cho lời nhắn.
+            // Đặt ở nửa phải mặt sau, chừa nửa trái cho lời nhắn.
             addElement({
               type: "qr_code",
               x: Math.round(W * 0.67 - defaultQrPx / 2),
@@ -90,7 +90,7 @@ export function QrPanel() {
           <QrCode /> Thêm mã QR
         </Button>
         <p className="text-xs text-muted-foreground">
-          Mã QR được đặt ở trang Lời mời bên trong thiệp.
+          Mã QR được đặt ở mặt sau của thiệp.
         </p>
       </Section>
     );

@@ -55,11 +55,13 @@ export function SharePanel({
   slug,
   canvas,
   envelopeColor,
+  recipientName,
   defaultHideBackground = false,
 }: {
   slug: string;
   canvas: CanvasData;
   envelopeColor: string;
+  recipientName: string;
   defaultHideBackground?: boolean;
 }) {
   const [guest, setGuest] = useState("");
@@ -118,6 +120,7 @@ export function SharePanel({
                 canvas,
                 qrUrl: url,
                 envelopeColor,
+                recipientName,
                 background: !hideBackground,
                 fileName: `bo-thiep-${slug}.pdf`,
               });
