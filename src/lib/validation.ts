@@ -29,6 +29,7 @@ import {
 } from "@/types/letter";
 
 export const LIMITS = {
+  maxActiveLetters: 5,
   maxUserImages: 4,
   maxWebImages: 12,
   maxPhotoboothPhotos: 8,

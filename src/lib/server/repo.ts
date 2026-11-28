@@ -97,6 +97,17 @@ export async function findOwnedLetter(id: string, ownerId: string) {
   ) as LetterRow | null;
 }
 
+/** Đếm số thiệp còn hạn của tài khoản (dùng để giới hạn tối đa 5 thiệp lưu đồng thời). */
+export async function countOwnedLetters(ownerId: string): Promise<number> {
+  const { count, error } = await db()
+    .from("letters")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", ownerId)
+    .gt("expires_at", new Date().toISOString());
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return count ?? 0;
+}
+
 export async function listOwnedLetters(ownerId: string): Promise<LetterSummary[]> {
   const rows = unwrap(
     await db()

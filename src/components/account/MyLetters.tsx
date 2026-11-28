@@ -13,6 +13,7 @@ import { formatDate, letterNames } from "@/lib/my-letters";
 import { getSeenResponses, unreadResponseCount } from "@/lib/response-seen";
 import { loginPath } from "@/lib/safe-redirect";
 import { TEMPLATES } from "@/lib/templates";
+import { LIMITS } from "@/lib/validation";
 import type { LetterSummary } from "@/types/letter";
 import { ExpiryNotice } from "./ExpiryNotice";
 
@@ -244,11 +245,16 @@ export function MyLetters() {
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          {`${state.letters.length} thiệp. Mỗi thiệp tự xóa sau 60 ngày.`}
+          {`${state.letters.length}/${LIMITS.maxActiveLetters} thiệp đang lưu. `}
+          {state.letters.length >= LIMITS.maxActiveLetters
+            ? "Đã đủ 5 thiệp — xóa bớt thiệp cũ để tạo mới hoặc bấm Sửa."
+            : "Mỗi thiệp tự xóa sau 60 ngày."}
         </p>
-        <Link href="/#mau-thu" className={buttonVariants()}>
-          <Plus /> Tạo thiệp mới
-        </Link>
+        {state.letters.length < LIMITS.maxActiveLetters && (
+          <Link href="/#mau-thu" className={buttonVariants()}>
+            <Plus /> Tạo thiệp mới
+          </Link>
+        )}
       </div>
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {state.letters.map((letter, index) => (

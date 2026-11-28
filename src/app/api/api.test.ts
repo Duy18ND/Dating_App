@@ -13,6 +13,7 @@ vi.mock("@/lib/server/repo", () => ({
   updateOwnedLetter: vi.fn(),
   deleteOwnedLetter: vi.fn(),
   deleteAuthUser: vi.fn(),
+  countOwnedLetters: vi.fn(),
   deleteLetter: vi.fn(),
   setLetterUploads: vi.fn(),
   registerView: vi.fn(),
@@ -152,6 +153,7 @@ beforeEach(() => {
     async (id, ownerId) => id === LETTER_ID && ownerId === OWNER.id,
   );
   vi.mocked(repo.setLetterUploads).mockResolvedValue(true);
+  vi.mocked(repo.countOwnedLetters).mockResolvedValue(0);
   vi.mocked(repo.listResponses).mockResolvedValue([]);
   vi.mocked(repo.insertLetter).mockImplementation(async (input) => ({ ...row(), ...input }));
 });
@@ -204,6 +206,15 @@ describe("POST /api/letters", () => {
     vi.mocked(repo.consumeRateLimit).mockResolvedValue(false);
     expect((await createLetter(send("POST", samplePayload()))).status).toBe(429);
     expect(repo.insertLetter).not.toHaveBeenCalled();
+  });
+
+  it("409 khi tài khoản đã có đủ 5 thiệp đang lưu, xóa bớt thì tạo tiếp được", async () => {
+    vi.mocked(repo.countOwnedLetters).mockResolvedValueOnce(5);
+    expect((await createLetter(send("POST", samplePayload()))).status).toBe(409);
+    expect(repo.insertLetter).not.toHaveBeenCalled();
+
+    vi.mocked(repo.countOwnedLetters).mockResolvedValueOnce(4);
+    expect((await createLetter(send("POST", samplePayload()))).status).toBe(201);
   });
 
   it("gắn cả ảnh thiệp và ảnh trang web (bỏ trùng)", async () => {

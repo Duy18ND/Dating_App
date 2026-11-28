@@ -7,7 +7,8 @@ const HOUR = 60 * 60;
 export const RATE_LIMITS = {
   // 4 ảnh thiệp + 8 ảnh trang web, cộng chỗ cho vài lần đổi ảnh (v1.2).
   upload: { max: 20, windowSeconds: HOUR, message: "Tối đa 20 ảnh mỗi giờ" },
-  createLetter: { max: 5, windowSeconds: 24 * HOUR, message: "Tối đa 5 lá thư mỗi ngày" },
+  // Chống spam liên tiếp; giới hạn số thiệp lưu đồng thời (tối đa 5) được kiểm tra riêng theo DB.
+  createLetter: { max: 30, windowSeconds: HOUR, message: "Bạn thao tác quá nhanh, thử lại sau ít phút" },
   editLetter: { max: 60, windowSeconds: HOUR, message: "Bạn sửa quá nhanh, thử lại sau" },
   respond: { max: 20, windowSeconds: HOUR, message: "Bạn gửi quá nhiều phản hồi, thử lại sau" },
   review: { max: 5, windowSeconds: HOUR, message: "Bạn gửi đánh giá hơi nhanh, thử lại sau ít phút nhé" },

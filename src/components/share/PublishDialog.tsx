@@ -84,20 +84,31 @@ export function PublishDialog() {
               <p role="alert" className="text-sm text-destructive">
                 {error}
               </p>
-              {needsLogin ? (
-                // Mở tab mới để không mất bản đang soạn; đăng nhập xong quay lại bấm Thử lại.
-                <a
-                  href={loginPath("/thiep-cua-toi")}
-                  target="_blank"
-                  rel="noopener"
-                  className={buttonVariants({ variant: "outline" })}
-                >
-                  Đăng nhập lại (mở tab mới)
-                </a>
-              ) : null}
-              <Button type="button" onClick={publish}>
-                Thử lại
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                {needsLogin ? (
+                  // Mở tab mới để không mất bản đang soạn; đăng nhập xong quay lại bấm Thử lại.
+                  <a
+                    href={loginPath("/thiep-cua-toi")}
+                    target="_blank"
+                    rel="noopener"
+                    className={buttonVariants({ variant: "outline" })}
+                  >
+                    Đăng nhập lại (mở tab mới)
+                  </a>
+                ) : error.includes("Thiệp của tôi") ? (
+                  <a
+                    href="/thiep-cua-toi"
+                    target="_blank"
+                    rel="noopener"
+                    className={buttonVariants({ variant: "outline" })}
+                  >
+                    Mở Thiệp của tôi để xóa / sửa
+                  </a>
+                ) : null}
+                <Button type="button" onClick={publish}>
+                  Thử lại
+                </Button>
+              </div>
             </div>
           )}
 

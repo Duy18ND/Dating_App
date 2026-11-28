@@ -2,7 +2,12 @@ import { customAlphabet } from "nanoid";
 import { requireUser } from "@/lib/server/auth";
 import { ApiError, assertSameOrigin, handle, json, parse, readJson } from "@/lib/server/http";
 import { enforceAccountLimit, enforceRateLimit } from "@/lib/server/rate-limit";
-import { deleteLetter, insertLetter, setLetterUploads } from "@/lib/server/repo";
+import {
+  countOwnedLetters,
+  deleteLetter,
+  insertLetter,
+  setLetterUploads,
+} from "@/lib/server/repo";
 import { verifyTurnstile } from "@/lib/server/turnstile";
 import { collectUserImageUrls, letterPayloadSchema, LIMITS } from "@/lib/validation";
 
@@ -17,6 +22,14 @@ export async function POST(request: Request) {
     await verifyTurnstile(request);
     const ipHash = await enforceRateLimit(request, "createLetter");
     await enforceAccountLimit("createLetter", user.id);
+
+    const activeCount = await countOwnedLetters(user.id);
+    if (activeCount >= LIMITS.maxActiveLetters) {
+      throw new ApiError(
+        409,
+        `Tài khoản chỉ lưu tối đa ${LIMITS.maxActiveLetters} thiệp cùng lúc. Hãy xóa bớt thiệp cũ hoặc sửa lại thiệp đang có trong “Thiệp của tôi”.`,
+      );
+    }
 
     let row = null;
     for (let attempt = 0; attempt < 5 && !row; attempt++) {
