@@ -10,6 +10,7 @@ import { LetterView } from "@/components/letter/LetterView";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { AuthRequiredError, deleteMyLetter, listMyLetters } from "@/lib/client/api";
 import { formatDate, letterNames } from "@/lib/my-letters";
+import { getSeenResponses, unreadResponseCount } from "@/lib/response-seen";
 import { loginPath } from "@/lib/safe-redirect";
 import { TEMPLATES } from "@/lib/templates";
 import type { LetterSummary } from "@/types/letter";
@@ -18,12 +19,13 @@ import { ExpiryNotice } from "./ExpiryNotice";
 type State =
   | { status: "loading" }
   | { status: "error"; message: string; login: boolean }
-  | { status: "ready"; letters: LetterSummary[]; now: number };
+  | { status: "ready"; letters: LetterSummary[]; now: number; seen: Record<string, number> };
 
 function LetterCard({
   letter,
   name,
   now,
+  unread,
   index,
   onDeleted,
 }: {
@@ -31,6 +33,7 @@ function LetterCard({
   letter: LetterSummary;
   name: string;
   now: number;
+  unread: number;
   onDeleted: (id: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -96,13 +99,21 @@ function LetterCard({
         </h2>
         <p className="text-xs text-muted-foreground">Tạo {formatDate(letter.created_at)}</p>
         <ExpiryNotice expiresAt={letter.expires_at} now={now} />
-        <p className="flex gap-4 text-sm">
+        <p className="flex flex-wrap items-center gap-3 text-sm">
           <span className="inline-flex items-center gap-1">
             <Eye aria-hidden className="size-4" /> {letter.view_count} lượt mở
           </span>
           <span className="inline-flex items-center gap-1">
             <MessageCircle aria-hidden className="size-4" /> {letter.response_count} phản hồi
           </span>
+          {unread > 0 && (
+            <Link
+              href={`/thiep-cua-toi/${letter.id}`}
+              className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground"
+            >
+              +{unread} mới
+            </Link>
+          )}
         </p>
       </div>
       <div className="mt-auto flex flex-wrap gap-2">
@@ -181,7 +192,8 @@ export function MyLetters() {
   useEffect(() => {
     let active = true;
     listMyLetters().then(
-      (letters) => active && setState({ status: "ready", letters, now: Date.now() }),
+      (letters) =>
+        active && setState({ status: "ready", letters, now: Date.now(), seen: getSeenResponses() }),
       (cause: Error) =>
         active &&
         setState({ status: "error", message: cause.message, login: cause instanceof AuthRequiredError }),
@@ -214,8 +226,22 @@ export function MyLetters() {
   if (state.letters.length === 0) return <EmptyLetters />;
 
   const names = letterNames(state.letters);
+  const totalUnread = state.letters.reduce(
+    (acc, letter) => acc + unreadResponseCount(letter.id, letter.response_count, state.seen),
+    0,
+  );
   return (
     <div className="space-y-4">
+      {totalUnread > 0 && (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/25 bg-accent/70 px-4 py-2.5 text-sm"
+        >
+          <p className="font-medium text-primary">
+            Bạn có {totalUnread} phản hồi mới từ người nhận — bấm vào từng thiệp để đọc nhé!
+          </p>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {`${state.letters.length} thiệp. Mỗi thiệp tự xóa sau 60 ngày.`}
@@ -232,6 +258,7 @@ export function MyLetters() {
               letter={letter}
               name={names.get(letter.id)!}
               now={state.now}
+              unread={unreadResponseCount(letter.id, letter.response_count, state.seen)}
               onDeleted={(id) =>
                 setState({ ...state, letters: state.letters.filter((l) => l.id !== id) })
               }

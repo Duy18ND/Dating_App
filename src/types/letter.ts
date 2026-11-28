@@ -300,7 +300,16 @@ export interface WebConfig {
   senderName: string;
   envelopeColor: string;
   waxSealColor: string;
-  audio: { enabled: boolean; trackId: string; startTime: number; volume: number };
+  audio: {
+    enabled: boolean;
+    trackId: string;
+    startTime: number;
+    volume: number;
+    /** URL file nhạc người dùng tự tải lên R2 (MP3/M4A/OGG/WAV). */
+    customUrl?: string;
+    /** Tên file nhạc hiển thị trong trình soạn. */
+    customName?: string;
+  };
   blocks: {
     acceptButton?: {
       enabled: boolean;
@@ -311,6 +320,13 @@ export interface WebConfig {
     };
     rsvp?: { enabled: boolean; eventDate: string; locationName: string; mapsUrl: string };
     poll?: { enabled: boolean; question: string; options: string[] };
+    /** Khối xác nhận đã đọc & hồi âm thư gửi thẳng về tài khoản người tạo. */
+    reply?: {
+      enabled: boolean;
+      prompt: string;
+      placeholder?: string;
+      quickReactions?: string[];
+    };
   };
   sections?: WebSection[];
   style?: WebStyleConfig;
@@ -323,7 +339,7 @@ export interface LetterPayload {
   web_config: WebConfig;
 }
 
-export type ActionType = "accept" | "rsvp" | "poll";
+export type ActionType = "accept" | "rsvp" | "poll" | "reply";
 
 export interface LetterResponse {
   id: string;

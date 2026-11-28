@@ -26,16 +26,20 @@ export function publicUrl(key: string): string {
   return `${requireEnv("NEXT_PUBLIC_R2_PUBLIC_URL").replace(/\/$/, "")}/${key}`;
 }
 
-export async function putWebp(key: string, body: Uint8Array): Promise<void> {
+export async function putObject(key: string, body: Uint8Array, contentType: string): Promise<void> {
   await r2().send(
     new PutObjectCommand({
       Bucket: requireEnv("R2_BUCKET"),
       Key: key,
       Body: body,
-      ContentType: "image/webp",
+      ContentType: contentType,
       CacheControl: "public, max-age=31536000, immutable",
     }),
   );
+}
+
+export async function putWebp(key: string, body: Uint8Array): Promise<void> {
+  await putObject(key, body, "image/webp");
 }
 
 /** R2 nhận tối đa 1000 key mỗi lần. Ném lỗi nếu có key không xóa được. */

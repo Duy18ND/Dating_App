@@ -37,7 +37,12 @@ beforeAll(async () => {
   // Bảng người dùng của Supabase Auth, rút gọn.
   await pg.exec(`CREATE SCHEMA auth; CREATE TABLE auth.users (id UUID PRIMARY KEY);
     INSERT INTO auth.users VALUES ('${OWNER}'), ('${OTHER}');`);
-  for (const file of ["0001_init.sql", "0002_upload_orphaned_at.sql", "0003_accounts.sql"]) {
+  for (const file of [
+    "0001_init.sql",
+    "0002_upload_orphaned_at.sql",
+    "0003_accounts.sql",
+    "0004_site_reviews.sql",
+  ]) {
     await pg.exec(readFileSync(`supabase/migrations/${file}`, "utf8"));
   }
 }, 60_000);
@@ -162,5 +167,26 @@ describe("tài khoản (0003)", () => {
       "SELECT owner_id, letter_id FROM uploads WHERE url = 'anh-tk'",
     );
     expect(image).toEqual({ owner_id: null, letter_id: null });
+  });
+});
+
+describe("thống kê & đánh giá web (0004)", () => {
+  it("tăng lượt truy cập và chặn số sao ngoài khoảng 1..5", async () => {
+    const first = await one<{ count: string }>("SELECT increment_site_visits() AS count");
+    const second = await one<{ count: string }>("SELECT increment_site_visits() AS count");
+    expect(Number(first.count)).toBe(1);
+    expect(Number(second.count)).toBe(2);
+
+    await pg.query(
+      "INSERT INTO site_reviews (author_name, rating, comment) VALUES ('Minh Anh', 5, 'Thiệp quá xinh!')",
+    );
+    await expect(
+      pg.query("INSERT INTO site_reviews (author_name, rating, comment) VALUES ('Bad', 6, 'Lỗi')"),
+    ).rejects.toThrow(/rating/);
+
+    await pg.exec("SET ROLE anon");
+    await expect(pg.query("SELECT * FROM site_reviews")).rejects.toThrow(/permission denied/);
+    await expect(pg.query("SELECT increment_site_visits()")).rejects.toThrow(/permission denied/);
+    await pg.exec("RESET ROLE");
   });
 });

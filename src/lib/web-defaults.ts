@@ -27,57 +27,84 @@ const DEFAULT_SIGNATURES: Record<TemplateType, string> = {
   holiday: "Bạn thân của cậu",
 };
 
+const CLEAN_HERO_LEAD: Record<TemplateType, string> = {
+  confession: "Có vài điều nhỏ mình muốn gửi riêng cho cậu.",
+  wedding: "Rất mong có bạn chung vui trong ngày trọng đại của tụi mình.",
+  dinner: "Cho phép mình mời cậu một bữa thật ngon nhé.",
+  holiday: "Gửi cậu một tấm thiệp nhỏ kèm thật nhiều niềm vui.",
+};
+
+const CLEAN_MESSAGE_TITLE: Record<TemplateType, string> = {
+  confession: "Lời muốn gửi cậu",
+  wedding: "Lời mời thân thương",
+  dinner: "Lời hẹn của tụi mình",
+  holiday: "Lời chúc gửi cậu",
+};
+
 /**
- * Nội dung trang web cuộn dọc mặc định cho 4 mẫu (T-35), lấy từ
- * `docs/gemini-output/T-35-scroll-web-defaults.json` đúng thứ tự FR-01.
+ * Nội dung trang web cuộn dọc mặc định cho 4 mẫu:
+ * - `editor` (mặc định): gọn gàng, không nhồi text demo thừa có dấu `[...]`, chỉ bật sẵn các phần chính.
+ * - `preview`: dùng cho `/xem-thu/[mau]` để khách xem thử thấy đủ nội dung mẫu T-35.
  */
-export function defaultWebSections(type: TemplateType): WebSection[] {
+export function defaultWebSections(
+  type: TemplateType,
+  mode: "editor" | "preview" = "editor",
+): WebSection[] {
   const list = DEFAULTS[type] ?? [];
   const dates = DEFAULT_DATES[type];
+  const isPreview = mode === "preview";
+
   return list.map((section, idx): WebSection => {
     const id = `${type}-sec-${idx}`;
     switch (section.type) {
       case "hero":
-        return { id, type: "hero", enabled: true, lead: section.lead };
+        return {
+          id,
+          type: "hero",
+          enabled: true,
+          lead: isPreview ? section.lead : CLEAN_HERO_LEAD[type],
+        };
       case "first_day":
         return {
           id,
           type: "first_day",
-          enabled: true,
-          date: dates.firstDay,
-          text: section.text,
+          enabled: isPreview,
+          date: isPreview ? dates.firstDay : undefined,
+          text: isPreview ? section.text : "",
         };
       case "memories":
         return {
           id,
           type: "memories",
-          enabled: true,
+          enabled: isPreview,
           title:
             type === "wedding"
               ? "Chuyện tình của tụi mình"
               : type === "holiday"
                 ? "Album kỷ niệm nhỏ"
-                : "Những khoảnh khắc mình nhớ mãi",
-          items: section.items.map((item, mIdx) => ({
-            id: `${type}-mem-${mIdx}`,
-            caption: item.caption,
-          })),
+                : "Những khoảnh khắc đáng nhớ",
+          items: isPreview
+            ? section.items.map((item, mIdx) => ({
+                id: `${type}-mem-${mIdx}`,
+                caption: item.caption,
+              }))
+            : [{ id: `${type}-mem-0`, caption: "" }],
         };
       case "reasons":
         return {
           id,
           type: "reasons",
-          enabled: true,
+          enabled: isPreview,
           title: "Điều mình thích ở cậu",
-          items: [...section.items],
+          items: isPreview ? [...section.items] : [""],
         };
       case "counter":
         return {
           id,
           type: "counter",
-          enabled: true,
-          date: dates.counter,
-          label: section.label,
+          enabled: isPreview,
+          date: isPreview ? dates.counter : "",
+          label: isPreview ? section.label : "",
           mode: section.mode,
         };
       case "message":
@@ -85,8 +112,8 @@ export function defaultWebSections(type: TemplateType): WebSection[] {
           id,
           type: "message",
           enabled: true,
-          title: section.title,
-          body: section.body,
+          title: isPreview ? section.title : CLEAN_MESSAGE_TITLE[type],
+          body: isPreview ? section.body : "",
         };
       case "interact":
         return { id, type: "interact", enabled: true };
@@ -95,8 +122,8 @@ export function defaultWebSections(type: TemplateType): WebSection[] {
           id,
           type: "ending",
           enabled: true,
-          text: section.text,
-          signature: DEFAULT_SIGNATURES[type],
+          text: isPreview ? section.text : "",
+          signature: isPreview ? DEFAULT_SIGNATURES[type] : "",
         };
     }
   });

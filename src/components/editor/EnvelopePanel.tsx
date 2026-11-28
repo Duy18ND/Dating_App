@@ -9,12 +9,15 @@ import { TextInput } from "./TextInput";
 import { Field, inputClass, Section, Toggle } from "./ui";
 
 export const ENVELOPE_COLORS = ["#F2D7D5", "#F4E9DA", "#C8A882", "#E8B4BC", "#DDEBD8", "#8E2424"];
+const SEAL_COLORS = ["#8E2424", "#C9A227", "#2B2623", "#2F4A3A", "#243B5A", "#B0566B"];
 
-/** FR-12: chữ lồng tên, câu trên nắp phong bì và màu giấy dùng chung cho web và bản in. */
+/** FR-12: người nhận/người gửi, chữ lồng tên, câu trên nắp, dấu sáp và màu giấy dùng chung cho web & bản in. */
 export function EnvelopePanel() {
   const decor = useEditorStore((s) => s.doc.canvas_data.envelope);
   const color = useEditorStore((s) => s.doc.web_config.envelopeColor);
+  const sealColor = useEditorStore((s) => s.doc.web_config.waxSealColor);
   const recipient = useEditorStore((s) => s.doc.web_config.recipientName);
+  const sender = useEditorStore((s) => s.doc.web_config.senderName);
   const syncKit = useEditorStore((s) => s.syncKitBackground);
   const setSyncKit = useEditorStore((s) => s.setSyncKitBackground);
   const setEnvelope = useEditorStore((s) => s.setEnvelope);
@@ -24,22 +27,30 @@ export function EnvelopePanel() {
 
   return (
     <div className="space-y-6">
-      <Section title="Mặt trước phong bì">
+      <Section title="Người gửi & Người nhận">
         <EnvelopeFront />
         <TextInput
-          label='Chữ mặt trước (để "Gửi" sẽ tự thêm tên người nhận, xóa trống nếu muốn viết tay)'
-          value={decor.frontText ?? "Gửi"}
-          maxLength={LIMITS.maxEnvelopeFront}
-          onChange={(frontText) => setEnvelope({ frontText }, "envelope-front")}
-        />
-        <TextInput
           label="Tên người nhận"
+          placeholder="VD: Minh Anh"
           value={recipient}
           maxLength={LIMITS.maxNameLength}
           onChange={(recipientName) => setWebConfig({ recipientName }, "recipient")}
         />
+        <TextInput
+          label="Tên người gửi"
+          placeholder="VD: Duy"
+          value={sender}
+          maxLength={LIMITS.maxNameLength}
+          onChange={(senderName) => setWebConfig({ senderName }, "sender")}
+        />
+        <TextInput
+          label='Chữ mặt trước (để "Gửi" sẽ tự nối tên người nhận)'
+          value={decor.frontText ?? "Gửi"}
+          maxLength={LIMITS.maxEnvelopeFront}
+          onChange={(frontText) => setEnvelope({ frontText }, "envelope-front")}
+        />
       </Section>
-      <Section title="Mặt sau phong bì (nắp)">
+      <Section title="Mặt sau phong bì & Màu sắc">
         <FoldedEnvelope />
         <TextInput
           label="Chữ lồng tên, ví dụ: u ♡"
@@ -73,16 +84,20 @@ export function EnvelopePanel() {
           }
           onCommit={endCoalesce}
         />
+        <ColorField
+          label="Màu dấu sáp niêm phong"
+          colors={SEAL_COLORS}
+          value={sealColor}
+          onChange={(waxSealColor, custom) =>
+            setWebConfig({ waxSealColor }, custom ? "seal" : undefined)
+          }
+          onCommit={endCoalesce}
+        />
         <Toggle
-          label="Đồng bộ màu này cho cả Mặt trước & Mặt sau thiệp"
+          label="Đồng bộ màu phong bì cho cả Mặt trước & Mặt sau thiệp"
           checked={syncKit}
           onChange={setSyncKit}
         />
-        <p className="text-xs text-muted-foreground">
-          {syncKit
-            ? "Chọn 1 lần ăn cả phong bì in, phong bì web và 2 mặt thiệp. Xem phôi trải phẳng ở mục “Xem cả bộ”."
-            : "Đang chọn riêng màu phong bì (không đổi nền thiệp). Xem phôi trải phẳng ở mục “Xem cả bộ”."}
-        </p>
       </Section>
     </div>
   );

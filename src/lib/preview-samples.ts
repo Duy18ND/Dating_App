@@ -33,7 +33,7 @@ export function buildPreviewLetter(type: TemplateType): PublicLetter {
       recipientName: type === "wedding" ? "Bạn thân mến" : "Minh Anh",
       senderName: type === "wedding" ? "Cô dâu & Chú rể" : "Người gửi bí mật",
       style: defaultWebStyle(type),
-      sections: defaultWebSections(type),
+      sections: defaultWebSections(type, "preview"),
     },
   };
 }

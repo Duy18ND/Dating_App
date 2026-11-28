@@ -1,12 +1,13 @@
 "use client";
 
-import { MapPin } from "lucide-react";
+import { Check, Copy, MapPin, Send } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { inputClass } from "@/components/editor/ui";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { runCelebration } from "@/lib/celebrate";
 import { sendResponse } from "@/lib/client/api";
 import { formatEventDate, mapsLink } from "@/lib/event";
+import { DEFAULT_REPLY_REACTIONS } from "@/lib/responses";
 import type { ResponseInput } from "@/lib/validation";
 import type { WebCelebrateEffect, WebConfig, WebIntensity } from "@/types/letter";
 
@@ -57,17 +58,55 @@ function Problem({ message }: { message?: string }) {
   ) : null;
 }
 
-const Thanks = ({ children }: { children: ReactNode }) => (
-  <p role="status" className="font-medium text-primary">
-    {children}
-  </p>
+function CopySummaryButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 2000);
+        } catch {
+          // Bỏ qua khi trình duyệt không hỗ trợ clipboard.
+        }
+      }}
+    >
+      {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+      {copied ? "Đã chép câu trả lời" : "Chép để gửi thêm qua chat"}
+    </Button>
+  );
+}
+
+const Thanks = ({ children, copyText }: { children: ReactNode; copyText?: string }) => (
+  <div role="status" className="space-y-2.5 rounded-lg border border-primary/20 bg-accent/50 p-3.5">
+    <p className="font-medium text-primary">{children}</p>
+    <p className="text-xs text-muted-foreground">
+      Câu trả lời đã được gửi thẳng về tài khoản của người viết thư.
+    </p>
+    {copyText && <CopySummaryButton text={copyText} />}
+  </div>
 );
 
-const MAX_DODGES = 5;
-const randomOffset = () => ({
-  x: Math.round((Math.random() - 0.5) * 220),
-  y: Math.round((Math.random() - 0.5) * 120),
-});
+const DODGE_TEASES = [
+  "Ơ kìa, bấm nút bên kia cơ mà 😆",
+  "Đừng né nữa, bấm Đồng ý đi mà 🥺",
+  "Nút này hỏng rồi, chỉ bấm được Đồng ý thôi 💌",
+  "Cố nữa nút cũng chạy tiếp á 🏃‍♂️",
+  "Thôi mà, gật đầu một cái cho vui lòng người viết đi ❤️",
+] as const;
+
+function nextDodgeOffset(prev: { x: number; y: number }) {
+  for (let i = 0; i < 6; i++) {
+    const x = Math.round((Math.random() - 0.5) * 210);
+    const y = Math.round((Math.random() - 0.5) * 84);
+    if (Math.hypot(x - prev.x, y - prev.y) >= 65) return { x, y };
+  }
+  return { x: prev.x >= 0 ? -90 : 90, y: prev.y >= 0 ? -36 : 36 };
+}
 
 export function AcceptBlock({
   slug,
@@ -83,49 +122,105 @@ export function AcceptBlock({
 }) {
   const { busy, error, sent, send } = useResponse(slug, preview);
   const [dodge, setDodge] = useState({ count: 0, x: 0, y: 0 });
+  const [note, setNote] = useState("");
   const name = recipient || undefined;
 
   async function answer(status: "yes" | "no") {
-    const ok = await send({ action_type: "accept", status, responder_name: name });
+    const trimmedNote = note.trim() || undefined;
+    const ok = await send({
+      action_type: "accept",
+      status,
+      responder_name: name,
+      message: trimmedNote,
+    });
     if (ok && status === "yes") {
       runCelebration(celebrate, intensity);
     }
   }
 
-  const escape = () => setDodge(({ count }) => ({ count: count + 1, ...randomOffset() }));
-  // Né tối đa vài lần rồi chịu thua: người nhận vẫn phải từ chối được.
-  const canDodge = () =>
-    block.dodgeNo &&
-    dodge.count < MAX_DODGES &&
-    !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const escape = () =>
+    setDodge((cur) => ({ count: cur.count + 1, ...nextDodgeOffset(cur) }));
+
+  // Khi bật bắt buộc Đồng ý (dodgeNo): nút Từ chối chạy mãi không bấm được, nút Đồng ý to dần.
+  const mustAccept = block.dodgeNo;
+  const yesScale = mustAccept ? Math.min(1.24, 1 + dodge.count * 0.05) : 1;
+  const tease =
+    mustAccept && dodge.count > 0
+      ? DODGE_TEASES[(dodge.count - 1) % DODGE_TEASES.length]
+      : undefined;
+
+  const copyText =
+    sent?.action_type === "accept"
+      ? [
+          `Mình vừa trả lời thư: ${sent.status === "yes" ? block.yesText : block.noText}`,
+          sent.message ? `“${sent.message}”` : "",
+        ]
+          .filter(Boolean)
+          .join(" — ")
+      : undefined;
 
   return (
     <Card title={block.question}>
       {sent?.action_type === "accept" ? (
-        <Thanks>
-          {sent.status === "yes" ? "Tuyệt vời! Câu trả lời đã được gửi đi." : "Đã gửi câu trả lời của bạn."}
+        <Thanks copyText={copyText}>
+          {sent.status === "yes"
+            ? `Tuyệt vời! Bạn đã chọn “${block.yesText}”.`
+            : `Đã ghi nhận câu trả lời “${block.noText}”.`}
         </Thanks>
       ) : (
-        <div className="flex min-h-24 flex-wrap items-center justify-center gap-4">
-          <Button type="button" size="lg" disabled={busy} onClick={() => answer("yes")}>
-            {block.yesText}
-          </Button>
-          <Button
-            type="button"
-            size="lg"
-            variant="outline"
-            disabled={busy}
-            className="relative transition-transform duration-200"
-            style={{ transform: `translate(${dodge.x}px, ${dodge.y}px)` }}
-            onPointerEnter={(event) => event.pointerType === "mouse" && canDodge() && escape()}
-            onClick={(event) => {
-              // detail = 0 là bấm bằng bàn phím: không né để người dùng bàn phím vẫn chọn được.
-              if (event.detail > 0 && canDodge()) escape();
-              else void answer("no");
-            }}
-          >
-            {block.noText}
-          </Button>
+        <div className="space-y-3">
+          <input
+            className={inputClass}
+            aria-label="Lời nhắn kèm theo (không bắt buộc)"
+            placeholder="Nhắn kèm thêm một câu cho người viết (không bắt buộc)..."
+            maxLength={300}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+          />
+          <div className="flex min-h-24 flex-wrap items-center justify-center gap-4 py-2">
+            <Button
+              type="button"
+              size="lg"
+              disabled={busy}
+              className="transition-transform duration-200"
+              style={yesScale > 1 ? { transform: `scale(${yesScale})` } : undefined}
+              onClick={() => answer("yes")}
+            >
+              {block.yesText}
+            </Button>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              disabled={busy}
+              className="relative transition-transform duration-150"
+              style={{ transform: `translate(${dodge.x}px, ${dodge.y}px)` }}
+              onPointerEnter={(event) => {
+                if (mustAccept && event.pointerType === "mouse") escape();
+              }}
+              onPointerDown={(event) => {
+                if (mustAccept) {
+                  event.preventDefault();
+                  escape();
+                }
+              }}
+              onClick={(event) => {
+                if (mustAccept) {
+                  event.preventDefault();
+                  escape();
+                } else {
+                  void answer("no");
+                }
+              }}
+            >
+              {block.noText}
+            </Button>
+          </div>
+          {tease && (
+            <p role="status" className="text-center text-xs font-medium text-primary">
+              {tease}
+            </p>
+          )}
         </div>
       )}
       <Problem message={error} />
@@ -246,11 +341,19 @@ export function PollBlock({
 }: BlockProps & { block: Blocks["poll"] }) {
   const { busy, error, sent, send } = useResponse(slug, preview);
   const [choice, setChoice] = useState("");
+  const [note, setNote] = useState("");
+
+  const copyText =
+    sent?.action_type === "poll"
+      ? [`Mình đã bình chọn: ${sent.poll_option}`, sent.message ? `“${sent.message}”` : ""]
+          .filter(Boolean)
+          .join(" — ")
+      : undefined;
 
   return (
     <Card title={block.question}>
       {sent?.action_type === "poll" ? (
-        <Thanks>Bạn đã chọn “{sent.poll_option}”.</Thanks>
+        <Thanks copyText={copyText}>Bạn đã chọn “{sent.poll_option}”.</Thanks>
       ) : (
         <form
           className="space-y-3"
@@ -260,6 +363,7 @@ export function PollBlock({
               action_type: "poll",
               poll_option: choice,
               responder_name: recipient || undefined,
+              message: note.trim() || undefined,
             });
           }}
         >
@@ -281,8 +385,123 @@ export function PollBlock({
               </label>
             ))}
           </fieldset>
+          <input
+            className={inputClass}
+            aria-label="Ghi chú thêm (không bắt buộc)"
+            placeholder="Nhắn thêm gì đó (không bắt buộc)..."
+            maxLength={300}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+          />
           <Button type="submit" disabled={busy || !choice}>
             {busy ? "Đang gửi..." : "Gửi bình chọn"}
+          </Button>
+        </form>
+      )}
+      <Problem message={error} />
+    </Card>
+  );
+}
+
+/** Khối xác nhận đã đọc & gửi hồi âm riêng về thẳng tài khoản chủ thiệp. */
+export function ReplyBlock({
+  slug,
+  recipient,
+  preview,
+  celebrate = "confetti",
+  intensity = "medium",
+  block,
+}: BlockProps & {
+  block: Blocks["reply"];
+  celebrate?: WebCelebrateEffect;
+  intensity?: WebIntensity;
+}) {
+  const { busy, error, sent, send } = useResponse(slug, preview);
+  const reactions = (block.quickReactions ?? [...DEFAULT_REPLY_REACTIONS])
+    .map((r) => r.trim())
+    .filter(Boolean);
+  const [name, setName] = useState(recipient);
+  const [reaction, setReaction] = useState(reactions[0] ?? "");
+  const [message, setMessage] = useState("");
+
+  const canSend = Boolean(reaction.trim() || message.trim());
+  const copyText =
+    sent?.action_type === "reply"
+      ? [
+          "Mình vừa đọc bức thư của cậu rồi nè 💌",
+          sent.reaction ? `(${sent.reaction})` : "",
+          sent.message ? `“${sent.message}”` : "",
+        ]
+          .filter(Boolean)
+          .join(" ")
+      : undefined;
+
+  return (
+    <Card title={block.prompt || "Xác nhận & gửi hồi âm thư"}>
+      {sent?.action_type === "reply" ? (
+        <Thanks copyText={copyText}>
+          {sent.reaction ? `Đã gửi xác nhận “${sent.reaction}”!` : "Đã gửi hồi âm của bạn!"}
+        </Thanks>
+      ) : (
+        <form
+          className="space-y-3"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            if (!canSend) return;
+            const ok = await send({
+              action_type: "reply",
+              reaction: reaction.trim() || undefined,
+              responder_name: name.trim() || undefined,
+              message: message.trim() || undefined,
+            });
+            if (ok) runCelebration(celebrate, intensity);
+          }}
+        >
+          {reactions.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Chọn xác nhận nhanh</p>
+              <div className="flex flex-wrap gap-2">
+                {reactions.map((item) => {
+                  const active = reaction === item;
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setReaction(active ? "" : item)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                        active
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "bg-background text-foreground hover:border-primary/60 hover:bg-accent"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <input
+            className={inputClass}
+            aria-label="Tên của bạn"
+            placeholder="Tên của bạn (không bắt buộc)"
+            maxLength={100}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+          <textarea
+            className={inputClass}
+            aria-label="Lời hồi âm"
+            placeholder={block.placeholder || "Viết vài dòng trả lời hoặc cảm nhận của cậu..."}
+            rows={3}
+            maxLength={1000}
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+          />
+          <Button type="submit" disabled={busy || !canSend} className="w-full sm:w-auto">
+            <Send className="size-4" />
+            {busy ? "Đang gửi hồi âm..." : "Xác nhận & gửi hồi âm"}
           </Button>
         </form>
       )}

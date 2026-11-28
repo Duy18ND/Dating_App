@@ -10,6 +10,7 @@ export const RATE_LIMITS = {
   createLetter: { max: 5, windowSeconds: 24 * HOUR, message: "Tối đa 5 lá thư mỗi ngày" },
   editLetter: { max: 60, windowSeconds: HOUR, message: "Bạn sửa quá nhanh, thử lại sau" },
   respond: { max: 20, windowSeconds: HOUR, message: "Bạn gửi quá nhiều phản hồi, thử lại sau" },
+  review: { max: 5, windowSeconds: HOUR, message: "Bạn gửi đánh giá hơi nhanh, thử lại sau ít phút nhé" },
   view: { max: 10, windowSeconds: HOUR, message: "Đã ghi nhận lượt mở" },
 } as const;
 

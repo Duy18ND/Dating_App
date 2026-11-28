@@ -2,7 +2,7 @@
 
 import { Disc3, Gift, Heart } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { trackUrl } from "@/lib/audio-tracks";
+import { resolveAudioUrl } from "@/lib/audio-tracks";
 import { recordView } from "@/lib/client/api";
 import { inkOn } from "@/lib/render/ink";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,7 @@ export function LetterExperience({
 }) {
   const { envelopeColor, waxSealColor, senderName, audio: music } = letter.web_config;
   const name = recipient || letter.web_config.recipientName;
-  const src = music.enabled ? trackUrl(music.trackId) : null;
+  const src = music.enabled ? resolveAudioUrl(music) : null;
   const audioRef = useRef<HTMLAudioElement>(null);
   const seeked = useRef(false);
   const [step, setStep] = useState<Step>(initialStep);

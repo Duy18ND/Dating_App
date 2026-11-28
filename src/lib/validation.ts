@@ -186,14 +186,17 @@ export function collectWebImageUrls(web?: Pick<WebConfig, "sections">): string[]
  */
 export function collectUserImageUrls(
   canvas: CanvasData,
-  web?: Pick<WebConfig, "sections">,
+  web?: Pick<WebConfig, "sections"> & { audio?: Pick<WebConfig["audio"], "customUrl"> },
 ): string[] {
   const urls = allElements(canvas).flatMap((el) => (el.type === "image" && el.src ? [el.src] : []));
   for (const face of FACE_IDS) {
     const background = canvas.faces[face].background;
     if (background.type === "image") urls.push(background.value);
   }
-  if (web) urls.push(...collectWebImageUrls(web));
+  if (web) {
+    urls.push(...collectWebImageUrls(web));
+    if (web.audio?.customUrl) urls.push(web.audio.customUrl);
+  }
   return [...new Set(urls)];
 }
 
@@ -298,6 +301,17 @@ const pollSchema = z
     },
     { message: "Bình chọn cần câu hỏi và 2-4 phương án khác nhau" },
   );
+
+const replyBlockSchema = z
+  .strictObject({
+    enabled: z.boolean(),
+    prompt: z.string().max(200),
+    placeholder: z.string().max(160).optional(),
+    quickReactions: z.array(z.string().max(60)).max(6).optional(),
+  })
+  .refine((b) => !b.enabled || b.prompt.trim() !== "", {
+    message: "Nhập lời mời hồi âm cho khung trả lời thư",
+  });
 
 const sectionId = z.string().min(1).max(40);
 const optionalDate = z.string().max(40).optional();
@@ -424,11 +438,14 @@ export const webConfigSchema = z
       trackId: z.string().regex(/^[a-z0-9-]{0,60}$/),
       startTime: z.number().min(0).max(600),
       volume: z.number().min(0).max(1),
+      customUrl: z.string().max(500).refine(isHttpUrl, "URL nhạc không hợp lệ").optional(),
+      customName: z.string().max(120).optional(),
     }),
     blocks: z.strictObject({
       acceptButton: acceptButtonSchema.optional(),
       rsvp: rsvpSchema.optional(),
       poll: pollSchema.optional(),
+      reply: replyBlockSchema.optional(),
     }),
     sections: z.array(webSectionSchema).max(LIMITS.maxWebSections).optional(),
     style: webStyleSchema.optional(),
@@ -500,6 +517,24 @@ export const responseSchema = z.discriminatedUnion("action_type", [
     responder_name: responderName,
     message,
   }),
+  z
+    .strictObject({
+      action_type: z.literal("reply"),
+      reaction: z.string().trim().max(120).optional(),
+      responder_name: responderName,
+      message,
+    })
+    .refine((r) => Boolean(r.reaction || r.message), {
+      message: "Hãy chọn cảm xúc hoặc viết vài dòng hồi âm",
+    }),
 ]);
 
 export type ResponseInput = z.infer<typeof responseSchema>;
+
+export const siteReviewSchema = z.strictObject({
+  author_name: z.string().trim().min(1, "Nhập tên của bạn").max(60, "Tên tối đa 60 ký tự"),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().trim().min(3, "Viết ít nhất 3 ký tự nhận xét nhé").max(400, "Tối đa 400 ký tự"),
+});
+
+export type SiteReviewInput = z.infer<typeof siteReviewSchema>;

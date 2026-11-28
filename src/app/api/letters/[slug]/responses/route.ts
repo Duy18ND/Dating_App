@@ -10,6 +10,7 @@ function assertBlockAccepts(input: ResponseInput, blocks: WebConfig["blocks"]) {
     accept: blocks.acceptButton,
     rsvp: blocks.rsvp,
     poll: blocks.poll,
+    reply: blocks.reply,
   }[input.action_type];
   if (!block?.enabled) throw new ApiError(400, "Lá thư này không nhận loại phản hồi đó");
   if (input.action_type === "poll" && !blocks.poll?.options.includes(input.poll_option)) {
@@ -25,6 +26,21 @@ export async function POST(request: Request, ctx: RouteContext<"/api/letters/[sl
     const letter = await getActiveLetterBlocks(slug);
     assertBlockAccepts(input, letter.blocks);
     await enforceRateLimit(request, "respond", slug);
+
+    // Khối `reply` lưu vào bảng `responses` với action_type='accept', status='reply'
+    // để tương thích 100% ràng buộc CHECK (action_type IN ('accept','rsvp','poll')) không cần sửa DB.
+    if (input.action_type === "reply") {
+      await insertResponse({
+        letter_id: letter.id,
+        action_type: "accept",
+        responder_name: input.responder_name || null,
+        message: input.message || null,
+        status: "reply",
+        guest_count: null,
+        poll_option: input.reaction || null,
+      });
+      return json({ ok: true }, 201);
+    }
 
     await insertResponse({
       letter_id: letter.id,

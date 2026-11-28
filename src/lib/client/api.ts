@@ -39,6 +39,16 @@ export async function uploadImage(blob: Blob): Promise<string> {
   return url;
 }
 
+export async function uploadAudio(file: File): Promise<{ url: string; name: string }> {
+  const form = new FormData();
+  form.set("file", file);
+  return request<{ url: string; name: string }>("/api/upload/audio", {
+    method: "POST",
+    headers: await protectedHeaders(),
+    body: form,
+  });
+}
+
 export async function createLetter(payload: LetterPayload) {
   return request<{ id: string; slug: string }>(
     "/api/letters",

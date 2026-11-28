@@ -7,7 +7,7 @@ import { LetterView } from "@/components/letter/LetterView";
 import { letterUrl, previewQrUrl } from "@/lib/render/qr";
 import { resolveWebStyle } from "@/lib/web-styles";
 import { FACE_IDS, type FaceId, type PublicLetter, type WebStyleConfig } from "@/types/letter";
-import { AcceptBlock, PollBlock, RsvpBlock } from "./blocks";
+import { AcceptBlock, PollBlock, ReplyBlock, RsvpBlock } from "./blocks";
 import { CardZoomModal } from "./CardZoomModal";
 import { ScrollStory } from "./ScrollStory";
 
@@ -83,6 +83,7 @@ export function LetterContent({
       {blocks.acceptButton?.enabled && <AcceptBlock {...shared} block={blocks.acceptButton} />}
       {blocks.rsvp?.enabled && <RsvpBlock {...shared} block={blocks.rsvp} />}
       {blocks.poll?.enabled && <PollBlock {...shared} block={blocks.poll} />}
+      {blocks.reply?.enabled && <ReplyBlock {...shared} block={blocks.reply} />}
 
       <footer className="border-t pt-4 text-center text-sm text-muted-foreground">
         Tạo bằng Thư Nhỏ.{" "}

@@ -424,6 +424,37 @@ describe("POST responses", () => {
     expect(repo.insertResponse).not.toHaveBeenCalled();
   });
 
+  it("nhận xác nhận & hồi âm thư và lưu tương thích DB", async () => {
+    vi.mocked(repo.findLetterBlocksBySlug).mockResolvedValueOnce({
+      id: LETTER_ID,
+      expires_at: "2099-01-01T00:00:00Z",
+      blocks: {
+        reply: { enabled: true, prompt: "Nhắn lại mình nhé" },
+      },
+    });
+    const response = await respond(
+      send("POST", {
+        action_type: "reply",
+        reaction: "Đã nhận thư ❤️",
+        responder_name: "Minh Anh",
+        message: "Cảm ơn cậu nhiều lắm!",
+      }),
+      slugCtx,
+    );
+    expect(response.status).toBe(201);
+    expect(repo.insertResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        letter_id: LETTER_ID,
+        action_type: "accept",
+        status: "reply",
+        poll_option: "Đã nhận thư ❤️",
+        responder_name: "Minh Anh",
+        message: "Cảm ơn cậu nhiều lắm!",
+        guest_count: null,
+      }),
+    );
+  });
+
   it("chặn request từ trang khác (CSRF)", async () => {
     const evil = send("POST", { action_type: "poll", poll_option: "Lẩu" }, { origin: "https://evil.test" });
     expect((await respond(evil, slugCtx)).status).toBe(403);

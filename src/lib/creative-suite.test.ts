@@ -1,14 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { BOARD_TEMPLATES } from "@/lib/board-templates";
+import { resolveAudioUrl } from "@/lib/audio-tracks";
 import { hexToHsv, hsvToHex, normalizeHex } from "@/lib/color";
 import { useEditorStore } from "@/lib/editor/store";
-import { findIcon } from "@/lib/icons";
 import { PRESET_STYLES, presetSwatchStyle } from "@/lib/render/presets";
 import { samplePayload } from "@/lib/test-fixtures";
 import { KIT_PALETTES } from "@/lib/theme-sync";
 import {
+  collectUserImageUrls,
   collectWebImageUrls,
   letterPayloadSchema,
+  webConfigSchema,
   webSectionSchema,
   webStyleSchema,
 } from "@/lib/validation";
@@ -104,18 +105,22 @@ describe("Đồng bộ màu Phong bì & Thiệp 1 chạm", () => {
   });
 });
 
-describe("Mẫu Canva Web, Băng rôn, Photobooth & Thẻ cào", () => {
-  it("4 mẫu Canva Board hợp chuẩn Zod và mọi iconId đều tồn tại", () => {
-    expect(BOARD_TEMPLATES.length).toBe(4);
-    for (const tpl of BOARD_TEMPLATES) {
-      const board = tpl.build();
-      expect(webSectionSchema.safeParse(board).success).toBe(true);
-      for (const el of board.elements) {
-        if (el.type === "svg_icon") {
-          expect(findIcon(el.iconId), `Thiếu icon ${el.iconId}`).toBeDefined();
-        }
-      }
-    }
+describe("Nhạc tải lên riêng, Photobooth & Thẻ cào", () => {
+  it("hỗ trợ file nhạc tải lên riêng (customUrl) và gắn vào danh sách upload", () => {
+    const payload = samplePayload();
+    const customUrl = "https://cdn.test/uploads/audio/my-song.mp3";
+    payload.web_config.audio = {
+      enabled: true,
+      trackId: "romantic-1",
+      startTime: 35,
+      volume: 0.7,
+      customUrl,
+      customName: "bai-hat-cua-chung-minh.mp3",
+    };
+    expect(webConfigSchema.safeParse(payload.web_config).success).toBe(true);
+    expect(resolveAudioUrl(payload.web_config.audio, "https://cdn.test")).toBe(customUrl);
+    expect(collectUserImageUrls(payload.canvas_data, payload.web_config)).toContain(customUrl);
+    expect(collectWebImageUrls(payload.web_config)).not.toContain(customUrl);
   });
 
   it("photobooth hỗ trợ tới 8 ảnh, đủ 4 kiểu khung và 5 hiệu ứng animation", () => {

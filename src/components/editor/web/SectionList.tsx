@@ -28,7 +28,10 @@ export function SectionList({
   const sections = useEditorStore((s) => s.doc.web_config.sections);
   const blocks = useEditorStore((s) => s.doc.web_config.blocks);
   const hasBlocks = Boolean(
-    blocks.acceptButton?.enabled || blocks.rsvp?.enabled || blocks.poll?.enabled,
+    blocks.acceptButton?.enabled ||
+      blocks.rsvp?.enabled ||
+      blocks.poll?.enabled ||
+      blocks.reply?.enabled,
   );
   const { reorderWebSections, toggleWebSection, setWebSections } = useEditorStore.getState();
   const { list, drag, handleProps, markerFor } = useDragReorder(
@@ -64,9 +67,11 @@ export function SectionList({
   const missing = missingSectionTypes(sections).filter((type) => type !== "board");
 
   return (
-    <div className="space-y-4">
-      <p className="text-xs text-muted-foreground">Nắm nút ⠿ rồi kéo để đổi thứ tự.</p>
-      <ol ref={list} className="space-y-2">
+    <div className="space-y-3">
+      <p className="text-[11px] text-muted-foreground">
+        Tích để bật/tắt mục · kéo ⠿ để sắp xếp thứ tự.
+      </p>
+      <ol ref={list} className="space-y-1.5">
         {sections.map((section, index) => {
           const open = openId === section.id;
           const label = SECTION_LABELS[section.type];
@@ -75,47 +80,51 @@ export function SectionList({
             <li
               key={section.id}
               className={cn(
-                "relative rounded-lg border bg-card",
-                drag?.from === index && "z-10 border-primary opacity-90 shadow-lg",
+                "relative rounded-lg border transition-colors",
+                section.enabled ? "bg-card" : "bg-muted/40 opacity-75",
+                drag?.from === index && "z-10 border-primary opacity-95 shadow-lg",
                 markerFor(index) === "before" &&
-                  "before:absolute before:inset-x-0 before:-top-1.5 before:h-1 before:rounded before:bg-primary",
+                  "before:absolute before:inset-x-0 before:-top-1 before:h-1 before:rounded before:bg-primary",
                 markerFor(index) === "after" &&
-                  "after:absolute after:inset-x-0 after:-bottom-1.5 after:h-1 after:rounded after:bg-primary",
+                  "after:absolute after:inset-x-0 after:-bottom-1 after:h-1 after:rounded before:bg-primary",
               )}
               style={drag?.from === index ? { transform: `translateY(${drag.offset}px)` } : undefined}
             >
-              <div className="flex items-center gap-1 p-1.5">
-                <label className="flex size-10 shrink-0 cursor-pointer items-center justify-center">
+              <div className="flex items-center gap-0.5 p-1">
+                <label className="flex size-8 shrink-0 cursor-pointer items-center justify-center">
                   <input
                     type="checkbox"
                     className="size-4 accent-primary"
                     checked={section.enabled}
                     aria-label={`Hiện phần ${label}`}
-                    onChange={(event) => toggleWebSection(section.id, event.target.checked)}
+                    onChange={(event) => {
+                      toggleWebSection(section.id, event.target.checked);
+                      if (event.target.checked) onOpen(section.id);
+                    }}
                   />
                 </label>
                 <button
                   type="button"
                   aria-expanded={open}
                   onClick={() => onOpen(open ? null : section.id)}
-                  className="flex min-w-0 flex-1 items-center gap-1 py-1.5 text-left"
+                  className="flex min-w-0 flex-1 items-center gap-1.5 py-1.5 text-left"
                 >
                   <ChevronDown
                     aria-hidden
-                    className={cn("size-4 shrink-0 transition-transform", !open && "-rotate-90")}
+                    className={cn("size-3.5 shrink-0 text-muted-foreground transition-transform", !open && "-rotate-90")}
                   />
                   <span className="min-w-0">
                     <span
                       className={cn(
                         "block truncate text-sm font-medium",
-                        !section.enabled && "text-muted-foreground line-through",
+                        !section.enabled && "text-muted-foreground",
                       )}
                     >
                       {label}
                     </span>
                     {hidden && (
                       <span className="block text-[11px] text-muted-foreground">
-                        Đang trống nên sẽ tự ẩn
+                        Chưa nhập nội dung
                       </span>
                     )}
                   </span>
@@ -123,10 +132,10 @@ export function SectionList({
                 <button
                   type="button"
                   aria-label={`Kéo để đổi chỗ phần ${label}, hoặc bấm mũi tên lên xuống`}
-                  className="flex size-11 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground select-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
+                  className="flex size-8 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground select-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing"
                   {...handleProps(index)}
                 >
-                  <GripVertical aria-hidden className="size-5" />
+                  <GripVertical aria-hidden className="size-4" />
                 </button>
               </div>
               {open && (
@@ -139,9 +148,9 @@ export function SectionList({
         })}
       </ol>
       {missing.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">Thêm phần</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-1.5 pt-1">
+          <p className="text-xs font-medium text-muted-foreground">Thêm mục khác</p>
+          <div className="flex flex-wrap gap-1.5">
             {missing.map((type) => (
               <Button
                 key={type}

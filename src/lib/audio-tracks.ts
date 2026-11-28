@@ -31,3 +31,12 @@ export function trackUrl(
   if (!base || !AUDIO_TRACKS.some((track) => track.id === trackId)) return null;
   return `${base.replace(/\/$/, "")}/audio/${trackId}.mp3`;
 }
+
+/** Ưu tiên file nhạc người dùng tự tải lên, nếu không có mới lấy từ kho có sẵn. */
+export function resolveAudioUrl(
+  audio: { trackId: string; customUrl?: string },
+  base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL,
+): string | null {
+  if (audio.customUrl) return audio.customUrl;
+  return trackUrl(audio.trackId, base);
+}

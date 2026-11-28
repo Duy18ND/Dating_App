@@ -20,7 +20,6 @@ import { TextArea, TextInput } from "../TextInput";
 import { BlockSettings } from "../WebPanel";
 import { Choice } from "../ui";
 import { useImageUpload } from "../useImageUpload";
-import { BoardFields } from "./BoardFields";
 import { WebImageField } from "./WebImageField";
 
 type Of<T extends WebSectionType> = Extract<WebSection, { type: T }>;
@@ -49,9 +48,6 @@ const optional = (value: string) => value || undefined;
 function HeroFields({ section }: { section: Of<"hero"> }) {
   return (
     <>
-      <p className="text-xs text-muted-foreground">
-        Tiêu đề “Gửi [tên]” tự lấy tên người nhận (hoặc tên trong link ?to=).
-      </p>
       <WebImageField
         label="Ảnh bìa (không bắt buộc)"
         image={section.image}
@@ -62,7 +58,8 @@ function HeroFields({ section }: { section: Of<"hero"> }) {
         }
       />
       <TextArea
-        label="Câu dẫn"
+        label="Câu mở đầu"
+        placeholder="VD: Có vài điều nhỏ mình muốn gửi riêng cho cậu..."
         value={section.lead}
         maxLength={LIMITS.maxHeroLead}
         onChange={(lead) => patch(section, { lead }, "lead")}
@@ -75,7 +72,7 @@ function FirstDayFields({ section }: { section: Of<"first_day"> }) {
   return (
     <>
       <WebImageField
-        label="Ảnh (không bắt buộc)"
+        label="Ảnh kỷ niệm (không bắt buộc)"
         image={section.image}
         focusKey={`section:${section.id}:focus`}
         onChange={(image, key) =>
@@ -83,7 +80,7 @@ function FirstDayFields({ section }: { section: Of<"first_day"> }) {
         }
       />
       <TextInput
-        label="Ngày"
+        label="Ngày gặp nhau"
         type="date"
         value={section.date ?? ""}
         maxLength={40}
@@ -91,7 +88,8 @@ function FirstDayFields({ section }: { section: Of<"first_day"> }) {
       />
       <TextArea
         label="Câu chuyện"
-        rows={5}
+        placeholder="Kể lại lần đầu gặp nhau hoặc ấn tượng khó quên..."
+        rows={4}
         value={section.text}
         maxLength={LIMITS.maxFirstDayText}
         onChange={(text) => patch(section, { text }, "text")}
@@ -251,11 +249,11 @@ function CounterFields({ section }: { section: Of<"counter"> }) {
       />
       <TextInput
         label="Nhãn dưới con số"
+        placeholder="VD: Ngày bên nhau"
         value={section.label}
         maxLength={LIMITS.maxCounterLabel}
         onChange={(label) => patch(section, { label }, "label")}
       />
-      <p className="text-xs text-muted-foreground">Số ngày tính theo ngày trên máy người xem.</p>
     </>
   );
 }
@@ -265,13 +263,15 @@ function MessageFields({ section }: { section: Of<"message"> }) {
     <>
       <TextInput
         label="Tiêu đề"
+        placeholder="VD: Lời muốn gửi cậu"
         value={section.title}
         maxLength={LIMITS.maxMessageTitle}
         onChange={(title) => patch(section, { title }, "title")}
       />
       <TextArea
-        label="Nội dung (để một dòng trống để xuống đoạn)"
-        rows={10}
+        label="Nội dung bức thư"
+        placeholder="Viết những điều bạn muốn gửi gắm (để trống 1 dòng để tách đoạn)..."
+        rows={7}
         value={section.body}
         maxLength={LIMITS.maxMessageBody}
         onChange={(body) => patch(section, { body }, "body")}
@@ -285,19 +285,18 @@ function EndingFields({ section }: { section: Of<"ending"> }) {
     <>
       <TextArea
         label="Câu kết"
+        placeholder="VD: Cảm ơn cậu đã đọc đến dòng cuối này nhé..."
         value={section.text}
         maxLength={LIMITS.maxEndingText}
         onChange={(text) => patch(section, { text }, "text")}
       />
       <TextInput
-        label="Chữ ký (để trống sẽ dùng tên người gửi)"
+        label="Chữ ký (để trống sẽ lấy tên người gửi)"
+        placeholder="VD: Từ người thương"
         value={section.signature ?? ""}
         maxLength={LIMITS.maxLetterLine}
         onChange={(signature) => patch(section, { signature }, "signature")}
       />
-      <p className="text-xs text-muted-foreground">
-        Phần này kèm nút “Xem lại tấm thiệp” và gợi ý quay màn hình làm kỷ niệm.
-      </p>
     </>
   );
 }
@@ -618,6 +617,19 @@ export function SectionFields({ section }: { section: WebSection }) {
     case "ending":
       return <EndingFields section={section} />;
     case "board":
-      return <BoardFields section={section} />;
+      return (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="text-destructive"
+          onClick={() => {
+            const all = useEditorStore.getState().doc.web_config.sections ?? [];
+            useEditorStore.getState().setWebSections(all.filter((s) => s.id !== section.id));
+          }}
+        >
+          <Trash2 className="size-3.5" /> Xóa khung cũ này
+        </Button>
+      );
   }
 }

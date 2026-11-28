@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { AudioPanel } from "../AudioPanel";
-import { LetterSettings, WebProblems } from "../WebPanel";
+import { WebProblems } from "../WebPanel";
 import { SectionList } from "./SectionList";
 import { StylePicker } from "./StylePicker";
 import { WebPreview } from "./WebPreview";
@@ -11,7 +11,7 @@ import { WebPreview } from "./WebPreview";
 const TABS = [
   { id: "content", label: "Nội dung" },
   { id: "style", label: "Phong cách" },
-  { id: "letter", label: "Phong bì & nhạc" },
+  { id: "letter", label: "Nhạc nền" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -69,10 +69,13 @@ export function WebEditor({ desktop }: { desktop: boolean }) {
             {tab === "content" && <SectionList openId={openId} onOpen={setOpenId} />}
             {tab === "style" && <StylePicker />}
             {tab === "letter" && (
-              <>
-                <LetterSettings />
+              <div className="space-y-4">
                 <AudioPanel />
-              </>
+                <p className="rounded-lg border bg-accent/40 px-3 py-2.5 text-xs text-muted-foreground">
+                  Tên người nhận, người gửi, màu phong bì & dấu sáp được chỉnh tập trung 1 lần ở mục{" "}
+                  <strong className="text-foreground">Bản in → Phong bì</strong>.
+                </p>
+              </div>
             )}
             <WebProblems />
           </div>

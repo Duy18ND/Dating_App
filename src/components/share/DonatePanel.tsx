@@ -1,88 +1,50 @@
 "use client";
 
-import { Download } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Choice } from "@/components/editor/ui";
+import { Coffee, Download } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { CopyButton } from "./CopyButton";
 
-// Ảnh QR tĩnh do chủ dự án đặt vào public/ (T-02). Không có thanh toán qua API.
-const IMAGES = [
-  { value: "bank", label: "Ngân hàng", src: "/donate-qr-bank.webp" },
-  { value: "zalo", label: "ZaloPay", src: "/donate-qr-zalo.webp" },
-] as const;
+const DONATE_QR_SRC = "/donate-qr.jpg";
 
-type Tab = (typeof IMAGES)[number]["value"];
-
-const BANK = process.env.NEXT_PUBLIC_DONATE_BANK_NAME;
-const ACCOUNT = process.env.NEXT_PUBLIC_DONATE_ACCOUNT_NUMBER;
-const OWNER = process.env.NEXT_PUBLIC_DONATE_ACCOUNT_NAME;
-const HAS_DONATE_CONFIG = Boolean(BANK || ACCOUNT || OWNER);
-
-/** Chỉ dò ảnh QR khi đã cấu hình thông tin ủng hộ để tránh bắn 404 thừa. */
-function useAvailableImages() {
-  const [available, setAvailable] = useState<Tab[]>([]);
-  useEffect(() => {
-    if (!HAS_DONATE_CONFIG) return;
-    let active = true;
-    Promise.all(
-      IMAGES.map(
-        ({ value, src }) =>
-          new Promise<Tab | null>((resolve) => {
-            const image = new Image();
-            image.onload = () => resolve(value);
-            image.onerror = () => resolve(null);
-            image.src = src;
-          }),
-      ),
-    ).then((found) => active && setAvailable(found.filter((v) => v !== null)));
-    return () => {
-      active = false;
-    };
-  }, []);
-  return IMAGES.filter(({ value }) => available.includes(value));
-}
-
-export function DonatePanel() {
-  const images = useAvailableImages();
-  const [tab, setTab] = useState<Tab>("bank");
-  const current = images.find((image) => image.value === tab) ?? images[0];
-  if (!current && !ACCOUNT) return null;
-
+/** Khung QR ủng hộ ngắn gọn, dễ thương (dùng chung cho trang chia sẻ và sau khi in thiệp). */
+export function DonatePanel({ compact = false }: { compact?: boolean }) {
   return (
-    <aside className="space-y-3 rounded-xl border bg-card p-4 text-center">
-      <h3 className="font-semibold">Ủng hộ dự án</h3>
-      <p className="text-sm text-muted-foreground">
-        Công cụ hoàn toàn miễn phí. Nếu bạn thích, hãy mời tụi mình một ly trà sữa.
+    <aside
+      className={
+        compact
+          ? "space-y-2.5 rounded-xl border border-primary/20 bg-accent/40 p-3.5 text-center"
+          : "space-y-3 rounded-2xl border bg-card p-5 text-center shadow-xs"
+      }
+    >
+      <p className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-primary">
+        <Coffee className="size-4" />
+        {compact ? "Mời tụi mình 1 ly cà phê nhé ☕" : "Ủng hộ Thư Nhỏ ☕"}
       </p>
-      {images.length > 1 && (
-        <div className="flex justify-center">
-          <Choice options={[...images]} value={current.value} onChange={setTab} />
-        </div>
-      )}
-      {current && (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element -- giữ nguyên ảnh QR để quét chuẩn */}
-          <img src={current.src} alt={`Mã QR ${current.label}`} className="mx-auto w-48 rounded-md" />
-          <a
-            href={current.src}
-            download={`ung-ho-${current.value}.webp`}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            <Download /> Lưu ảnh QR
-          </a>
-        </>
-      )}
-      {ACCOUNT && (
-        <div className="space-y-1 text-sm">
-          <p>
-            {[BANK, OWNER].filter(Boolean).join(" · ")}
-            <br />
-            <span className="font-mono font-medium">{ACCOUNT}</span>
-          </p>
-          <CopyButton value={ACCOUNT} label="Copy số tài khoản" />
-        </div>
-      )}
+      <p className="mx-auto max-w-sm text-xs leading-relaxed text-muted-foreground">
+        {compact
+          ? "Web miễn phí 100%. Nếu tấm thiệp làm người ấy mỉm cười, gửi chút yêu thương nuôi server chạy mượt nhé — hoàn toàn tùy tâm ạ 💌"
+          : "Thư Nhỏ hoàn toàn miễn phí. Nếu bạn thấy hữu ích, mời tụi mình 1 ly cà phê nuôi server chạy mượt nhé — hoàn toàn tùy tâm ạ 💌"}
+      </p>
+      {/* eslint-disable-next-line @next/next/no-img-element -- giữ nguyên ảnh QR để quét chuẩn */}
+      <img
+        src={DONATE_QR_SRC}
+        alt="Mã QR ủng hộ DOAN MANH DUY"
+        className={
+          compact
+            ? "mx-auto w-44 rounded-xl border bg-white p-1 shadow-xs"
+            : "mx-auto w-52 rounded-xl border bg-white p-1.5 shadow-xs"
+        }
+      />
+      <p className="text-xs font-semibold tracking-wide text-foreground">DOAN MANH DUY</p>
+      <p className="text-[11px] text-muted-foreground">
+        Quét được từ mọi ứng dụng ngân hàng, ZaloPay & MoMo
+      </p>
+      <a
+        href={DONATE_QR_SRC}
+        download="ung-ho-thu-nho-qr.jpg"
+        className={buttonVariants({ variant: "outline", size: "sm" })}
+      >
+        <Download className="size-3.5" /> Lưu ảnh QR
+      </a>
     </aside>
   );
 }

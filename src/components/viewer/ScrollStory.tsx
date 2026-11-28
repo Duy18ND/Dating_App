@@ -23,7 +23,7 @@ import type {
   WebPhotoEffect,
   WebTextReveal,
 } from "@/types/letter";
-import { AcceptBlock, PollBlock, RsvpBlock } from "./blocks";
+import { AcceptBlock, PollBlock, ReplyBlock, RsvpBlock } from "./blocks";
 import { CardZoomModal } from "./CardZoomModal";
 import { ParticleLayer } from "./ParticleLayer";
 import { StoryBoard } from "./StoryBoard";
@@ -466,7 +466,10 @@ export function ScrollStory({
   const { blocks, senderName, sections = [] } = letter.web_config;
   const name = recipient || letter.web_config.recipientName;
   const hasBlocks = Boolean(
-    blocks.acceptButton?.enabled || blocks.rsvp?.enabled || blocks.poll?.enabled,
+    blocks.acceptButton?.enabled ||
+      blocks.rsvp?.enabled ||
+      blocks.poll?.enabled ||
+      blocks.reply?.enabled,
   );
 
   const visibleSections = sections.filter((s) => s.enabled && !isSectionEmpty(s, hasBlocks));
@@ -830,6 +833,16 @@ export function ScrollStory({
                         recipient={name}
                         preview={preview}
                         block={blocks.poll}
+                      />
+                    )}
+                    {blocks.reply?.enabled && (
+                      <ReplyBlock
+                        slug={letter.slug}
+                        recipient={name}
+                        preview={preview}
+                        celebrate={celebrate}
+                        intensity={intensity}
+                        block={blocks.reply}
                       />
                     )}
                   </Reveal>
