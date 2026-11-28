@@ -4,7 +4,7 @@ import { AccountPanel } from "@/components/account/AccountPanel";
 import { MyLetters } from "@/components/account/MyLetters";
 
 export const metadata: Metadata = {
-  title: "Thiệp của tôi | Phygital Letter Studio",
+  title: "Thiệp của tôi | Thư Nhỏ",
   robots: { index: false, follow: false },
 };
 

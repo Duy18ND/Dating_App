@@ -1,8 +1,8 @@
 "use client";
 
-import { Heart } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { BrandMark, BRAND_NAME } from "@/components/BrandMark";
 import { SignOutButton } from "@/components/account/SignOutButton";
 import { buttonVariants } from "@/components/ui/button";
 import { authBrowser } from "@/lib/supabase/browser";
@@ -34,9 +34,9 @@ export function HomeNav() {
       aria-label="Tài khoản"
       className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-2 px-4 pt-2"
     >
-      <Link href="/" className="group flex items-center gap-1.5 font-playfair text-primary">
-        <Heart aria-hidden className="wiggle-on-hover size-4 shrink-0 fill-current" />
-        <span className="text-base whitespace-nowrap sm:text-lg">Phygital Letter</span>
+      <Link href="/" className="group flex items-center gap-2 font-playfair font-semibold text-primary">
+        <BrandMark className="wiggle-on-hover size-6 shrink-0" />
+        <span className="text-base whitespace-nowrap sm:text-lg">{BRAND_NAME}</span>
       </Link>
       {/* Chưa biết trạng thái thì chưa hiện nút, thanh vẫn giữ nguyên chiều cao. */}
       <div className="flex items-center gap-1 sm:gap-2">

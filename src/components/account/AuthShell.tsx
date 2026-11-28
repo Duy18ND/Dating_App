@@ -1,6 +1,7 @@
 import { Clock, Mail, QrCode, Scissors } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { BrandMark, BRAND_NAME } from "@/components/BrandMark";
 import { CuteEnvelope } from "@/components/cute/CuteEnvelope";
 import { FloatingHearts } from "@/components/cute/FloatingHearts";
 
@@ -17,8 +18,9 @@ export function AuthShell({ children }: { children: ReactNode }) {
     <div className="grid min-h-dvh flex-1 lg:grid-cols-[5fr_6fr]">
       <aside className="relative hidden flex-col justify-between bg-primary p-12 text-primary-foreground lg:flex">
         <FloatingHearts className="text-[#FFD6DE]" />
-        <Link href="/" className="relative font-playfair text-xl">
-          Phygital Letter Studio
+        <Link href="/" className="relative inline-flex items-center gap-2 font-playfair text-xl font-semibold">
+          <BrandMark className="size-7 shrink-0" />
+          <span>{BRAND_NAME}</span>
         </Link>
         <div className="relative max-w-md space-y-8">
           <CuteEnvelope className="anim-float w-60 drop-shadow-2xl" />
@@ -43,8 +45,9 @@ export function AuthShell({ children }: { children: ReactNode }) {
 
       <main className="relative flex flex-col items-center px-4 py-6 sm:justify-center">
         <FloatingHearts className="lg:opacity-60" />
-        <Link href="/" className="relative mb-2 font-playfair text-lg text-primary lg:hidden">
-          Phygital Letter Studio
+        <Link href="/" className="relative mb-2 inline-flex items-center gap-1.5 font-playfair text-lg font-semibold text-primary lg:hidden">
+          <BrandMark className="size-6 shrink-0" />
+          <span>{BRAND_NAME}</span>
         </Link>
         <CuteEnvelope className="anim-float relative mb-2 w-24 lg:hidden" />
         <div className="anim-rise relative w-full max-w-sm sm:rounded-2xl sm:border sm:bg-card sm:p-8 sm:shadow-sm">

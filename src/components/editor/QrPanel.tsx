@@ -1,6 +1,6 @@
 "use client";
 
-import { QrCode } from "lucide-react";
+import { Eraser, QrCode, Type } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/lib/editor/store";
@@ -11,8 +11,32 @@ import { ColorField } from "./ColorField";
 import { Field, inputClass, Section, Slider } from "./ui";
 
 const QR_COLORS = ["#2B2623", "#8E2424", "#2F4A3A", "#243B5A", "#4A2C5E"];
-const MAX_QR_PX = 600;
-const { width: W, height: H, minQrPx, defaultQrPx } = PRINT_CONFIG.CANVAS;
+const MAX_QR_PX = 520;
+const { width: W, height: H, safeMarginPx: M, minQrPx, defaultQrPx } = PRINT_CONFIG.CANVAS;
+const CORNER_INSET = M + 8;
+
+const CORNERS = [
+  { id: "tl", label: "Góc trên trái" },
+  { id: "tr", label: "Góc trên phải" },
+  { id: "bl", label: "Góc dưới trái" },
+  { id: "br", label: "Góc dưới phải" },
+] as const;
+
+type CornerId = (typeof CORNERS)[number]["id"];
+
+function cornerPosition(corner: CornerId, size: number) {
+  const pad = quietZone(size);
+  const left = CORNER_INSET + pad;
+  const right = W - CORNER_INSET - pad - size;
+  const top = CORNER_INSET + pad;
+  const bottom = H - CORNER_INSET - pad - size;
+  return {
+    tl: { x: left, y: top },
+    tr: { x: right, y: top },
+    bl: { x: left, y: bottom },
+    br: { x: right, y: bottom },
+  }[corner];
+}
 
 /** Chiều rộng in thật (mm) trên thiệp, để người dùng biết mã có đủ lớn không. */
 const printedMm = (px: number) => Math.round((px / W) * PRINT_CONFIG.CARD_FACE_MM.width);
@@ -61,10 +85,15 @@ export function QrPanel() {
   const element = useEditorStore((s) =>
     s.doc.canvas_data.faces.inside.elements.find((el) => el.type === "qr_code"),
   );
+  const hasOtherOnInside = useEditorStore((s) =>
+    s.doc.canvas_data.faces.inside.elements.some((el) => el.type !== "qr_code"),
+  );
   const setFace = useEditorStore((s) => s.setFace);
   const addElement = useEditorStore((s) => s.addElement);
   const update = useEditorStore((s) => s.updateElement);
   const select = useEditorStore((s) => s.select);
+  const setEditingText = useEditorStore((s) => s.setEditingText);
+  const clearInsideForHandwriting = useEditorStore((s) => s.clearInsideForHandwriting);
   const endCoalesce = useEditorStore((s) => s.endCoalesce);
   const [colorError, setColorError] = useState(false);
 
@@ -76,21 +105,20 @@ export function QrPanel() {
           variant="outline"
           onClick={() => {
             setFace("inside");
-            // Đặt ở nửa phải mặt sau, chừa nửa trái cho lời nhắn.
+            const pos = cornerPosition("br", defaultQrPx);
             addElement({
               type: "qr_code",
-              x: Math.round(W * 0.67 - defaultQrPx / 2),
-              y: Math.round((H - defaultQrPx) / 2),
+              ...pos,
               width: defaultQrPx,
               height: defaultQrPx,
               fill: QR_COLORS[0],
             });
           }}
         >
-          <QrCode /> Thêm mã QR
+          <QrCode /> Thêm mã QR ở góc
         </Button>
         <p className="text-xs text-muted-foreground">
-          Mã QR được đặt ở mặt sau của thiệp.
+          Mã QR được đặt gọn ở góc mặt sau để chừa chỗ gõ lời nhắn hoặc viết tay.
         </p>
       </Section>
     );
@@ -99,20 +127,81 @@ export function QrPanel() {
   const color = element.fill ?? QR_COLORS[0];
   const size = element.width ?? defaultQrPx;
 
+  function addMessageBox() {
+    setFace("inside");
+    const id = addElement({
+      type: "text",
+      x: 120,
+      y: 130,
+      width: 1120,
+      text: "Viết lời nhắn của bạn ở đây...",
+      fontFamily: "Cormorant Garamond",
+      fontSize: 54,
+      fill: "#2B2623",
+      align: "left",
+    });
+    setEditingText(id);
+  }
+
   return (
     <Section title="Mã QR">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => {
-          setFace("inside");
-          select(element.id);
-        }}
-      >
-        Chọn mã trên thiệp
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setFace("inside");
+            select(element.id);
+          }}
+        >
+          Chọn mã trên thiệp
+        </Button>
+      </div>
       <QrPreview color={color} iconId={element.iconId} />
+
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-muted-foreground">Đặt nhanh vào góc</p>
+        <div className="grid grid-cols-2 gap-1.5">
+          {CORNERS.map((corner) => (
+            <Button
+              key={corner.id}
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setFace("inside");
+                update(element.id, cornerPosition(corner.id, size));
+                select(element.id);
+              }}
+            >
+              {corner.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-1.5 rounded-lg border bg-accent/40 p-2.5">
+        <p className="text-xs font-medium">Kiểu mặt sau thiệp</p>
+        <div className="flex flex-col gap-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!hasOtherOnInside}
+            onClick={clearInsideForHandwriting}
+          >
+            <Eraser /> Để trống viết tay (chỉ giữ QR)
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={addMessageBox}>
+            <Type /> Thêm khung gõ chữ trên app
+          </Button>
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Bạn có thể gõ lời nhắn ngay trên mặt sau hoặc để trống để in ra tự viết tay (bấm Ctrl+Z để
+          hoàn tác).
+        </p>
+      </div>
 
       <ColorField
         label="Màu mã"

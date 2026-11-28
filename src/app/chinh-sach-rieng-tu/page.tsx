@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { BrandMark, BRAND_NAME } from "@/components/BrandMark";
 
 export const metadata: Metadata = {
-  title: "Chính sách riêng tư | Phygital Letter Studio",
-  description: "Dữ liệu Phygital Letter Studio lưu, thời gian lưu và cách xóa.",
+  title: `Chính sách riêng tư | ${BRAND_NAME}`,
+  description: `Dữ liệu ${BRAND_NAME} lưu, thời gian lưu và cách xóa.`,
 };
 
 function Part({ title, children }: { title: string; children: ReactNode }) {
@@ -22,8 +23,9 @@ export default function PrivacyPage() {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 space-y-8 px-4 py-10">
       <header className="space-y-2">
-        <Link href="/" className="font-playfair text-lg text-primary">
-          Phygital Letter Studio
+        <Link href="/" className="inline-flex items-center gap-1.5 font-playfair text-lg font-semibold text-primary">
+          <BrandMark className="size-6 shrink-0" />
+          <span>{BRAND_NAME}</span>
         </Link>
         <h1 className="font-playfair text-3xl">Chính sách riêng tư</h1>
         <p className="text-sm text-muted-foreground">

@@ -63,9 +63,10 @@ export async function readJson(request: Request, maxBytes: number): Promise<unkn
   }
 }
 
-/** Trên Vercel hai header này do nền tảng ghi đè. Nơi khác cần proxy tin cậy đặt chúng. */
+/** Trên Cloudflare/Vercel các header này do nền tảng ghi đè. Nơi khác cần proxy tin cậy đặt chúng. */
 export function clientIp(request: Request): string {
   return (
+    request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-real-ip") ??
     request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
     "unknown"

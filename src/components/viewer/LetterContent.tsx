@@ -85,7 +85,7 @@ export function LetterContent({
       {blocks.poll?.enabled && <PollBlock {...shared} block={blocks.poll} />}
 
       <footer className="border-t pt-4 text-center text-sm text-muted-foreground">
-        Tạo bằng Phygital Letter Studio.{" "}
+        Tạo bằng Thư Nhỏ.{" "}
         <Link href="/" className="font-medium text-primary underline underline-offset-4">
           Làm một lá thư miễn phí
         </Link>

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { BRAND_NAME } from "@/components/BrandMark";
 import { fontVariables } from "@/lib/fonts";
 import "./globals.css";
 
-const title = "Phygital Letter Studio";
+const title = BRAND_NAME;
 const description = "Thiết kế thiệp, in trên giấy và gửi kèm mã QR mở thư có nhạc.";
 
 export const metadata: Metadata = {

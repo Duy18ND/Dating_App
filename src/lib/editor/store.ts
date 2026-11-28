@@ -78,6 +78,8 @@ interface EditorState {
   addElement: (element: NewElement) => string;
   updateElement: (id: string, patch: Partial<CanvasElement>, key?: string) => void;
   removeElement: (id: string) => void;
+  /** Xóa chữ/trang trí trên mặt sau, chỉ giữ lại mã QR để in trống viết tay (có thể Ctrl+Z). */
+  clearInsideForHandwriting: () => void;
   duplicateElement: (id: string) => void;
   moveLayer: (id: string, move: LayerMove) => void;
   setBackground: (patch: Partial<BackgroundConfig>, key?: string) => void;
@@ -355,6 +357,17 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       }),
     );
     if (get().selectedId === id) set({ selectedId: null, editingTextId: null });
+  },
+  clearInsideForHandwriting: () => {
+    get().commit((doc) =>
+      withElements(doc, { face: "inside" }, (elements) => {
+        const kept = elements.filter((el) => el.type === "qr_code");
+        return kept.length === elements.length ? elements : renumber(sortByLayer(kept));
+      }),
+    );
+    const { doc, selectedId } = get();
+    const stillSelected = doc.canvas_data.faces.inside.elements.some((el) => el.id === selectedId);
+    set({ face: "inside", selectedId: stillSelected ? selectedId : null, editingTextId: null });
   },
   duplicateElement: (id) => {
     const source = currentElements(get()).find((el) => el.id === id);

@@ -5,7 +5,7 @@ import { AuthForm } from "@/components/account/AuthForm";
 import { AuthShell } from "@/components/account/AuthShell";
 
 export const metadata: Metadata = {
-  title: "Đăng nhập | Phygital Letter Studio",
+  title: "Đăng nhập | Thư Nhỏ",
   robots: { index: false, follow: true },
 };
 

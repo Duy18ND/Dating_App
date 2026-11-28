@@ -150,7 +150,7 @@ describe("PRINT_CONFIG", () => {
     expect(card.y + CARD_FACE_MM.height).toBe(281);
   });
 
-  it("QR tối thiểu in ra rộng ít nhất 20 mm", () => {
-    expect((CANVAS.minQrPx / CANVAS.width) * CARD_FACE_MM.width).toBeGreaterThanOrEqual(20);
+  it("QR tối thiểu in ra rộng ít nhất 15 mm", () => {
+    expect((CANVAS.minQrPx / CANVAS.width) * CARD_FACE_MM.width).toBeGreaterThanOrEqual(15);
   });
 });

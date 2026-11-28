@@ -81,13 +81,23 @@ describe("editor store", () => {
 });
 
 describe("khóa kích thước mã QR", () => {
-  it("không cho thu nhỏ dưới 340px và luôn vuông", () => {
+  it("không cho thu nhỏ dưới 252px và luôn vuông", () => {
     state().setFace("inside");
-    const id = state().addElement({ type: "qr_code", x: 0, y: 0, width: 380, height: 380 });
+    const id = state().addElement({ type: "qr_code", x: 0, y: 0, width: 280, height: 280 });
     state().updateElement(id, { width: 100, height: 90 });
-    expect(elements()[0]).toMatchObject({ width: 340, height: 340 });
-    state().updateElement(id, { width: 420 });
-    expect(elements()[0]).toMatchObject({ width: 420, height: 420 });
+    expect(elements()[0]).toMatchObject({ width: 252, height: 252 });
+    state().updateElement(id, { width: 320 });
+    expect(elements()[0]).toMatchObject({ width: 320, height: 320 });
+  });
+
+  it("để trống mặt sau viết tay giữ lại duy nhất mã QR và hoàn tác được", () => {
+    state().setFace("inside");
+    state().addElement({ type: "text", x: 120, y: 120, text: "Lời nhắn", fontSize: 54 });
+    state().addElement({ type: "qr_code", x: 1360, y: 840, width: 280, height: 280 });
+    state().clearInsideForHandwriting();
+    expect(elements().map((el) => el.type)).toEqual(["qr_code"]);
+    state().undo();
+    expect(elements()).toHaveLength(2);
   });
 });
 

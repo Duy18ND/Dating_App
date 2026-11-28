@@ -81,7 +81,7 @@ Thiệp mini (nửa dưới A4) | Thẻ phẳng 105 x 74 mm tại x = 52,5, y = 
 Phong bì C7 (nửa trên A4) | Thành phẩm 114 x 81 mm; trải phẳng **liền một mảnh** 144 x 188 mm tại x = 33, y = 8..196 mm. Tai bên 15 mm; nắp đáy 62 mm; nắp trên 45 mm gồm vòm bo tròn và **tai cài 22 x 10 mm** ở đỉnh; hai tai bên và nắp đáy vát 8 mm | **Khe cài 26 mm** cong nhẹ trên nắp đáy, cách nếp gấp đáy 45 mm (17 mm từ mép dưới). Nét liền cắt, nét đứt gấp. **Vùng dán** trên hai tai bên chỉ gạch chéo mờ + biểu tượng giọt keo, nằm trọn trong phần nắp đáy che. Nắp trên in chữ lồng tên + một câu, **xoay 180°**. Thân (mặt trước phong bì) in 'Gửi [tên]' vẽ xuôi.  
 Tràn màu (bleed) | 2 mm ngoài mọi đường cắt có màu hoặc ảnh nền | Cắt lệch nhẹ không lộ viền trắng. Dấu cắt nằm ngoài vùng tràn.  
 Lề an toàn | 84 px (5 mm) | Khung nét đứt trên Editor, không in.  
-Mã QR | Mặc định 380 px (~22,7 mm). Tối thiểu 340 px (~20,3 mm) | Khóa trong store; nền sáng Quiet Zone 10% cạnh mỗi phía.  
+Mã QR | Mặc định 280 px (~16,7 mm) đặt gọn ở góc dưới phải mặt sau. Tối thiểu 252 px (~15 mm) | Khóa trong store; nền sáng Quiet Zone 10% cạnh mỗi phía; cho đặt nhanh 4 góc hoặc để trống mặt sau viết tay.  
 Cỡ chữ tối thiểu | 48 px (~2,9 mm, ~8 pt) | Áp dụng cho chữ trên thiệp.  
 Chất lượng xuất PDF | pixelRatio 2 (mặt thiệp 3520 x 2480 px) | Mọi nội dung có chữ vẽ thành ảnh rồi nhúng vào jsPDF (PDF không chứa ký tự chữ); chỉ nét cắt, nét gấp, dấu cắt và biểu tượng kéo vẽ vector.  
 Bản in sạch | Không in chữ hướng dẫn lên giấy | Chỉ ký hiệu tối giản. Thứ tự lắp (hiện trên web): cắt theo nét liền và khe cài → cắt thiệp theo dấu góc (được thẻ in 2 mặt) → gấp hai tai bên → bôi keo vào ô gạch chéo → gấp nắp đáy lên → bỏ thiệp vào → gấp nắp trên, cài tai vào khe.  

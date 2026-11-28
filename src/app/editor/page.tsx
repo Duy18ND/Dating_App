@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { EditorLoader } from "@/components/editor/EditorLoader";
 
 export const metadata: Metadata = {
-  title: "Trình thiết kế | Phygital Letter Studio",
+  title: "Trình thiết kế | Thư Nhỏ",
   robots: { index: false, follow: false },
 };
 

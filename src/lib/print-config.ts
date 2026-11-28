@@ -5,8 +5,8 @@ export const PRINT_CONFIG = {
     width: 1760,
     height: 1240,
     safeMarginPx: 84, // 5 mm
-    minQrPx: 340, // ~20,3 mm
-    defaultQrPx: 380, // ~22,7 mm
+    minQrPx: 252, // ~15 mm
+    defaultQrPx: 280, // ~16,7 mm
     minFontPx: 48, // ~2,9 mm
   },
   PAPER_A4_MM: { width: 210, height: 297 },

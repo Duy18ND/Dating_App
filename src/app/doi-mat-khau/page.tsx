@@ -3,7 +3,7 @@ import { AuthShell } from "@/components/account/AuthShell";
 import { NewPasswordForm } from "@/components/account/NewPasswordForm";
 
 export const metadata: Metadata = {
-  title: "Đặt mật khẩu mới | Phygital Letter Studio",
+  title: "Đặt mật khẩu mới | Thư Nhỏ",
   robots: { index: false, follow: false },
 };
 

@@ -877,7 +877,7 @@ export function ScrollStory({
                         {expiryLabel && !preview ? ` (thư sẽ tự xóa sau ngày ${expiryLabel})` : ""}.
                       </p>
                       <p>
-                        Tạo bằng Phygital Letter Studio ·{" "}
+                        Tạo bằng Thư Nhỏ ·{" "}
                         <Link
                           href="/"
                           className="font-medium underline underline-offset-4"
@@ -909,7 +909,7 @@ export function ScrollStory({
               Xem lại tấm thiệp
             </button>
             <p>
-              Tạo bằng Phygital Letter Studio ·{" "}
+              Tạo bằng Thư Nhỏ ·{" "}
               <Link href="/" className="font-medium underline underline-offset-4" style={{ color: accent }}>
                 Làm một lá thư miễn phí
               </Link>

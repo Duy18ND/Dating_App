@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore, type ComponentType } from "react";
+import { BrandMark, BRAND_NAME } from "@/components/BrandMark";
 import { PublishDialog } from "@/components/share/PublishDialog";
 import { Button } from "@/components/ui/button";
 import { currentElements, useEditorStore } from "@/lib/editor/store";
@@ -317,10 +318,11 @@ export function EditorShell() {
       <header className="flex items-center gap-2 border-b bg-card px-3 py-2">
         <Link
           href="/"
-          className="shrink-0 font-playfair text-lg text-primary"
+          className="flex shrink-0 items-center gap-1.5 font-playfair text-lg font-semibold text-primary"
           aria-label="Về trang chủ"
         >
-          Phygital Letter
+          <BrandMark className="size-6 shrink-0" />
+          <span>{BRAND_NAME}</span>
         </Link>
         <input
           className={cn(inputClass, "hidden max-w-xs md:block")}

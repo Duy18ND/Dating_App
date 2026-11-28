@@ -1,0 +1,46 @@
+import { cn } from "@/lib/utils";
+
+export const BRAND_NAME = "Thư Nhỏ";
+
+/** Logo phong bì giấy Kraft đóng dấu sáp trái tim đỏ — đồng bộ với favicon và trang chủ. */
+export function BrandMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      aria-hidden="true"
+      className={cn("size-6 shrink-0", className)}
+    >
+      {/* Thân phong bì giấy Kraft */}
+      <rect x="2" y="5.5" width="28" height="21" rx="4" fill="#D5B68D" />
+      <rect x="2.5" y="6" width="27" height="20" rx="3.5" fill="none" stroke="#B69164" strokeWidth="1" />
+      {/* Nếp gấp đáy */}
+      <path
+        d="M3.5 25 L13.5 16.5 M28.5 25 L18.5 16.5"
+        fill="none"
+        stroke="#B69164"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+      {/* Nắp tam giác trên */}
+      <path
+        d="M3.2 7.2 L16 17.6 L28.8 7.2 C28.2 6.2 27.2 5.7 26 5.7 H6 C4.8 5.7 3.8 6.2 3.2 7.2 Z"
+        fill="#C39E72"
+      />
+      <path
+        d="M3.4 7.4 L16 17.6 L28.6 7.4"
+        fill="none"
+        stroke="#A47E52"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      {/* Con dấu sáp đỏ + trái tim kem */}
+      <circle cx="16" cy="17.8" r="6.6" fill="#8E2424" />
+      <circle cx="16" cy="17.8" r="5.1" fill="none" stroke="#B44D4D" strokeWidth="0.9" />
+      <path
+        d="M16 21.1 C13.8 19.6 12.6 18.4 12.6 17 C12.6 15.9 13.4 15.2 14.4 15.2 C15.1 15.2 15.7 15.6 16 16.2 C16.3 15.6 16.9 15.2 17.6 15.2 C18.6 15.2 19.4 15.9 19.4 17 C19.4 18.4 18.2 19.6 16 21.1 Z"
+        fill="#F9F6F1"
+      />
+    </svg>
+  );
+}

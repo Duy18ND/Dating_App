@@ -50,10 +50,10 @@ describe("scalePatch", () => {
     });
   });
 
-  it("QR luôn vuông và không nhỏ hơn 340px", () => {
-    expect(scalePatch(el({ type: "qr_code", width: 380, height: 380 }), 0.5, 0.3)).toEqual({
-      width: 340,
-      height: 340,
+  it("QR luôn vuông và không nhỏ hơn 252px", () => {
+    expect(scalePatch(el({ type: "qr_code", width: 280, height: 280 }), 0.5, 0.3)).toEqual({
+      width: 252,
+      height: 252,
     });
   });
 

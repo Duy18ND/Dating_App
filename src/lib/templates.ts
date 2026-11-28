@@ -27,7 +27,10 @@ const text = (
   fontSize: number,
   fontFamily: FontName,
   fill = "#2B2623",
-  box: { x: number; width: number } = { x: M, width: CONTENT_W },
+  box: { x: number; width: number; align?: "left" | "center" | "right" } = {
+    x: M,
+    width: CONTENT_W,
+  },
 ): Draft => ({
   type: "text",
   y,
@@ -35,8 +38,9 @@ const text = (
   fontSize,
   fontFamily,
   fill,
-  align: "center",
-  ...box,
+  align: box.align ?? "center",
+  x: box.x,
+  width: box.width,
 });
 
 const icon = (iconId: string, x: number, y: number, size: number, fill: string): Draft => ({
@@ -117,24 +121,17 @@ export const TEMPLATES: Template[] = [
     inside: {
       background: { type: "preset", value: "cream", overlayOpacity: 0 },
       elements: [
-        text(240, "Có một bản nhạc\nvà câu hỏi nhỏ", 104, "Charm", "#8E2424", {
-          x: 120,
-          width: 920,
-        }),
+        text(124, "Gửi cậu,", 76, "Charm", "#8E2424", { x: 120, width: 1140, align: "left" }),
         text(
-          580,
-          "Quét mã bên cạnh để mở phong bì online\nvà nghe điều mình chưa dám nói trực tiếp.",
-          50,
+          252,
+          "Có một bản nhạc và vài điều nhỏ\nmình muốn gửi riêng cho cậu.",
+          52,
           "Cormorant Garamond",
           "#5C524B",
-          { x: 120, width: 920 },
+          { x: 120, width: 1140, align: "left" },
         ),
-        text(790, "Bật loa nhỏ thôi nha · Đọc xong bấm trả lời", 48, "Be Vietnam Pro", "#7A7067", {
-          x: 84,
-          width: 1000, // rộng hơn bản Gemini 80px để câu không tự xuống dòng
-        }),
-        icon("music-note", 520, 920, 100, "#C8A882"),
-        qr(1190, 420, 400, "#8E2424", "heart"),
+        text(742, "Quét mở thư", 48, "Be Vietnam Pro", "#7A7067", { x: 1320, width: 356 }),
+        qr(1360, 840, 280, "#8E2424", "heart"),
       ],
     },
     envelope: {
@@ -181,28 +178,21 @@ export const TEMPLATES: Template[] = [
     inside: {
       background: { type: "color", value: "#FBF6EE", overlayOpacity: 0 },
       elements: [
-        text(210, "Tiệc thành hôn", 112, "Playfair Display", "#6E1F2A", { x: 120, width: 920 }),
+        text(124, "Tiệc thành hôn", 76, "Playfair Display", "#6E1F2A", {
+          x: 120,
+          width: 1140,
+          align: "left",
+        }),
         text(
-          416,
-          "17:30 · Chủ nhật, 10.01.2027\nTrung tâm Tiệc cưới (Tên địa điểm)\nSố nhà, Đường, Quận, TP (ví dụ)",
-          52,
+          252,
+          "17:30 · Chủ nhật, 10.01.2027\nTrung tâm Tiệc cưới (Tên địa điểm)\nSố nhà, Đường, Quận, TP",
+          50,
           "Cormorant Garamond",
           "#2B2623",
-          { x: 120, width: 920 },
+          { x: 120, width: 1140, align: "left" },
         ),
-        text(
-          700,
-          "Quét mã để xác nhận tham dự\nvà xem bản đồ chỉ đường",
-          48,
-          "Be Vietnam Pro",
-          "#7A7067",
-          {
-            x: 120,
-            width: 920,
-          },
-        ),
-        icon("branch", 510, 900, 140, "#A8894F"),
-        qr(1190, 420, 400, "#6E1F2A", "rings"),
+        text(742, "Quét xác nhận", 48, "Be Vietnam Pro", "#7A7067", { x: 1320, width: 356 }),
+        qr(1360, 840, 280, "#6E1F2A", "rings"),
       ],
     },
     envelope: {
@@ -256,31 +246,21 @@ export const TEMPLATES: Template[] = [
     inside: {
       background: { type: "preset", value: "cream", overlayOpacity: 0 },
       elements: [
-        text(200, "Chốt lịch nha!", 120, "Mali", "#8E2424", { x: 120, width: 920 }),
+        text(124, "Chốt lịch nha!", 78, "Mali", "#8E2424", {
+          x: 120,
+          width: 1140,
+          align: "left",
+        }),
         text(
-          426,
-          "Thời gian: 19:00 · Thứ Bảy (ví dụ)\nĐịa điểm: [Tên quán quen]",
-          52,
+          254,
+          "Thời gian: 19:00 · Thứ Bảy\nĐịa điểm: [Tên quán quen]",
+          50,
           "Mali",
           "#2B2623",
-          {
-            x: 120,
-            width: 920,
-          },
+          { x: 120, width: 1140, align: "left" },
         ),
-        text(
-          660,
-          "Quét mã để vote món ăn\nvà xác nhận kèo tối nay!",
-          50,
-          "Be Vietnam Pro",
-          "#5C524B",
-          {
-            x: 120,
-            width: 920,
-          },
-        ),
-        icon("squiggle", 440, 890, 140, "#8E2424"),
-        qr(1190, 420, 400, "#2B2623", "toast"),
+        text(742, "Quét vote món", 48, "Be Vietnam Pro", "#7A7067", { x: 1320, width: 356 }),
+        qr(1360, 840, 280, "#2B2623", "toast"),
       ],
     },
     envelope: {
@@ -332,24 +312,21 @@ export const TEMPLATES: Template[] = [
     inside: {
       background: { type: "preset", value: "cream", overlayOpacity: 0 },
       elements: [
-        text(240, "Mở món quà nhỏ\nở bên cạnh nhé", 112, "Charm", "#2F4A3A", {
+        text(124, "Chúc cậu thật vui,", 78, "Charm", "#2F4A3A", {
           x: 120,
-          width: 920,
+          width: 1140,
+          align: "left",
         }),
         text(
-          610,
-          "Quét mã QR để nghe nhạc\nvà xem lại mấy khoảnh khắc đáng nhớ.",
-          50,
+          252,
+          "Chúc cậu một ngày rực rỡ\nvà thật nhiều niềm vui nhỏ.",
+          52,
           "Cormorant Garamond",
           "#5C524B",
-          { x: 120, width: 920 },
+          { x: 120, width: 1140, align: "left" },
         ),
-        text(820, "Giữ tấm thiệp mini này kẹp sổ tay nha", 48, "Be Vietnam Pro", "#7A7067", {
-          x: 120,
-          width: 920,
-        }),
-        icon("crown", 520, 950, 110, "#C9A227"),
-        qr(1190, 420, 400, "#2F4A3A", "star"),
+        text(742, "Quét mở quà", 48, "Be Vietnam Pro", "#7A7067", { x: 1320, width: 356 }),
+        qr(1360, 840, 280, "#2F4A3A", "star"),
       ],
     },
     envelope: {
