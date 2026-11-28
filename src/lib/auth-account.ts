@@ -74,7 +74,10 @@ export function authErrorMessage(
   kind: "username" | "email",
 ): string {
   const text = message.toLowerCase();
-  if (text.includes("captcha")) return "Xác thực chống spam thất bại, hãy thử lại.";
+  if (text.includes("chống spam")) return message;
+  if (text.includes("captcha") || text.includes("turnstile")) {
+    return "Xác thực chống spam thất bại, hãy thử lại.";
+  }
   if (text.includes("rate limit") || text.includes("too many")) {
     return "Bạn thử quá nhiều lần, hãy đợi vài phút rồi thử lại.";
   }

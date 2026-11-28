@@ -59,6 +59,18 @@ describe("authErrorMessage", () => {
     expect(authErrorMessage("User already registered", "signup", "email")).toContain("Nếu bạn");
   });
 
+  it("lỗi chống spam / Turnstile giữ đúng thông báo, không đổ lỗi sai mật khẩu", () => {
+    expect(authErrorMessage("Xác thực chống spam thất bại, hãy thử lại.", "login", "username")).toBe(
+      "Xác thực chống spam thất bại, hãy thử lại.",
+    );
+    expect(authErrorMessage("Xác thực chống spam quá lâu, hãy kiểm tra mạng rồi thử lại.", "signup", "email")).toContain(
+      "chống spam",
+    );
+    expect(authErrorMessage("captcha protection: request disallowed", "signup", "email")).toContain(
+      "chống spam",
+    );
+  });
+
   it("không bao giờ nhắc tới cấu hình Supabase", () => {
     for (const raw of ["Email not confirmed", "something odd", "Password is too weak"]) {
       expect(authErrorMessage(raw, "signup", "email")).not.toMatch(/supabase/i);
