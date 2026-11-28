@@ -43,7 +43,6 @@ export function LetterContent({
       <ScrollStory
         letter={letter}
         recipient={recipient}
-        qrUrl={qrUrl}
         resolvedStyle={resolvedStyle}
         preview={preview}
       />

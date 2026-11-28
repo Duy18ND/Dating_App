@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowDown, Calendar, Heart, MailOpen, RotateCw, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { ArrowDown, Calendar, Heart, RotateCw, Sparkles } from "lucide-react";
 import {
   useEffect,
   useRef,
@@ -24,7 +23,6 @@ import type {
   WebTextReveal,
 } from "@/types/letter";
 import { AcceptBlock, PollBlock, ReplyBlock, RsvpBlock } from "./blocks";
-import { CardZoomModal } from "./CardZoomModal";
 import { ParticleLayer } from "./ParticleLayer";
 import { StoryBoard } from "./StoryBoard";
 import { HeaderGarland, PhotoboothStrip, ScratchCard, WebPhotoFrame } from "./StoryExtras";
@@ -452,17 +450,14 @@ function MemoryCard({
 export function ScrollStory({
   letter,
   recipient,
-  qrUrl,
   resolvedStyle,
   preview,
 }: {
   letter: PublicLetter;
   recipient: string;
-  qrUrl: string;
   resolvedStyle: ResolvedWebStyle;
   preview?: boolean;
 }) {
-  const [cardModalOpen, setCardModalOpen] = useState(false);
   const { blocks, senderName, sections = [] } = letter.web_config;
   const name = recipient || letter.web_config.recipientName;
   const hasBlocks = Boolean(
@@ -514,7 +509,6 @@ export function ScrollStory({
 
   const headingStyle: CSSProperties = { fontFamily: cssFontVar(headingFont) };
   const scriptStyle: CSSProperties = { fontFamily: cssFontVar(scriptFont) };
-  const expiryLabel = formatDateVi(letter.expires_at);
 
   return (
     <div
@@ -908,77 +902,12 @@ export function ScrollStory({
                         {section.signature || `Từ ${senderName}`}
                       </p>
                     )}
-
-                    <button
-                      type="button"
-                      onClick={() => setCardModalOpen(true)}
-                      className="inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-90"
-                      style={{
-                        borderColor: accent,
-                        backgroundColor: t.surface,
-                        color: accent,
-                      }}
-                    >
-                      <MailOpen className="size-4" />
-                      Xem lại tấm thiệp
-                    </button>
-
-                    <div
-                      className="mt-6 w-full space-y-2 border-t pt-6 text-xs"
-                      style={{ borderColor: t.border, color: t.muted }}
-                    >
-                      <p>
-                        Mẹo nhỏ: bạn có thể quay màn hình lại để giữ làm kỷ niệm
-                        {expiryLabel && !preview ? ` (thư sẽ tự xóa sau ngày ${expiryLabel})` : ""}.
-                      </p>
-                      <p>
-                        Tạo bằng Thư Nhỏ ·{" "}
-                        <Link
-                          href="/"
-                          className="font-medium underline underline-offset-4"
-                          style={{ color: accent }}
-                        >
-                          Làm một lá thư miễn phí
-                        </Link>
-                      </p>
-                    </div>
                   </Reveal>
                 </section>
               );
           }
         })}
-
-        {/* Phần kết bị tắt hoặc để trống: vẫn giữ nút xem thiệp và chân trang. */}
-        {!visibleSections.some((s) => s.type === "ending") && (
-          <footer
-            className="flex flex-col items-center gap-4 border-t pt-6 text-center text-xs"
-            style={{ borderColor: t.border, color: t.muted }}
-          >
-            <button
-              type="button"
-              onClick={() => setCardModalOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-90"
-              style={{ borderColor: accent, backgroundColor: t.surface, color: accent }}
-            >
-              <MailOpen className="size-4" />
-              Xem lại tấm thiệp
-            </button>
-            <p>
-              Tạo bằng Thư Nhỏ ·{" "}
-              <Link href="/" className="font-medium underline underline-offset-4" style={{ color: accent }}>
-                Làm một lá thư miễn phí
-              </Link>
-            </p>
-          </footer>
-        )}
       </main>
-
-      <CardZoomModal
-        letter={letter}
-        qrUrl={qrUrl}
-        open={cardModalOpen}
-        onClose={() => setCardModalOpen(false)}
-      />
     </div>
   );
 }
