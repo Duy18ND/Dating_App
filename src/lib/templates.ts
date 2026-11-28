@@ -21,16 +21,18 @@ const CONTENT_W = W - M * 2;
 
 type Draft = Omit<CanvasElement, "id" | "zIndex" | "rotation"> & { rotation?: number };
 
+const DEFAULT_TEXT_BOX: { x: number; width: number; align?: "left" | "center" | "right" } = {
+  x: M,
+  width: CONTENT_W,
+};
+
 const text = (
   y: number,
   content: string,
   fontSize: number,
   fontFamily: FontName,
   fill = "#2B2623",
-  box: { x: number; width: number; align?: "left" | "center" | "right" } = {
-    x: M,
-    width: CONTENT_W,
-  },
+  box: { x: number; width: number; align?: "left" | "center" | "right" } = DEFAULT_TEXT_BOX,
 ): Draft => ({
   type: "text",
   y,

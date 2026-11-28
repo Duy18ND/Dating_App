@@ -9,7 +9,7 @@ describe("?to=", () => {
 
   it("bỏ ký tự có thể dùng để chèn mã", () => {
     expect(sanitizeRecipient('<img src=x onerror="a()">')).not.toMatch(/[<>="]/);
-    expect(sanitizeRecipient("‮\u0000<>")).toBe("");
+    expect(sanitizeRecipient("\u202E\u0000<>")).toBe("");
     expect(sanitizeRecipient(undefined)).toBe("");
   });
 

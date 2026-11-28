@@ -28,6 +28,7 @@ export function WebPreview({ focusId }: { focusId: string | null }) {
 
   useEffect(() => {
     const receive = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
       const expected = {
         origin: window.location.origin,
         source: frame.current?.contentWindow,

@@ -123,10 +123,12 @@ const withBleedArea = ({ x, y, width, height }: Rect): Rect => ({
   height: height + PRINT_CONFIG.BLEED_MM * 2,
 });
 
+const DEFAULT_PRINT_QUALITY = { pxPerMm: PRINT_PX_PER_MM };
+
 /** Các lớp ảnh của hai mặt giấy. PDF và bản xem trước chỉ khác độ phân giải. */
 export async function renderPrintKit(
   input: PrintKitInput,
-  quality: { pxPerMm: number; cardPixelRatio?: number } = { pxPerMm: PRINT_PX_PER_MM },
+  quality: { pxPerMm: number; cardPixelRatio?: number } = DEFAULT_PRINT_QUALITY,
 ) {
   const bleed = PRINT_CONFIG.BLEED_MM;
   const face = (side: CardFace) =>

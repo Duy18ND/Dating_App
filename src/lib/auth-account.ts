@@ -8,7 +8,7 @@
 export const INTERNAL_USER_DOMAIN = "user.phygital.invalid";
 const INTERNAL_SUFFIX = `@${INTERNAL_USER_DOMAIN}`;
 const USERNAME_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{1,30})[a-z0-9]$/;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 
 export type ParsedAccount =
   | { ok: true; kind: "username"; display: string; authEmail: string }

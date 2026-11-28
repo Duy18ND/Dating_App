@@ -22,9 +22,9 @@ export interface HsvColor {
 
 export function hexToHsv(hex: string): HsvColor {
   const norm = normalizeHex(hex) ?? "#8E2424";
-  const r = parseInt(norm.slice(1, 3), 16) / 255;
-  const g = parseInt(norm.slice(3, 5), 16) / 255;
-  const b = parseInt(norm.slice(5, 7), 16) / 255;
+  const r = Number.parseInt(norm.slice(1, 3), 16) / 255;
+  const g = Number.parseInt(norm.slice(3, 5), 16) / 255;
+  const b = Number.parseInt(norm.slice(5, 7), 16) / 255;
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   const d = max - min;

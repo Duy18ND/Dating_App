@@ -12,6 +12,7 @@ export function DraftPreview() {
     const parent = window.parent === window ? null : window.parent;
     const origin = window.location.origin;
     const receive = (event: MessageEvent) => {
+      if (event.origin !== origin) return;
       if (isBridgeMessage(event, { origin, source: parent, tag: "pls-editor" })) {
         setMessage(event.data as ToPreview);
       }
