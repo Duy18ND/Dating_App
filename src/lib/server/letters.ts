@@ -1,7 +1,16 @@
 import "server-only";
 import type { ManagedLetter, PublicLetter } from "@/types/letter";
 import { ApiError } from "./http";
-import { findLetterBySlug, findOwnedLetter, listResponses, type LetterRow } from "./repo";
+import {
+  findLetterBlocksBySlug,
+  findLetterBySlug,
+  findLetterMetaBySlug,
+  findOwnedLetter,
+  listResponses,
+  type LetterBlocksRow,
+  type LetterMetaRow,
+  type LetterRow,
+} from "./repo";
 
 export const SLUG_PATTERN = /^[a-z0-9]{6,12}$/;
 export const LETTER_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -25,6 +34,22 @@ export function isExpired(row: { expires_at: string }): boolean {
 /** Thư còn hạn theo slug. 404 nếu sai mã, 410 nếu quá hạn. */
 export async function getActiveLetter(slug: string): Promise<LetterRow> {
   const row = SLUG_PATTERN.test(slug) ? await findLetterBySlug(slug) : null;
+  if (!row) throw new ApiError(404, "Không tìm thấy lá thư");
+  if (isExpired(row)) throw new ApiError(410, "Lá thư đã hết hạn lưu trữ");
+  return row;
+}
+
+/** Bản nhẹ của getActiveLetter cho endpoint đếm lượt xem (không tải canvas_data/web_config). */
+export async function getActiveLetterMeta(slug: string): Promise<LetterMetaRow> {
+  const row = SLUG_PATTERN.test(slug) ? await findLetterMetaBySlug(slug) : null;
+  if (!row) throw new ApiError(404, "Không tìm thấy lá thư");
+  if (isExpired(row)) throw new ApiError(410, "Lá thư đã hết hạn lưu trữ");
+  return row;
+}
+
+/** Bản nhẹ của getActiveLetter cho endpoint gửi phản hồi (chỉ tải blocks). */
+export async function getActiveLetterBlocks(slug: string): Promise<LetterBlocksRow> {
+  const row = SLUG_PATTERN.test(slug) ? await findLetterBlocksBySlug(slug) : null;
   if (!row) throw new ApiError(404, "Không tìm thấy lá thư");
   if (isExpired(row)) throw new ApiError(410, "Lá thư đã hết hạn lưu trữ");
   return row;

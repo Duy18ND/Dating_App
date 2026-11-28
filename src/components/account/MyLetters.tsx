@@ -2,7 +2,7 @@
 
 import { Eye, MessageCircle, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CuteEnvelope } from "@/components/cute/CuteEnvelope";
 import { CuteLoader } from "@/components/cute/CuteLoader";
 import { FloatingHearts } from "@/components/cute/FloatingHearts";
@@ -35,6 +35,28 @@ function LetterCard({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
+  const thumbRef = useRef<HTMLAnchorElement>(null);
+  const [visible, setVisible] = useState(index < 6);
+
+  useEffect(() => {
+    if (visible) return;
+    const node = thumbRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [visible]);
 
   async function remove() {
     if (!window.confirm(`Xóa “${name}”? Thiệp, phản hồi và mã QR sẽ ngừng hoạt động ngay.`)) return;
@@ -55,11 +77,12 @@ function LetterCard({
       style={{ animationDelay: `${Math.min(index, 8) * 70}ms` }}
     >
       <Link
+        ref={thumbRef}
         href={`/thiep-cua-toi/${letter.id}`}
         className="block overflow-hidden rounded-sm border"
         aria-label={`Mở chi tiết ${name}`}
       >
-        {letter.front ? (
+        {letter.front && visible ? (
           <LetterView face={letter.front} qrUrl="" listening={false} />
         ) : (
           <div className="aspect-[1760/1240] bg-muted" />

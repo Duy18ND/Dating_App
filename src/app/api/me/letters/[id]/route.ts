@@ -1,6 +1,6 @@
 import { requireUser } from "@/lib/server/auth";
 import { ApiError, assertSameOrigin, handle, json, parse, readJson } from "@/lib/server/http";
-import { getOwnedLetter, toManagedLetter } from "@/lib/server/letters";
+import { getOwnedLetter, LETTER_ID_PATTERN, toManagedLetter } from "@/lib/server/letters";
 import { enforceAccountLimit } from "@/lib/server/rate-limit";
 import { deleteOwnedLetter, setLetterUploads, updateOwnedLetter } from "@/lib/server/repo";
 import { collectUserImageUrls, letterPatchSchema, LIMITS } from "@/lib/validation";
@@ -49,8 +49,9 @@ export async function DELETE(request: Request, ctx: Ctx) {
     assertSameOrigin(request);
     const user = await requireUser();
     const { id } = await ctx.params;
-    const row = await getOwnedLetter(id, user.id);
-    if (!(await deleteOwnedLetter(row.id, user.id))) throw new ApiError(404, "Không tìm thấy thiệp");
+    if (!LETTER_ID_PATTERN.test(id) || !(await deleteOwnedLetter(id, user.id))) {
+      throw new ApiError(404, "Không tìm thấy thiệp");
+    }
     return json({ ok: true });
   });
 }

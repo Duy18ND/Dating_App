@@ -1,5 +1,5 @@
-import { ApiError, handle, json, parse, readJson } from "@/lib/server/http";
-import { getActiveLetter } from "@/lib/server/letters";
+import { ApiError, assertSameOrigin, handle, json, parse, readJson } from "@/lib/server/http";
+import { getActiveLetterBlocks } from "@/lib/server/letters";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { insertResponse } from "@/lib/server/repo";
 import { responseSchema, type ResponseInput } from "@/lib/validation";
@@ -19,10 +19,11 @@ function assertBlockAccepts(input: ResponseInput, blocks: WebConfig["blocks"]) {
 
 export async function POST(request: Request, ctx: RouteContext<"/api/letters/[slug]/responses">) {
   return handle(async () => {
+    assertSameOrigin(request);
     const { slug } = await ctx.params;
     const input = parse(responseSchema, await readJson(request, 8 * 1024));
-    const letter = await getActiveLetter(slug);
-    assertBlockAccepts(input, letter.web_config.blocks);
+    const letter = await getActiveLetterBlocks(slug);
+    assertBlockAccepts(input, letter.blocks);
     await enforceRateLimit(request, "respond", slug);
 
     await insertResponse({

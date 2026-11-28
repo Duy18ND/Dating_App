@@ -4,13 +4,13 @@ import type { LetterPayload, LetterResponse, LetterSummary } from "@/types/lette
 import { requireEnv } from "./env";
 
 // Toàn bộ truy cập database nằm ở đây. Dùng service role key nên chỉ chạy phía server.
+// Tạo client mới mỗi lần gọi để tránh lỗi chia sẻ I/O giữa các request trên Cloudflare Workers.
 
-let client: SupabaseClient | undefined;
 function db(): SupabaseClient {
-  client ??= createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"), {
+  const url = process.env.SUPABASE_URL || requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+  return createClient(url, requireEnv("SUPABASE_SERVICE_ROLE_KEY"), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  return client;
 }
 
 export interface LetterRow extends LetterPayload {
@@ -53,6 +53,36 @@ export async function findLetterBySlug(slug: string) {
   return unwrap(
     await db().from("letters").select(LETTER_COLUMNS).eq("slug", slug).maybeSingle(),
   ) as LetterRow | null;
+}
+
+export interface LetterMetaRow {
+  id: string;
+  owner_id: string;
+  expires_at: string;
+}
+
+/** Chỉ đọc các cột nhẹ để đếm lượt mở mà không kéo cả JSONB canvas_data/web_config. */
+export async function findLetterMetaBySlug(slug: string) {
+  return unwrap(
+    await db().from("letters").select("id, owner_id, expires_at").eq("slug", slug).maybeSingle(),
+  ) as LetterMetaRow | null;
+}
+
+export interface LetterBlocksRow {
+  id: string;
+  expires_at: string;
+  blocks: LetterPayload["web_config"]["blocks"];
+}
+
+/** Chỉ đọc blocks để xác thực phản hồi mà không kéo canvas_data. */
+export async function findLetterBlocksBySlug(slug: string) {
+  return unwrap(
+    await db()
+      .from("letters")
+      .select("id, expires_at, blocks:web_config->blocks")
+      .eq("slug", slug)
+      .maybeSingle(),
+  ) as LetterBlocksRow | null;
 }
 
 /** Mọi truy vấn của chủ thiệp lọc theo owner_id: thiệp của người khác coi như không tồn tại. */

@@ -6,6 +6,8 @@ vi.mock("@/lib/server/repo", () => ({
   consumeRateLimit: vi.fn(),
   insertLetter: vi.fn(),
   findLetterBySlug: vi.fn(),
+  findLetterMetaBySlug: vi.fn(),
+  findLetterBlocksBySlug: vi.fn(),
   findOwnedLetter: vi.fn(),
   listOwnedLetters: vi.fn(),
   updateOwnedLetter: vi.fn(),
@@ -121,12 +123,22 @@ beforeEach(() => {
   vi.stubEnv("TURNSTILE_SECRET_KEY", "");
   vi.mocked(repo.consumeRateLimit).mockResolvedValue(true);
   vi.mocked(repo.findLetterBySlug).mockResolvedValue(row());
+  vi.mocked(repo.findLetterMetaBySlug).mockImplementation(async () => {
+    const r = row();
+    return { id: r.id, owner_id: r.owner_id, expires_at: r.expires_at };
+  });
+  vi.mocked(repo.findLetterBlocksBySlug).mockImplementation(async () => {
+    const r = row();
+    return { id: r.id, expires_at: r.expires_at, blocks: r.web_config.blocks };
+  });
   // Như truy vấn thật: chỉ thấy thư khi đúng chủ.
   vi.mocked(repo.findOwnedLetter).mockImplementation(async (id, ownerId) =>
     id === LETTER_ID && ownerId === OWNER.id ? row() : null,
   );
   vi.mocked(repo.updateOwnedLetter).mockResolvedValue(true);
-  vi.mocked(repo.deleteOwnedLetter).mockResolvedValue(true);
+  vi.mocked(repo.deleteOwnedLetter).mockImplementation(
+    async (id, ownerId) => id === LETTER_ID && ownerId === OWNER.id,
+  );
   vi.mocked(repo.setLetterUploads).mockResolvedValue(true);
   vi.mocked(repo.listResponses).mockResolvedValue([]);
   vi.mocked(repo.insertLetter).mockImplementation(async (input) => ({ ...row(), ...input }));
@@ -259,7 +271,7 @@ describe("/api/me/letters/[id]: chỉ chính chủ", () => {
     expect((await editMine(send("PATCH", { title: "Hack" }), idCtx)).status).toBe(404);
     expect((await deleteMine(send("DELETE", {}), idCtx)).status).toBe(404);
     expect(repo.updateOwnedLetter).not.toHaveBeenCalled();
-    expect(repo.deleteOwnedLetter).not.toHaveBeenCalled();
+    expect(repo.deleteOwnedLetter).toHaveBeenCalledWith(LETTER_ID, STRANGER.id);
     // Người lạ cũng không chiếm được ảnh của thư qua PATCH.
     const steal = send("PATCH", { canvas_data: samplePayload().canvas_data }, {});
     expect((await editMine(steal, idCtx)).status).toBe(404);
@@ -374,6 +386,13 @@ describe("POST view", () => {
     expect(await (await view(send("POST", {}), slugCtx)).json()).toEqual({ ok: true, counted: false });
     expect(repo.registerView).not.toHaveBeenCalled();
   });
+
+  it("chặn request từ trang khác (CSRF)", async () => {
+    signIn(null);
+    const evil = send("POST", {}, { origin: "https://evil.test" });
+    expect((await view(evil, slugCtx)).status).toBe(403);
+    expect(repo.registerView).not.toHaveBeenCalled();
+  });
 });
 
 describe("POST responses", () => {
@@ -390,6 +409,12 @@ describe("POST responses", () => {
     expect((await respond(unknown, slugCtx)).status).toBe(400);
     const disabled = send("POST", { action_type: "accept", status: "yes" });
     expect((await respond(disabled, slugCtx)).status).toBe(400);
+    expect(repo.insertResponse).not.toHaveBeenCalled();
+  });
+
+  it("chặn request từ trang khác (CSRF)", async () => {
+    const evil = send("POST", { action_type: "poll", poll_option: "Lẩu" }, { origin: "https://evil.test" });
+    expect((await respond(evil, slugCtx)).status).toBe(403);
     expect(repo.insertResponse).not.toHaveBeenCalled();
   });
 });

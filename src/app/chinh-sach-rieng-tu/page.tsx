@@ -45,8 +45,8 @@ export default function PrivacyPage() {
             chọn, các phần của trang web.
           </li>
           <li>
-            <strong>Ảnh bạn tải lên:</strong> lưu trên Cloudflare R2. Ai có link thiệp đều xem
-            được ảnh trong thiệp đó.
+            <strong>Ảnh bạn tải lên:</strong> lưu trên kho lưu trữ đám mây (Supabase Storage /
+            Cloudflare R2). Ai có link thiệp đều xem được ảnh trong thiệp đó.
           </li>
           <li>
             <strong>Phản hồi của người nhận:</strong> câu trả lời Đồng ý, xác nhận tham dự, bình
@@ -98,9 +98,9 @@ export default function PrivacyPage() {
 
       <Part title="5. Bên xử lý dữ liệu">
         <p>
-          Supabase (cơ sở dữ liệu và đăng nhập), Cloudflare (kho ảnh, nhạc và chống spam
-          Turnstile), Vercel (máy chủ web), Google (chỉ khi bạn chọn đăng nhập bằng Google). Chúng
-          tôi không bán hay chia sẻ dữ liệu cho bên nào khác.
+          Supabase (cơ sở dữ liệu, đăng nhập và lưu trữ ảnh), Cloudflare Workers (máy chủ web, kho
+          nhạc và chống spam Turnstile), Google (chỉ khi bạn chọn đăng nhập bằng Google). Chúng tôi
+          không bán hay chia sẻ dữ liệu cho bên nào khác.
         </p>
       </Part>
 

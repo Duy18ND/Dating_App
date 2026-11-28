@@ -17,11 +17,13 @@ type Tab = (typeof IMAGES)[number]["value"];
 const BANK = process.env.NEXT_PUBLIC_DONATE_BANK_NAME;
 const ACCOUNT = process.env.NEXT_PUBLIC_DONATE_ACCOUNT_NUMBER;
 const OWNER = process.env.NEXT_PUBLIC_DONATE_ACCOUNT_NAME;
+const HAS_DONATE_CONFIG = Boolean(BANK || ACCOUNT || OWNER);
 
-/** Chỉ hiện những ảnh thật sự tồn tại. */
+/** Chỉ dò ảnh QR khi đã cấu hình thông tin ủng hộ để tránh bắn 404 thừa. */
 function useAvailableImages() {
   const [available, setAvailable] = useState<Tab[]>([]);
   useEffect(() => {
+    if (!HAS_DONATE_CONFIG) return;
     let active = true;
     Promise.all(
       IMAGES.map(

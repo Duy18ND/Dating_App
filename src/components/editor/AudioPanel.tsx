@@ -12,11 +12,24 @@ const MAX_START = 600;
 const clock = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
-/** Nghe thử ngay tại chỗ, bắt đầu đúng giây đã chọn. Đổi `key` theo url để đặt lại trạng thái. */
-function Preview({ url, startTime, volume }: { url: string; startTime: number; volume: number }) {
+/** Nghe thử ngay tại chỗ và đọc thời lượng từ đúng 1 thẻ audio duy nhất. */
+function AudioPlayer({
+  url,
+  startTime,
+  volume,
+  onStartTimeChange,
+  onCommit,
+}: {
+  url: string;
+  startTime: number;
+  volume: number;
+  onStartTimeChange: (value: number) => void;
+  onCommit: () => void;
+}) {
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [duration, setDuration] = useState<number>();
 
   useEffect(() => {
     if (audio.current) audio.current.volume = volume;
@@ -35,12 +48,28 @@ function Preview({ url, startTime, volume }: { url: string; startTime: number; v
     player.play().catch(() => setFailed(true));
   }
 
+  const max = Math.min(MAX_START, Math.max(0, Math.floor((duration ?? MAX_START) - 5)));
+
   return (
     <>
+      <Slider
+        label="Bắt đầu từ (điệp khúc)"
+        min={0}
+        max={max}
+        step={1}
+        value={Math.min(startTime, max)}
+        format={clock}
+        onChange={onStartTimeChange}
+        onCommit={onCommit}
+      />
       <audio
         ref={audio}
         src={url}
         preload="metadata"
+        onLoadedMetadata={(event) => {
+          const d = event.currentTarget.duration;
+          if (Number.isFinite(d) && d > 0) setDuration(d);
+        }}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onError={() => setFailed(true)}
@@ -55,44 +84,6 @@ function Preview({ url, startTime, volume }: { url: string; startTime: number; v
         </p>
       )}
     </>
-  );
-}
-
-function StartTimeSlider({
-  url,
-  value,
-  onChange,
-  onCommit,
-}: {
-  url: string;
-  value: number;
-  onChange: (value: number) => void;
-  onCommit: () => void;
-}) {
-  const [duration, setDuration] = useState<number>();
-  useEffect(() => {
-    const probe = new Audio();
-    probe.preload = "metadata";
-    probe.onloadedmetadata = () => setDuration(probe.duration);
-    probe.src = url;
-    return () => {
-      probe.onloadedmetadata = null;
-      probe.removeAttribute("src");
-    };
-  }, [url]);
-
-  const max = Math.min(MAX_START, Math.max(0, Math.floor((duration ?? MAX_START) - 5)));
-  return (
-    <Slider
-      label="Bắt đầu từ (điệp khúc)"
-      min={0}
-      max={max}
-      step={1}
-      value={Math.min(value, max)}
-      format={clock}
-      onChange={onChange}
-      onCommit={onCommit}
-    />
   );
 }
 
@@ -131,21 +122,14 @@ export function AudioPanel() {
             </select>
           </Field>
           {url ? (
-            <>
-              <StartTimeSlider
-                key={url}
-                url={url}
-                value={audio.startTime}
-                onChange={(startTime) => set({ startTime }, "audio-start")}
-                onCommit={endCoalesce}
-              />
-              <Preview
-                key={`preview:${url}`}
-                url={url}
-                startTime={audio.startTime}
-                volume={audio.volume}
-              />
-            </>
+            <AudioPlayer
+              key={url}
+              url={url}
+              startTime={audio.startTime}
+              volume={audio.volume}
+              onStartTimeChange={(startTime) => set({ startTime }, "audio-start")}
+              onCommit={endCoalesce}
+            />
           ) : (
             <p className="text-sm text-muted-foreground">
               Chưa cấu hình kho nhạc nên chưa nghe thử được.
