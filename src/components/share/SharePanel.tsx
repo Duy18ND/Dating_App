@@ -4,9 +4,7 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 import { inputClass, Toggle } from "@/components/editor/ui";
 import { Button } from "@/components/ui/button";
-import { recipientLink, sanitizeRecipient } from "@/lib/recipient";
 import { createQrBlob, letterUrl, quietZone } from "@/lib/render/qr";
-import { LIMITS } from "@/lib/validation";
 import type { CanvasData } from "@/types/letter";
 import { CopyButton } from "./CopyButton";
 import { PrintDialog } from "./PrintDialog";
@@ -51,7 +49,7 @@ export function LinkRow({ label, url }: { label: string; url: string }) {
   );
 }
 
-/** Link ngắn, QR tải PNG, link riêng theo khách và nút PDF. Dùng ở modal xuất bản và trang quản lý. */
+/** Link bí mật duy nhất, QR tải PNG và nút xuất PDF. Dùng ở modal xuất bản và trang quản lý. */
 export function SharePanel({
   slug,
   canvas,
@@ -65,7 +63,6 @@ export function SharePanel({
   recipientName: string;
   defaultHideBackground?: boolean;
 }) {
-  const [guest, setGuest] = useState("");
   const [error, setError] = useState<string>();
   const [hideBackground, setHideBackground] = useState(defaultHideBackground);
   // Thành phần này chỉ dựng sau thao tác trên trình duyệt nên luôn có window.
@@ -90,20 +87,6 @@ export function SharePanel({
           {error}
         </p>
       )}
-
-      <div className="space-y-2 rounded-lg border p-3">
-        <label className="block space-y-1">
-          <span className="text-sm font-medium">Tạo link riêng cho từng người</span>
-          <input
-            className={inputClass}
-            placeholder="Tên người nhận riêng, ví dụ Minh Anh"
-            maxLength={LIMITS.maxNameLength}
-            value={guest}
-            onChange={(event) => setGuest(event.target.value)}
-          />
-        </label>
-        {sanitizeRecipient(guest) && <LinkRow label="Link riêng" url={recipientLink(url, guest)} />}
-      </div>
 
       <div className="space-y-2">
         <PrintDialog

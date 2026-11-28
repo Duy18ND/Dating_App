@@ -118,7 +118,7 @@ describe("Nhạc tải lên riêng, Photobooth & Thẻ cào", () => {
       customName: "bai-hat-cua-chung-minh.mp3",
     };
     expect(webConfigSchema.safeParse(payload.web_config).success).toBe(true);
-    expect(resolveAudioUrl(payload.web_config.audio, "https://cdn.test")).toBe(customUrl);
+    expect(resolveAudioUrl(payload.web_config.audio)).toBe(customUrl);
     expect(collectUserImageUrls(payload.canvas_data, payload.web_config)).toContain(customUrl);
     expect(collectWebImageUrls(payload.web_config)).not.toContain(customUrl);
   });

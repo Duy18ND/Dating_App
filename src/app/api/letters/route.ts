@@ -6,8 +6,8 @@ import { deleteLetter, insertLetter, setLetterUploads } from "@/lib/server/repo"
 import { verifyTurnstile } from "@/lib/server/turnstile";
 import { collectUserImageUrls, letterPayloadSchema, LIMITS } from "@/lib/validation";
 
-// Chữ thường và số để link dễ đọc, dễ gõ (VD: /l/k9x2m1).
-const newSlug = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 6);
+// Chuỗi bí mật ngẫu nhiên 12 ký tự không trùng nhau (khớp VARCHAR(12) UNIQUE trong DB).
+const newSlug = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 12);
 
 export async function POST(request: Request) {
   return handle(async () => {

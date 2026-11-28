@@ -157,11 +157,11 @@ beforeEach(() => {
 });
 
 describe("POST /api/letters", () => {
-  it("lưu với chủ là người đang đăng nhập, trả id và slug 6 ký tự", async () => {
+  it("lưu với chủ là người đang đăng nhập, trả id và slug bí mật 12 ký tự", async () => {
     const response = await createLetter(send("POST", samplePayload()));
     const body = await response.json();
     expect(response.status).toBe(201);
-    expect(body).toEqual({ id: LETTER_ID, slug: expect.stringMatching(/^[a-z0-9]{6}$/) });
+    expect(body).toEqual({ id: LETTER_ID, slug: expect.stringMatching(/^[a-z0-9]{12}$/) });
     expect(repo.insertLetter).toHaveBeenCalledWith(expect.objectContaining({ owner_id: OWNER.id }));
   });
 

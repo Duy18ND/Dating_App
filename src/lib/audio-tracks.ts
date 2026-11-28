@@ -13,15 +13,21 @@ export const AUDIO_MOODS = [
 export type AudioMood = (typeof AUDIO_MOODS)[number]["id"];
 
 export const AUDIO_TRACKS: { id: string; label: string; mood: AudioMood }[] = [
-  { id: "romantic-1", label: "Lãng mạn 1", mood: "romantic" },
-  { id: "romantic-2", label: "Lãng mạn 2", mood: "romantic" },
-  { id: "wedding-1", label: "Ngày cưới 1", mood: "wedding" },
-  { id: "wedding-2", label: "Ngày cưới 2", mood: "wedding" },
-  { id: "fun-1", label: "Vui nhộn 1", mood: "fun" },
-  { id: "fun-2", label: "Vui nhộn 2", mood: "fun" },
-  { id: "festive-1", label: "Sinh nhật", mood: "festive" },
-  { id: "festive-2", label: "Giáng sinh", mood: "festive" },
+  { id: "romantic-1", label: "Piano lãng mạn", mood: "romantic" },
+  { id: "romantic-2", label: "Hộp nhạc dịu dàng", mood: "romantic" },
+  { id: "wedding-1", label: "Khúc Canon ngày cưới", mood: "wedding" },
+  { id: "wedding-2", label: "Vũ điệu Waltz nhẹ", mood: "wedding" },
+  { id: "fun-1", label: "Kalimba vui tươi", mood: "fun" },
+  { id: "fun-2", label: "Giai điệu hẹn hò", mood: "fun" },
+  { id: "festive-1", label: "Chúc mừng sinh nhật", mood: "festive" },
+  { id: "festive-2", label: "Chuông Giáng sinh", mood: "festive" },
 ];
+
+/** File nhạc tích hợp sẵn trong `public/audio/<id>.wav` (luôn phát được không cần cấu hình thêm). */
+export function localTrackUrl(trackId: string): string | null {
+  if (!AUDIO_TRACKS.some((track) => track.id === trackId)) return null;
+  return `/audio/${trackId}.wav`;
+}
 
 /** null nếu mã bài lạ hoặc chưa cấu hình R2. */
 export function trackUrl(
@@ -32,11 +38,10 @@ export function trackUrl(
   return `${base.replace(/\/$/, "")}/audio/${trackId}.mp3`;
 }
 
-/** Ưu tiên file nhạc người dùng tự tải lên, nếu không có mới lấy từ kho có sẵn. */
+/** Ưu tiên file nhạc người dùng tự tải lên, nếu không có thì phát nhạc tích hợp sẵn. */
 export function resolveAudioUrl(
   audio: { trackId: string; customUrl?: string },
-  base = process.env.NEXT_PUBLIC_R2_PUBLIC_URL,
 ): string | null {
   if (audio.customUrl) return audio.customUrl;
-  return trackUrl(audio.trackId, base);
+  return localTrackUrl(audio.trackId);
 }
