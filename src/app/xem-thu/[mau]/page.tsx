@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps<"/xem-thu/[mau]">):
   if (!type) return { title: "Không tìm thấy mẫu xem thử" };
   const letter = buildPreviewLetter(type);
   return {
-    title: `Xem thử: ${letter.title} · Phygital Letter Studio`,
+    title: `Xem thử: ${letter.title} · Thư Nhỏ`,
     description: "Trang xem thử trải nghiệm mở phong bì và lướt đọc trang web bày tỏ.",
   };
 }

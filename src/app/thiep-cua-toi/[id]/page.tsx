@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { LetterDetail } from "@/components/account/LetterDetail";
 
 export const metadata: Metadata = {
-  title: "Chi tiết thiệp | Phygital Letter Studio",
+  title: "Chi tiết thiệp | Thư Nhỏ",
   robots: { index: false, follow: false },
 };
 
