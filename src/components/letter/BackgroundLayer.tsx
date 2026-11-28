@@ -12,8 +12,26 @@ import { useImage } from "./hooks";
 
 const { width: W, height: CARD_H } = PRINT_CONFIG.CANVAS;
 
+function drawTinyHeart(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy + r);
+  ctx.bezierCurveTo(cx - r * 1.4, cy + r * 0.2, cx - r * 1.2, cy - r * 0.9, cx, cy - r * 0.35);
+  ctx.bezierCurveTo(cx + r * 1.2, cy - r * 0.9, cx + r * 1.4, cy + r * 0.2, cx, cy + r);
+  ctx.fill();
+}
+
+function drawTinyStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - r);
+  ctx.quadraticCurveTo(cx, cy, cx + r, cy);
+  ctx.quadraticCurveTo(cx, cy, cx, cy + r);
+  ctx.quadraticCurveTo(cx, cy, cx - r, cy);
+  ctx.quadraticCurveTo(cx, cy, cx, cy - r);
+  ctx.fill();
+}
+
 function PresetBackground({ preset, height: H }: { preset: BackgroundPreset; height: number }) {
-  const style = PRESET_STYLES[preset];
+  const style = PRESET_STYLES[preset] ?? PRESET_STYLES.cream;
   return (
     <>
       <Rect width={W} height={H} fill={style.base} />
@@ -22,20 +40,59 @@ function PresetBackground({ preset, height: H }: { preset: BackgroundPreset; hei
           listening={false}
           sceneFunc={(context) => {
             const ctx = context._context;
-            const { step, color, lineWidth } = style.pattern!;
+            const { kind, step, color, lineWidth } = style.pattern!;
             ctx.save();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-            ctx.beginPath();
-            for (let x = step; x < W; x += step) {
-              ctx.moveTo(x, 0);
-              ctx.lineTo(x, H);
+            if (kind === "grid") {
+              ctx.strokeStyle = color;
+              ctx.lineWidth = lineWidth;
+              ctx.beginPath();
+              for (let x = step; x < W; x += step) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, H);
+              }
+              for (let y = step; y < H; y += step) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(W, y);
+              }
+              ctx.stroke();
+            } else if (kind === "stripes") {
+              ctx.fillStyle = color;
+              for (let x = 0; x < W; x += step * 2) {
+                ctx.fillRect(x, 0, lineWidth, H);
+              }
+            } else if (kind === "dots") {
+              ctx.fillStyle = color;
+              for (let y = step / 2, row = 0; y < H; y += step, row++) {
+                const offset = row % 2 === 0 ? step / 2 : step;
+                for (let x = offset; x < W; x += step) {
+                  ctx.beginPath();
+                  ctx.arc(x, y, lineWidth, 0, Math.PI * 2);
+                  ctx.fill();
+                }
+              }
+            } else if (kind === "hearts") {
+              ctx.fillStyle = color;
+              for (let y = step / 2, row = 0; y < H; y += step, row++) {
+                const offset = row % 2 === 0 ? step / 2 : step;
+                for (let x = offset; x < W; x += step) {
+                  drawTinyHeart(ctx, x, y, 12);
+                }
+              }
+            } else if (kind === "stars") {
+              ctx.fillStyle = color;
+              for (let y = step / 2, row = 0; y < H; y += step, row++) {
+                const offset = row % 2 === 0 ? step * 0.4 : step * 0.9;
+                for (let x = offset; x < W; x += step) {
+                  drawTinyStar(ctx, x, y, (row + Math.round(x)) % 3 === 0 ? 11 : 6);
+                }
+              }
+            } else if (kind === "frame") {
+              ctx.strokeStyle = color;
+              ctx.lineWidth = lineWidth;
+              ctx.strokeRect(step, step, W - step * 2, H - step * 2);
+              ctx.lineWidth = Math.max(1.5, lineWidth * 0.5);
+              ctx.strokeRect(step + 14, step + 14, W - (step + 14) * 2, H - (step + 14) * 2);
             }
-            for (let y = step; y < H; y += step) {
-              ctx.moveTo(0, y);
-              ctx.lineTo(W, y);
-            }
-            ctx.stroke();
             ctx.restore();
           }}
         />
@@ -53,7 +110,6 @@ function PhotoBackground({ background, height: H }: { background: BackgroundConf
     [image, H],
   );
 
-  // Bộ lọc của Konva chỉ chạy trên node đã cache. pixelRatio 1 đủ cho ảnh đã làm mờ.
   useEffect(() => {
     const node = ref.current;
     if (!node || !image) return;

@@ -29,6 +29,7 @@ const NO_OVERRIDES: Omit<WebStyleConfig, "theme" | "intensity"> = {
   particle: undefined,
   counter: undefined,
   celebrate: undefined,
+  garland: undefined,
 };
 
 const ACCENTS = ["#8E2424", "#B83B63", "#B83D24", "#2F4A3A", "#243B5A", "#E8C36B"];
@@ -161,7 +162,14 @@ export function StylePicker() {
         />
       </Section>
 
-      <Section title="Hiệu ứng">
+      <Section title="Hiệu ứng & Trang trí">
+        <EffectSelect<string>
+          label="Băng rôn / Dây treo đầu trang"
+          options={EFFECT_CATALOG.garland}
+          value={style.garland}
+          fallback="none"
+          onChange={(value) => setWebStyle({ garland: value as WebStyleConfig["garland"] })}
+        />
         {EFFECTS.map(({ key, label }) => (
           <EffectSelect<string>
             key={key}

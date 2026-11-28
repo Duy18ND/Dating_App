@@ -1,10 +1,11 @@
 "use client";
 
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, Sparkles } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { currentBackground, useEditorStore } from "@/lib/editor/store";
-import { PRESET_STYLES } from "@/lib/render/presets";
+import { PRESET_STYLES, presetSwatchStyle } from "@/lib/render/presets";
+import { KIT_PALETTES } from "@/lib/theme-sync";
 import { cn } from "@/lib/utils";
 import { BACKGROUND_PRESETS, type BackgroundConfig } from "@/types/letter";
 import { ColorField } from "./ColorField";
@@ -27,6 +28,8 @@ export function BackgroundPanel() {
   const hideForPrint = useEditorStore((s) => s.printHideBackground);
   const setHideForPrint = useEditorStore((s) => s.setPrintHideBackground);
   const setBackground = useEditorStore((s) => s.setBackground);
+  const syncCardAndEnvelopeTheme = useEditorStore((s) => s.syncCardAndEnvelopeTheme);
+  const applyKitPalette = useEditorStore((s) => s.applyKitPalette);
   const endCoalesce = useEditorStore((s) => s.endCoalesce);
   const input = useRef<HTMLInputElement>(null);
   const { upload, busy, error, full } = useImageUpload();
@@ -63,13 +66,13 @@ export function BackgroundPanel() {
               aria-pressed={background.value === preset}
               onClick={() => setBackground({ value: preset })}
               className={cn(
-                "rounded-md border bg-card p-2 text-left text-sm hover:bg-accent",
+                "rounded-md border bg-card p-2 text-left text-xs font-medium hover:bg-accent",
                 background.value === preset && "border-primary ring-2 ring-ring",
               )}
             >
               <span
-                className="mb-1 block h-10 rounded border"
-                style={{ backgroundColor: PRESET_STYLES[preset].base }}
+                className="mb-1.5 block h-9 rounded border border-black/10"
+                style={presetSwatchStyle(preset)}
               />
               {PRESET_STYLES[preset].label}
             </button>
@@ -155,11 +158,52 @@ export function BackgroundPanel() {
       )}
 
       {!onBoard && (
-        <Toggle
-        label="Ẩn nền khi in (giấy Kraft hoặc giấy màu)"
-        checked={hideForPrint}
-        onChange={setHideForPrint}
-      />
+        <>
+          <div className="space-y-2 border-t pt-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() => syncCardAndEnvelopeTheme()}
+            >
+              <Sparkles className="size-3.5" /> Đồng bộ màu cho cả Thiệp &amp; Phong bì
+            </Button>
+            <p className="text-xs font-medium text-muted-foreground">
+              Hoặc chọn bộ phối màu 1 chạm (Thiệp + Phong bì + Web)
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {KIT_PALETTES.map((palette) => (
+                <button
+                  key={palette.id}
+                  type="button"
+                  onClick={() => applyKitPalette(palette)}
+                  className="flex items-center gap-2 rounded-md border bg-card px-2 py-1.5 text-left text-xs hover:border-primary hover:bg-accent"
+                >
+                  <span className="flex shrink-0 -space-x-1">
+                    <span
+                      aria-hidden
+                      className="size-3.5 rounded-full border border-black/15"
+                      style={{ backgroundColor: palette.swatches[0] }}
+                    />
+                    <span
+                      aria-hidden
+                      className="size-3.5 rounded-full border border-black/15"
+                      style={{ backgroundColor: palette.swatches[1] }}
+                    />
+                  </span>
+                  <span className="truncate">{palette.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Toggle
+            label="Ẩn nền khi in (giấy Kraft hoặc giấy màu)"
+            checked={hideForPrint}
+            onChange={setHideForPrint}
+          />
+        </>
       )}
     </Section>
   );

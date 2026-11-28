@@ -14,6 +14,7 @@ import {
   TEMPLATE_TYPES,
   WEB_CELEBRATE_EFFECTS,
   WEB_COUNTER_EFFECTS,
+  WEB_GARLANDS,
   WEB_INTENSITIES,
   WEB_OPEN_EFFECTS,
   WEB_PARTICLE_EFFECTS,
@@ -73,6 +74,7 @@ export const webImageSchema = z.strictObject({
   focus: imageFocusSchema.optional(),
   size: z.number().min(40).max(100).optional(),
   zoom: z.number().min(1).max(3).optional(),
+  frame: z.enum(IMAGE_FRAMES).optional(),
 });
 
 export const backgroundSchema = z
@@ -114,6 +116,7 @@ export const elementSchema = z
     filter: z.enum(IMAGE_FILTERS).optional(),
     focus: imageFocusSchema.optional(),
     borderWidth: z.number().min(0).max(48).optional(),
+    borderColor: hexColor.optional(),
     iconId: z.string().max(60).optional(),
     points: z.array(coordinate).max(LIMITS.maxPointNumbers).optional(),
     strokeWidth: z.number().min(2).max(8).optional(),
@@ -159,6 +162,10 @@ export function collectWebImageUrls(web?: Pick<WebConfig, "sections">): string[]
     } else if (section.type === "memories") {
       for (const item of section.items) {
         if (item.image?.src) urls.push(item.image.src);
+      }
+    } else if (section.type === "photobooth") {
+      for (const photo of section.photos) {
+        if (photo.src) urls.push(photo.src);
       }
     } else if (section.type === "board") {
       if (section.background.type === "image") urls.push(section.background.value);
@@ -358,6 +365,24 @@ export const webSectionSchema = z.discriminatedUnion("type", [
   }),
   z.strictObject({
     id: sectionId,
+    type: z.literal("photobooth"),
+    enabled: z.boolean(),
+    title: shortText(LIMITS.maxMessageTitle).optional(),
+    caption: shortText(LIMITS.maxMemoryCaption).optional(),
+    date: optionalDate,
+    stripColor: hexColor.optional(),
+    photos: z.array(webImageSchema).max(4),
+  }),
+  z.strictObject({
+    id: sectionId,
+    type: z.literal("scratch"),
+    enabled: z.boolean(),
+    prompt: shortText(LIMITS.maxMessageTitle),
+    secret: shortText(LIMITS.maxFirstDayText),
+    foilColor: hexColor.optional(),
+  }),
+  z.strictObject({
+    id: sectionId,
     type: z.literal("board"),
     enabled: z.boolean(),
     height: z.union(BOARD_HEIGHTS.map((height) => z.literal(height))),
@@ -380,6 +405,7 @@ export const webStyleSchema = z.strictObject({
   particle: z.enum(WEB_PARTICLE_EFFECTS).optional(),
   counter: z.enum(WEB_COUNTER_EFFECTS).optional(),
   celebrate: z.enum(WEB_CELEBRATE_EFFECTS).optional(),
+  garland: z.enum(WEB_GARLANDS).optional(),
 });
 
 export const webConfigSchema = z

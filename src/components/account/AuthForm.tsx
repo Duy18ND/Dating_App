@@ -12,7 +12,7 @@ import {
   parseAccountIdentifier,
   type AuthMode,
 } from "@/lib/auth-account";
-import { getTurnstileToken } from "@/lib/client/turnstile";
+import { getTurnstileToken, warmTurnstile } from "@/lib/client/turnstile";
 import { isInAppBrowser } from "@/lib/in-app-browser";
 import { safeNext } from "@/lib/safe-redirect";
 import { authBrowser, callbackUrl } from "@/lib/supabase/browser";
@@ -88,6 +88,10 @@ export function AuthForm() {
   const [againError, setAgainError] = useState<string>();
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
+
+  useEffect(() => {
+    warmTurnstile();
+  }, []);
 
   useEffect(() => {
     if (linkFailed) return;
@@ -197,6 +201,7 @@ export function AuthForm() {
           ? message
           : authErrorMessage(message, mode, parsed.kind),
       );
+      warmTurnstile();
       setBusy(false);
     }
   }

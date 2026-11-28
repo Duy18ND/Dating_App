@@ -2,6 +2,8 @@ import { nanoid } from "nanoid";
 import { create } from "zustand";
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { moveItem } from "@/lib/reorder";
+import { PRESET_STYLES } from "@/lib/render/presets";
+import type { KitPalette } from "@/lib/theme-sync";
 import { defaultWebStyle } from "@/lib/web-styles";
 import {
   FACE_IDS,
@@ -83,6 +85,10 @@ interface EditorState {
   duplicateElement: (id: string) => void;
   moveLayer: (id: string, move: LayerMove) => void;
   setBackground: (patch: Partial<BackgroundConfig>, key?: string) => void;
+  /** Đồng bộ nền thiệp hiện tại cho cả Mặt trước, Mặt sau và màu Phong bì trong 1 bước Undo. */
+  syncCardAndEnvelopeTheme: (envelopeColorOverride?: string) => void;
+  /** Áp dụng 1 bộ phối màu cho cả Mặt trước, Mặt sau, Phong bì và Trang web trong 1 bước Undo. */
+  applyKitPalette: (palette: KitPalette) => void;
   setWritingPage: (patch: Partial<WritingPageConfig>, key?: string) => void;
   setLetter: (patch: Partial<LetterSheetConfig>, key?: string) => void;
   setEnvelope: (patch: Partial<EnvelopeDecor>, key?: string) => void;
@@ -387,6 +393,61 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         ? withSurface(doc, ref, { background: { ...current.background, ...patch } })
         : doc;
     }, key);
+  },
+  syncCardAndEnvelopeTheme: (envelopeColorOverride) => {
+    const state = get();
+    get().commit((doc) => {
+      const sourceBg = envelopeColorOverride
+        ? ({ type: "color", value: envelopeColorOverride, overlayOpacity: 0 } as BackgroundConfig)
+        : doc.canvas_data.faces[state.face].background;
+      const nextEnvelopeColor =
+        envelopeColorOverride ??
+        (sourceBg.type === "color"
+          ? sourceBg.value
+          : sourceBg.type === "preset"
+            ? (PRESET_STYLES[sourceBg.value as keyof typeof PRESET_STYLES]?.envelopeColor ??
+              doc.web_config.envelopeColor)
+            : doc.web_config.envelopeColor);
+      return {
+        ...doc,
+        canvas_data: {
+          ...doc.canvas_data,
+          faces: {
+            front: { ...doc.canvas_data.faces.front, background: { ...sourceBg } },
+            inside: { ...doc.canvas_data.faces.inside, background: { ...sourceBg } },
+          },
+        },
+        web_config: {
+          ...doc.web_config,
+          envelopeColor: nextEnvelopeColor,
+        },
+      };
+    });
+  },
+  applyKitPalette: (palette) => {
+    get().commit((doc) => {
+      const baseStyle = doc.web_config.style ?? defaultWebStyle(doc.template_type);
+      return {
+        ...doc,
+        canvas_data: {
+          ...doc.canvas_data,
+          faces: {
+            front: { ...doc.canvas_data.faces.front, background: { ...palette.cardBackground } },
+            inside: { ...doc.canvas_data.faces.inside, background: { ...palette.cardBackground } },
+          },
+        },
+        web_config: {
+          ...doc.web_config,
+          envelopeColor: palette.envelopeColor,
+          waxSealColor: palette.waxSealColor,
+          style: {
+            ...baseStyle,
+            theme: palette.webTheme,
+            accent: palette.webAccent,
+          },
+        },
+      };
+    });
   },
   setWritingPage: (patch, key) =>
     get().commit(

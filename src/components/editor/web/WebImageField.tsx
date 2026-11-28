@@ -4,7 +4,7 @@ import { ImagePlus, Trash2 } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/lib/editor/store";
-import type { ImageFit, WebImage } from "@/types/letter";
+import type { ImageFit, ImageFrame, WebImage } from "@/types/letter";
 import { FocusPicker } from "../FocusPicker";
 import { Choice, Slider } from "../ui";
 import { useImageUpload } from "../useImageUpload";
@@ -12,6 +12,18 @@ import { useImageUpload } from "../useImageUpload";
 const FITS: { value: ImageFit; label: string }[] = [
   { value: "contain", label: "Hiện trọn ảnh" },
   { value: "cover", label: "Phủ kín khung" },
+];
+
+const WEB_FRAMES: { value: ImageFrame; label: string }[] = [
+  { value: "none", label: "Mặc định" },
+  { value: "rounded", label: "Bo góc" },
+  { value: "circle", label: "Tròn" },
+  { value: "heart", label: "Trái tim" },
+  { value: "arch", label: "Vòm cửa" },
+  { value: "star", label: "Ngôi sao" },
+  { value: "polaroid", label: "Polaroid" },
+  { value: "tape", label: "Băng dính" },
+  { value: "film", label: "Dải phim" },
 ];
 
 /**
@@ -61,6 +73,16 @@ export function WebImageField({
             onCommit={endCoalesce}
           />
           <Choice options={FITS} value={fit} onChange={(next) => onChange({ ...image, fit: next })} />
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">Khung cắt ảnh</p>
+            <Choice
+              options={WEB_FRAMES}
+              value={image.frame ?? "none"}
+              onChange={(frame) =>
+                onChange({ ...image, frame: frame === "none" ? undefined : frame })
+              }
+            />
+          </div>
           <Slider
             label="Cỡ ảnh"
             min={40}

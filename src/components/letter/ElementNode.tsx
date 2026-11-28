@@ -23,7 +23,15 @@ interface Props {
 
 function Photo({ element }: { element: CanvasElement }) {
   const image = useImage(element.src);
-  const { width = 600, height = 600, frame = "none", filter = "none", focus, borderWidth } = element;
+  const {
+    width = 600,
+    height = 600,
+    frame = "none",
+    filter = "none",
+    focus,
+    borderWidth,
+    borderColor,
+  } = element;
   const framed = useMemo(
     () =>
       image &&
@@ -36,8 +44,9 @@ function Photo({ element }: { element: CanvasElement }) {
         PRINT_CONFIG.EXPORT_PIXEL_RATIO,
         focus,
         borderWidth,
+        borderColor,
       ),
-    [image, width, height, frame, filter, focus, borderWidth],
+    [image, width, height, frame, filter, focus, borderWidth, borderColor],
   );
   if (!framed) return <Rect name={PENDING} width={width} height={height} fill="#EFECE6" />;
   return (

@@ -27,6 +27,7 @@ import { AcceptBlock, PollBlock, RsvpBlock } from "./blocks";
 import { CardZoomModal } from "./CardZoomModal";
 import { ParticleLayer } from "./ParticleLayer";
 import { StoryBoard } from "./StoryBoard";
+import { HeaderGarland, PhotoboothStrip, ScratchCard, WebPhotoFrame } from "./StoryExtras";
 
 function subscribeReducedMotion(cb: () => void) {
   const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -221,12 +222,13 @@ function StoryPhoto({
       }}
     />
   );
-  // Phần phóng to bị cắt gọn trong khung.
-  return zoom > 1 ? (
-    <div className={cn("overflow-hidden", fit === "cover" && "h-full")}>{picture}</div>
-  ) : (
-    picture
-  );
+  const inner =
+    zoom > 1 ? (
+      <div className={cn("overflow-hidden", fit === "cover" && "h-full")}>{picture}</div>
+    ) : (
+      picture
+    );
+  return <WebPhotoFrame frame={image.frame}>{inner}</WebPhotoFrame>;
 }
 
 /** Thu nhỏ cả khung ảnh và đặt giữa (WebImage.size). */
@@ -481,6 +483,7 @@ export function ScrollStory({
     photo,
     counter: counterMode,
     celebrate,
+    garland,
     textScale,
   } = resolvedStyle;
   const t = theme.tokens;
@@ -517,6 +520,7 @@ export function ScrollStory({
       className="story-text relative min-h-dvh w-full overflow-x-clip pb-[max(4rem,env(safe-area-inset-bottom))]"
     >
       <ParticleLayer kind={particle} intensity={intensity} color={accent} />
+      <HeaderGarland kind={garland} accent={accent} />
 
       <main className="relative z-20 mx-auto flex w-full max-w-3xl flex-col gap-14 px-4 pt-[max(2.5rem,env(safe-area-inset-top))] sm:gap-20 sm:px-8">
         {visibleSections.map((section) => {
@@ -828,6 +832,42 @@ export function ScrollStory({
                         block={blocks.poll}
                       />
                     )}
+                  </Reveal>
+                </section>
+              );
+
+            case "photobooth":
+              return (
+                <section data-section-id={section.id} key={section.id} className="py-2">
+                  <Reveal intensity={intensity}>
+                    <PhotoboothStrip
+                      title={section.title}
+                      caption={section.caption}
+                      dateLabel={formatDateVi(section.date)}
+                      stripColor={section.stripColor}
+                      photos={section.photos}
+                      headingStyle={headingStyle}
+                      scriptStyle={scriptStyle}
+                      accent={accent}
+                      mutedColor={t.muted}
+                    />
+                  </Reveal>
+                </section>
+              );
+
+            case "scratch":
+              return (
+                <section data-section-id={section.id} key={section.id} className="py-2">
+                  <Reveal intensity={intensity}>
+                    <ScratchCard
+                      prompt={section.prompt}
+                      secret={section.secret}
+                      foilColor={section.foilColor}
+                      surface={t.surface}
+                      border={t.border}
+                      accent={accent}
+                      headingStyle={headingStyle}
+                    />
                   </Reveal>
                 </section>
               );

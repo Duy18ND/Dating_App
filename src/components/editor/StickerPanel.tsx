@@ -15,11 +15,11 @@ const TABS: { value: StickerTab; label: string }[] = [
   { value: "meme", label: "Meme & Tấu hài" },
 ];
 
-const centered = (size: number) => ({
-  x: (PRINT_CONFIG.CANVAS.width - size) / 2,
-  y: (currentHeight(useEditorStore.getState()) - size) / 2,
-  width: size,
-  height: size,
+const centeredBox = (width: number, height: number) => ({
+  x: Math.round((PRINT_CONFIG.CANVAS.width - width) / 2),
+  y: Math.round((currentHeight(useEditorStore.getState()) - height) / 2),
+  width,
+  height,
 });
 
 function IconPreview({ icon }: { icon: LetterIcon }) {
@@ -65,7 +65,11 @@ export function StickerPanel() {
                 type="button"
                 title={meme.label}
                 onClick={() =>
-                  addElement({ type: "sticker_img", src: meme.src, ...centered(STICKER_SIZE_PX) })
+                  addElement({
+                    type: "sticker_img",
+                    src: meme.src,
+                    ...centeredBox(STICKER_SIZE_PX, STICKER_SIZE_PX),
+                  })
                 }
                 className="rounded-md border bg-card p-1 hover:bg-accent"
               >
@@ -84,14 +88,16 @@ export function StickerPanel() {
                 type="button"
                 title={icon.label}
                 aria-label={icon.label}
-                onClick={() =>
+                onClick={() => {
+                  const w = icon.defaultSize?.width ?? ICON_SIZE_PX;
+                  const h = icon.defaultSize?.height ?? ICON_SIZE_PX;
                   addElement({
                     type: "svg_icon",
                     iconId: icon.id,
                     fill: ICON_COLORS[0],
-                    ...centered(ICON_SIZE_PX),
-                  })
-                }
+                    ...centeredBox(w, h),
+                  });
+                }}
                 className="flex aspect-square items-center justify-center rounded-md border bg-card text-primary hover:bg-accent"
               >
                 <IconPreview icon={icon} />

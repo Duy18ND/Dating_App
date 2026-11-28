@@ -27,8 +27,8 @@ describe("render helpers", () => {
     expect(pixels[3]).toBe(123);
   });
 
-  it("đủ 20 icon, id không trùng", () => {
-    expect(ICONS).toHaveLength(20);
-    expect(new Set(ICONS.map((i) => i.id)).size).toBe(20);
+  it("đủ 28 icon & trang trí, id không trùng", () => {
+    expect(ICONS).toHaveLength(28);
+    expect(new Set(ICONS.map((i) => i.id)).size).toBe(28);
   });
 });

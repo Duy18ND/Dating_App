@@ -6,12 +6,14 @@ export const SECTION_LABELS: Record<WebSectionType, string> = {
   hero: "Mở đầu",
   first_day: "Ngày đầu tiên",
   memories: "Kỷ niệm",
+  photobooth: "Dải ảnh Photobooth",
+  scratch: "Thẻ cào bí mật",
   reasons: "Điều mình thích ở bạn",
   counter: "Con số",
   message: "Lời bày tỏ / Lời chúc",
   interact: "Câu hỏi & Tương tác",
   ending: "Lời kết",
-  board: "Khung tự do (banner)",
+  board: "Khung tự do (Canva)",
 };
 
 /** Phần bật nhưng để trống thì tự ẩn trên trang người nhận (FR-10). */
@@ -23,6 +25,10 @@ export function isSectionEmpty(section: WebSection, hasBlocks: boolean): boolean
       return !section.text.trim() && !section.image;
     case "memories":
       return section.items.every((item) => !item.caption.trim() && !item.image);
+    case "photobooth":
+      return section.photos.length === 0;
+    case "scratch":
+      return !section.secret.trim();
     case "reasons":
       return section.items.every((item) => !item.trim());
     case "counter":
@@ -48,6 +54,23 @@ export function newSection(type: WebSectionType): WebSection {
       return { ...base, type, text: "" };
     case "memories":
       return { ...base, type, items: [{ id: nanoid(8), caption: "" }] };
+    case "photobooth":
+      return {
+        ...base,
+        type,
+        title: "Photobooth của tụi mình",
+        caption: "4 khoảnh khắc đáng nhớ",
+        stripColor: "#FFFDF9",
+        photos: [],
+      };
+    case "scratch":
+      return {
+        ...base,
+        type,
+        prompt: "Quẹt tay cào lớp nhũ để mở bí mật nhỏ ✨",
+        secret: "",
+        foilColor: "#D9B36C",
+      };
     case "reasons":
       return { ...base, type, items: [""] };
     case "counter":

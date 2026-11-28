@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { runCelebration } from "@/lib/celebrate";
 import { AuthRequiredError, createLetter, updateLetter } from "@/lib/client/api";
+import { warmTurnstile } from "@/lib/client/turnstile";
 import { useEditorStore } from "@/lib/editor/store";
 import { loginPath } from "@/lib/safe-redirect";
 import { letterPayloadSchema } from "@/lib/validation";
@@ -55,7 +56,13 @@ export function PublishDialog() {
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <Button type="button" onClick={publish} disabled={busy}>
+      <Button
+        type="button"
+        onClick={publish}
+        onPointerEnter={!published ? warmTurnstile : undefined}
+        onFocus={!published ? warmTurnstile : undefined}
+        disabled={busy}
+      >
         {published ? "Lưu thay đổi" : "Xuất bản"}
       </Button>
       <Dialog.Portal>

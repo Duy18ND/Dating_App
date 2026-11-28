@@ -1,6 +1,6 @@
 // 20 icon nội bộ, viewBox 24 x 24. Gemini có thể thay path mà không phải sửa code khác (giữ nguyên id).
 
-export type IconCategory = "minimal" | "flora" | "doodle";
+export type IconCategory = "celebration" | "minimal" | "flora" | "doodle";
 
 export interface LetterIcon {
   id: string;
@@ -9,17 +9,72 @@ export interface LetterIcon {
   d: string;
   /** true: tô đặc bằng màu đã chọn; false: chỉ vẽ nét. */
   filled?: boolean;
+  /** Tỉ lệ rộng/cao gợi ý khi chèn mới (mặc định 1:1). */
+  defaultSize?: { width: number; height: number };
 }
 
 export const ICON_VIEWBOX = 24;
 
 export const ICON_CATEGORIES: { id: IconCategory; label: string }[] = [
+  { id: "celebration", label: "Băng rôn & Trang trí" },
   { id: "minimal", label: "Tối giản & Cưới" },
   { id: "flora", label: "Hoa khô & Dấu sáp" },
   { id: "doodle", label: "Doodle vẽ tay" },
 ];
 
 export const ICONS: LetterIcon[] = [
+  {
+    id: "bunting",
+    label: "Dây cờ chúc mừng",
+    category: "celebration",
+    defaultSize: { width: 640, height: 220 },
+    d: "M1.5 4.5 Q12 10.5 22.5 4.5 M3 5.5 L5.5 13 L7.6 7.3 Z M8.3 7.5 L10.8 15 L13.1 7.9 Z M13.7 7.8 L16.2 14.8 L18.5 6.8 Z M19 6.5 L21 12.6 L22.2 5 Z",
+  },
+  {
+    id: "ribbon",
+    label: "Băng rôn ruy băng",
+    category: "celebration",
+    defaultSize: { width: 580, height: 210 },
+    d: "M5 7.5 L19 7.5 L19 15.5 L5 15.5 Z M5 9.5 L1.5 9.5 L3.2 13 L1.5 16.5 L6.5 16.5 L6.5 15.5 M19 9.5 L22.5 9.5 L20.8 13 L22.5 16.5 L17.5 16.5 L17.5 15.5",
+  },
+  {
+    id: "balloons",
+    label: "Bóng bay",
+    category: "celebration",
+    d: "M8.5 3.2 C11.4 3.2 13.5 5.4 13.5 8.5 C13.5 11.4 11.2 13.8 8.5 14 C5.8 13.8 3.5 11.4 3.5 8.5 C3.5 5.4 5.6 3.2 8.5 3.2 Z M8.5 14 L7.7 15.2 L9.3 15.2 Z M8.5 15.2 C8.5 17.5 9.5 19 8.2 21.5 M16.5 5.8 C18.8 5.8 20.5 7.6 20.5 10.1 C20.5 12.5 18.6 14.4 16.5 14.6 C14.4 14.4 12.5 12.5 12.5 10.1 C12.5 7.6 14.2 5.8 16.5 5.8 Z M16.5 14.6 L15.8 15.6 L17.2 15.6 Z M16.5 15.6 C16.5 17.8 15.6 19.2 16.8 21.5",
+  },
+  {
+    id: "washi-tape",
+    label: "Băng dính Washi",
+    category: "celebration",
+    defaultSize: { width: 340, height: 120 },
+    d: "M2.5 7.5 L21.5 7.5 L20.4 9.5 L21.5 11.5 L20.4 13.5 L21.5 15.5 L2.5 15.5 L3.6 13.5 L2.5 11.5 L3.6 9.5 Z M6.5 10.2 L9 12.8 M11 10.2 L13.5 12.8 M15.5 10.2 L18 12.8",
+  },
+  {
+    id: "speech-bubble",
+    label: "Khung lời thoại",
+    category: "celebration",
+    defaultSize: { width: 380, height: 260 },
+    d: "M5 4.2 L19 4.2 C20.8 4.2 22 5.5 22 7.2 L22 14.5 C22 16.2 20.8 17.5 19 17.5 L10.2 17.5 L6 20.8 L6.8 17.5 L5 17.5 C3.2 17.5 2 16.2 2 14.5 L2 7.2 C2 5.5 3.2 4.2 5 4.2 Z",
+  },
+  {
+    id: "party-popper",
+    label: "Pháo giấy",
+    category: "celebration",
+    d: "M3.5 20.5 L8.6 9.2 L14.8 15.4 Z M6.4 14.2 L11.4 17.4 M12.5 7.5 C13.5 5.5 15.5 4.5 17.5 5 M15.5 10.5 C17.5 9.5 19.5 10.2 21 11.8 M10.5 4.5 L11.5 2.5 M19.5 3.5 L20.5 4.5 M18.5 15.5 L20 16.8",
+  },
+  {
+    id: "cake",
+    label: "Bánh sinh nhật",
+    category: "celebration",
+    d: "M4 13.5 L20 13.5 L20 20.2 L4 20.2 Z M6.5 9.5 L17.5 9.5 L17.5 13.5 L6.5 13.5 Z M4 16.2 C5.6 17.5 7.4 17.5 9 16.2 C10.6 17.5 12.4 17.5 14 16.2 C15.6 17.5 17.4 17.5 20 16.2 M9.5 6.5 L9.5 9.5 M12 6.5 L12 9.5 M14.5 6.5 L14.5 9.5 M9.5 3.6 C10.2 4.5 10.2 5.4 9.5 5.8 C8.8 5.4 8.8 4.5 9.5 3.6 Z M12 3.2 C12.7 4.1 12.7 5 12 5.4 C11.3 5 11.3 4.1 12 3.2 Z M14.5 3.6 C15.2 4.5 15.2 5.4 14.5 5.8 C13.8 5.4 13.8 4.5 14.5 3.6 Z",
+  },
+  {
+    id: "gift",
+    label: "Hộp quà",
+    category: "celebration",
+    d: "M3.5 9.5 L20.5 9.5 L20.5 13 L3.5 13 Z M5 13 L19 13 L19 20.5 L5 20.5 Z M12 9.5 L12 20.5 M12 9.5 C10.4 6.2 7.2 5.2 6.5 7 C6 8.2 7.8 9.5 12 9.5 Z M12 9.5 C13.6 6.2 16.8 5.2 17.5 7 C18 8.2 16.2 9.5 12 9.5 Z",
+  },
   {
     id: "heart",
     label: "Trái tim",

@@ -4,6 +4,7 @@ import type {
   TemplateType,
   WebCelebrateEffect,
   WebCounterEffect,
+  WebGarland,
   WebIntensity,
   WebOpenEffect,
   WebParticleEffect,
@@ -241,6 +242,7 @@ export const EFFECT_CATALOG: {
   particle: EffectOption<WebParticleEffect>[];
   counter: EffectOption<WebCounterEffect>[];
   celebrate: EffectOption<WebCelebrateEffect>[];
+  garland: EffectOption<WebGarland>[];
 } = {
   intensity: [
     { id: "light", label: "Nhẹ" },
@@ -276,6 +278,12 @@ export const EFFECT_CATALOG: {
     { id: "confetti", label: "Hoa giấy" },
     { id: "fireworks", label: "Pháo hoa" },
     { id: "heart_rain", label: "Mưa tim" },
+  ],
+  garland: [
+    { id: "none", label: "Không có" },
+    { id: "bunting", label: "Dây cờ chúc mừng" },
+    { id: "lights", label: "Dây đèn vàng ấm" },
+    { id: "hearts", label: "Dải tim treo" },
   ],
 };
 
@@ -316,6 +324,7 @@ export interface ResolvedWebStyle {
   particle: WebParticleEffect;
   counter: WebCounterEffect;
   celebrate: WebCelebrateEffect;
+  garland: WebGarland;
 }
 
 /**
@@ -346,6 +355,7 @@ export function resolveWebStyle(style?: WebStyleConfig): ResolvedWebStyle {
     particle: style?.particle ?? theme.defaults.particle,
     counter: style?.counter ?? theme.defaults.counter,
     celebrate: style?.celebrate ?? theme.defaults.celebrate,
+    garland: style?.garland ?? "none",
   };
 }
 

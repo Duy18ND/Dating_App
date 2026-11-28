@@ -1,5 +1,7 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/lib/editor/store";
 import { FONT_NAMES, type FontName } from "@/lib/font-names";
 import { LIMITS } from "@/lib/validation";
@@ -17,6 +19,7 @@ export function EnvelopePanel() {
   const recipient = useEditorStore((s) => s.doc.web_config.recipientName);
   const setEnvelope = useEditorStore((s) => s.setEnvelope);
   const setWebConfig = useEditorStore((s) => s.setWebConfig);
+  const syncCardAndEnvelopeTheme = useEditorStore((s) => s.syncCardAndEnvelopeTheme);
   const endCoalesce = useEditorStore((s) => s.endCoalesce);
 
   return (
@@ -70,6 +73,15 @@ export function EnvelopePanel() {
           }
           onCommit={endCoalesce}
         />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => syncCardAndEnvelopeTheme(color)}
+        >
+          <Sparkles className="size-3.5" /> Dùng chung màu này cho cả giấy thiệp
+        </Button>
         <p className="text-xs text-muted-foreground">
           Màu này dùng cho cả phong bì in và phong bì trên trang web. Xem phôi trải phẳng ở mục “Xem
           cả bộ”.

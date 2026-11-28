@@ -1,11 +1,12 @@
 "use client";
 
-import { Plus, X } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/lib/editor/store";
 import { LIMITS } from "@/lib/validation";
-import type { CounterMode, MemoryItem, WebSection, WebSectionType } from "@/types/letter";
+import type { CounterMode, MemoryItem, WebImage, WebSection, WebSectionType } from "@/types/letter";
+import { ColorField } from "../ColorField";
 import { TextArea, TextInput } from "../TextInput";
 import { BlockSettings } from "../WebPanel";
 import { Choice } from "../ui";
@@ -291,6 +292,147 @@ function EndingFields({ section }: { section: Of<"ending"> }) {
   );
 }
 
+const STRIP_COLORS = ["#FFFDF9", "#1E1B1A", "#FDECEF", "#E9F0E6", "#EAF2FA", "#F3E6CE"];
+const FOIL_COLORS = ["#D9B36C", "#E5A9B8", "#C4CDD9", "#8E2424", "#7AA082"];
+
+function PhotoboothFields({ section }: { section: Of<"photobooth"> }) {
+  const endCoalesce = useEditorStore((s) => s.endCoalesce);
+  const setPhotos = (photos: WebImage[], key?: string) =>
+    useEditorStore
+      .getState()
+      .updateWebSection(section.id, { photos } as Partial<WebSection>, key);
+
+  return (
+    <>
+      <p className="text-xs text-muted-foreground">
+        Ghép 2–4 ảnh dọc thành dải Photobooth kiểu Hàn Quốc có chú thích và ngày ở chân dải ảnh.
+      </p>
+      <TextInput
+        label="Tiêu đề phần"
+        value={section.title ?? ""}
+        maxLength={LIMITS.maxMessageTitle}
+        onChange={(title) => patch(section, { title }, "title")}
+      />
+      <ColorField
+        label="Màu dải phim Photobooth"
+        colors={STRIP_COLORS}
+        value={section.stripColor ?? "#FFFDF9"}
+        onChange={(stripColor, custom) =>
+          patch(section, { stripColor }, custom ? "strip-color" : undefined)
+        }
+        onCommit={endCoalesce}
+      />
+      {section.photos.map((photo, index) => (
+        <fieldset key={`${photo.src}-${index}`} className="space-y-2 rounded-md border p-2.5">
+          <legend className="px-1 text-xs font-semibold">Ảnh {index + 1}</legend>
+          <WebImageField
+            label={`Khung ảnh ${index + 1}`}
+            image={photo}
+            defaultFit="cover"
+            focusKey={`section:${section.id}:photo-${index}`}
+            onChange={(next, key) => {
+              const current = latest(section);
+              if (!next) {
+                setPhotos(current.photos.filter((_, i) => i !== index));
+              } else {
+                setPhotos(
+                  current.photos.map((p, i) => (i === index ? next : p)),
+                  key,
+                );
+              }
+            }}
+          />
+        </fieldset>
+      ))}
+      {section.photos.length < 4 && (
+        <div className="rounded-md border border-dashed p-2.5">
+          <WebImageField
+            label={`Thêm ảnh vào dải (${section.photos.length}/4)`}
+            image={undefined}
+            defaultFit="cover"
+            focusKey={`section:${section.id}:add`}
+            onChange={(added) => {
+              if (!added) return;
+              const current = latest(section);
+              setPhotos([...current.photos, { ...added, fit: "cover" }]);
+            }}
+          />
+        </div>
+      )}
+      <TextInput
+        label="Chú thích chân dải ảnh"
+        value={section.caption ?? ""}
+        maxLength={LIMITS.maxMemoryCaption}
+        onChange={(caption) => patch(section, { caption }, "caption")}
+      />
+      <TextInput
+        label="Ngày chụp (không bắt buộc)"
+        type="date"
+        value={section.date ?? ""}
+        maxLength={40}
+        onChange={(date) => patch(section, { date: optional(date) }, "date")}
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="text-destructive"
+        onClick={() => {
+          const all = useEditorStore.getState().doc.web_config.sections ?? [];
+          useEditorStore.getState().setWebSections(all.filter((s) => s.id !== section.id));
+        }}
+      >
+        <Trash2 className="size-3.5" /> Xóa phần Photobooth
+      </Button>
+    </>
+  );
+}
+
+function ScratchFields({ section }: { section: Of<"scratch"> }) {
+  const endCoalesce = useEditorStore((s) => s.endCoalesce);
+  return (
+    <>
+      <p className="text-xs text-muted-foreground">
+        Che lời nhắn bất ngờ dưới lớp nhũ ánh kim — người nhận quẹt tay cào ra trên điện thoại!
+      </p>
+      <TextInput
+        label="Dòng gợi ý trên lớp nhũ"
+        value={section.prompt}
+        maxLength={LIMITS.maxMessageTitle}
+        onChange={(prompt) => patch(section, { prompt }, "prompt")}
+      />
+      <TextArea
+        label="Lời nhắn bí mật bên dưới"
+        rows={4}
+        value={section.secret}
+        maxLength={LIMITS.maxFirstDayText}
+        onChange={(secret) => patch(section, { secret }, "secret")}
+      />
+      <ColorField
+        label="Màu lớp nhũ cào"
+        colors={FOIL_COLORS}
+        value={section.foilColor ?? "#D9B36C"}
+        onChange={(foilColor, custom) =>
+          patch(section, { foilColor }, custom ? "foil-color" : undefined)
+        }
+        onCommit={endCoalesce}
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="text-destructive"
+        onClick={() => {
+          const all = useEditorStore.getState().doc.web_config.sections ?? [];
+          useEditorStore.getState().setWebSections(all.filter((s) => s.id !== section.id));
+        }}
+      >
+        <Trash2 className="size-3.5" /> Xóa thẻ cào
+      </Button>
+    </>
+  );
+}
+
 export function SectionFields({ section }: { section: WebSection }) {
   switch (section.type) {
     case "hero":
@@ -299,6 +441,10 @@ export function SectionFields({ section }: { section: WebSection }) {
       return <FirstDayFields section={section} />;
     case "memories":
       return <MemoriesFields section={section} />;
+    case "photobooth":
+      return <PhotoboothFields section={section} />;
+    case "scratch":
+      return <ScratchFields section={section} />;
     case "reasons":
       return <ReasonsFields section={section} />;
     case "counter":

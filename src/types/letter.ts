@@ -3,7 +3,20 @@ import type { FontName } from "@/lib/font-names";
 export const TEMPLATE_TYPES = ["confession", "wedding", "dinner", "holiday"] as const;
 export type TemplateType = (typeof TEMPLATE_TYPES)[number];
 
-export const BACKGROUND_PRESETS = ["kraft", "cream", "grid", "plaid"] as const;
+export const BACKGROUND_PRESETS = [
+  "kraft",
+  "cream",
+  "grid",
+  "plaid",
+  "dots",
+  "stripes",
+  "blush",
+  "sage",
+  "sky",
+  "parchment",
+  "hearts",
+  "midnight",
+] as const;
 export type BackgroundPreset = (typeof BACKGROUND_PRESETS)[number];
 
 export interface BackgroundConfig {
@@ -25,7 +38,20 @@ export const ELEMENT_TYPES = [
 ] as const;
 export type ElementType = (typeof ELEMENT_TYPES)[number];
 
-export const IMAGE_FRAMES = ["none", "polaroid", "stamp", "rounded", "circle", "cloud"] as const;
+export const IMAGE_FRAMES = [
+  "none",
+  "polaroid",
+  "stamp",
+  "rounded",
+  "circle",
+  "cloud",
+  "heart",
+  "arch",
+  "star",
+  "scallop",
+  "tape",
+  "film",
+] as const;
 export type ImageFrame = (typeof IMAGE_FRAMES)[number];
 
 export const IMAGE_FILTERS = ["none", "vintage", "bw"] as const;
@@ -49,6 +75,8 @@ export interface WebImage {
   size?: number;
   /** Phóng to ảnh bên trong khung quanh điểm giữ (1..3, mặc định 1). */
   zoom?: number;
+  /** Khung cắt viền ảnh kiểu Canva (bo góc, tròn, trái tim, vòm, polaroid...). */
+  frame?: ImageFrame;
 }
 
 export interface CanvasElement {
@@ -73,8 +101,10 @@ export interface CanvasElement {
   frame?: ImageFrame;
   filter?: ImageFilter;
   focus?: ImageFocus;
-  /** Độ dày viền trắng quanh ảnh (0..48 px logic; 0 = tắt viền). */
+  /** Độ dày viền khung quanh ảnh (0..48 px logic; 0 = tắt viền). */
   borderWidth?: number;
+  /** Màu viền khung ảnh (#RRGGBB, mặc định #FFFFFF). */
+  borderColor?: string;
   // SVG icon
   iconId?: string;
   // Ghi tay (mỗi phần tử là một nét [x1, y1, x2, y2, ...] tương đối so với x, y) và vùng kẻ
@@ -136,6 +166,8 @@ export const WEB_SECTION_TYPES = [
   "hero",
   "first_day",
   "memories",
+  "photobooth",
+  "scratch",
   "reasons",
   "counter",
   "message",
@@ -172,6 +204,26 @@ export type WebSection =
   | { id: string; type: "message"; enabled: boolean; title: string; body: string }
   | { id: string; type: "interact"; enabled: boolean }
   | { id: string; type: "ending"; enabled: boolean; text: string; signature?: string }
+  /** Dải ảnh Photobooth 2–4 ô dọc có màu dải phim, chú thích và ngày. */
+  | {
+      id: string;
+      type: "photobooth";
+      enabled: boolean;
+      title?: string;
+      caption?: string;
+      date?: string;
+      stripColor?: string;
+      photos: WebImage[];
+    }
+  /** Thẻ cào lớp nhũ bí mật trên trang web. */
+  | {
+      id: string;
+      type: "scratch";
+      enabled: boolean;
+      prompt: string;
+      secret: string;
+      foilColor?: string;
+    }
   /** Khung kéo thả tự do (banner, collage ảnh, sticker, chữ). Cùng dạng với một mặt thiệp. */
   | {
       id: string;
@@ -208,6 +260,9 @@ export type WebCounterEffect = (typeof WEB_COUNTER_EFFECTS)[number];
 export const WEB_CELEBRATE_EFFECTS = ["confetti", "fireworks", "heart_rain"] as const;
 export type WebCelebrateEffect = (typeof WEB_CELEBRATE_EFFECTS)[number];
 
+export const WEB_GARLANDS = ["none", "bunting", "lights", "hearts"] as const;
+export type WebGarland = (typeof WEB_GARLANDS)[number];
+
 /** Tùy chỉnh phong cách và hiệu ứng trang web (FR-15). Mục để trống lấy theo phong cách. */
 export interface WebStyleConfig {
   theme: WebThemeId;
@@ -222,6 +277,8 @@ export interface WebStyleConfig {
   particle?: WebParticleEffect;
   counter?: WebCounterEffect;
   celebrate?: WebCelebrateEffect;
+  /** Băng rôn / dây treo trang trí đầu trang web. */
+  garland?: WebGarland;
 }
 
 export interface WebConfig {

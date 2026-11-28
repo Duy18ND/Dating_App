@@ -7,9 +7,12 @@ import { currentElements, currentHeight, useEditorStore } from "@/lib/editor/sto
 import { PRINT_CONFIG } from "@/lib/print-config";
 import { defaultImageBorder } from "@/lib/render/image-frame";
 import type { ImageFilter, ImageFrame } from "@/types/letter";
+import { ColorField } from "./ColorField";
 import { FocusPicker } from "./FocusPicker";
 import { Choice, Section } from "./ui";
 import { useImageUpload } from "./useImageUpload";
+
+const BORDER_COLORS = ["#FFFFFF", "#F9F6F1", "#F2D7D5", "#E8C36B", "#8E2424", "#2B2623"];
 
 const BORDER_PRESETS = [
   { label: "Tắt", value: 0 },
@@ -20,11 +23,17 @@ const BORDER_PRESETS = [
 
 const FRAMES: { value: ImageFrame; label: string }[] = [
   { value: "none", label: "Gốc" },
-  { value: "polaroid", label: "Polaroid" },
-  { value: "stamp", label: "Tem răng cưa" },
   { value: "rounded", label: "Bo góc" },
   { value: "circle", label: "Tròn" },
+  { value: "heart", label: "Trái tim" },
+  { value: "arch", label: "Vòm cửa" },
+  { value: "star", label: "Ngôi sao" },
+  { value: "scallop", label: "Hoa lượn" },
   { value: "cloud", label: "Đám mây" },
+  { value: "polaroid", label: "Polaroid" },
+  { value: "tape", label: "Băng dính" },
+  { value: "stamp", label: "Tem răng cưa" },
+  { value: "film", label: "Dải phim" },
 ];
 const FILTERS: { value: ImageFilter; label: string }[] = [
   { value: "none", label: "Gốc" },
@@ -110,56 +119,68 @@ export function ImagePanel() {
               onChange={(filter) => update(selected.id, { filter })}
             />
           </div>
-          {selected.frame !== "polaroid" && selected.frame !== "stamp" && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <label htmlFor="img-border-width" className="font-medium">
-                  Độ dày viền trắng
-                </label>
-                <span>
-                  {selected.borderWidth ??
-                    defaultImageBorder(selected.width ?? 600, selected.height ?? 600)}{" "}
-                  px
-                </span>
+          {selected.frame !== "polaroid" &&
+            selected.frame !== "stamp" &&
+            selected.frame !== "film" &&
+            selected.frame !== "tape" && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <label htmlFor="img-border-width" className="font-medium">
+                    Độ dày viền khung
+                  </label>
+                  <span>
+                    {selected.borderWidth ??
+                      defaultImageBorder(selected.width ?? 600, selected.height ?? 600)}{" "}
+                    px
+                  </span>
+                </div>
+                <input
+                  id="img-border-width"
+                  type="range"
+                  min={0}
+                  max={48}
+                  step={2}
+                  value={
+                    selected.borderWidth ??
+                    defaultImageBorder(selected.width ?? 600, selected.height ?? 600)
+                  }
+                  onChange={(event) =>
+                    update(
+                      selected.id,
+                      { borderWidth: Number(event.target.value) },
+                      `border:${selected.id}`,
+                    )
+                  }
+                  onPointerUp={endCoalesce}
+                  onBlur={endCoalesce}
+                  className="w-full accent-primary"
+                />
+                <div className="flex flex-wrap gap-1.5">
+                  {BORDER_PRESETS.map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => {
+                        update(selected.id, { borderWidth: preset.value });
+                        endCoalesce();
+                      }}
+                      className="rounded border bg-card px-2 py-1 text-xs hover:bg-accent"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <input
-                id="img-border-width"
-                type="range"
-                min={0}
-                max={48}
-                step={2}
-                value={
-                  selected.borderWidth ??
-                  defaultImageBorder(selected.width ?? 600, selected.height ?? 600)
-                }
-                onChange={(event) =>
-                  update(
-                    selected.id,
-                    { borderWidth: Number(event.target.value) },
-                    `border:${selected.id}`,
-                  )
-                }
-                onPointerUp={endCoalesce}
-                onBlur={endCoalesce}
-                className="w-full accent-primary"
-              />
-              <div className="flex flex-wrap gap-1.5">
-                {BORDER_PRESETS.map((preset) => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => {
-                      update(selected.id, { borderWidth: preset.value });
-                      endCoalesce();
-                    }}
-                    className="rounded border bg-card px-2 py-1 text-xs hover:bg-accent"
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
+          <ColorField
+            label="Màu viền khung"
+            colors={BORDER_COLORS}
+            value={selected.borderColor ?? (selected.frame === "film" ? "#1E1B1A" : "#FFFFFF")}
+            onChange={(borderColor, custom) =>
+              update(selected.id, { borderColor }, custom ? `border-color:${selected.id}` : undefined)
+            }
+            onCommit={endCoalesce}
+          />
           {selected.src && (
             <FocusPicker
               src={selected.src}

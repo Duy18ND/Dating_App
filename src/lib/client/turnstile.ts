@@ -10,8 +10,11 @@ declare global {
 }
 
 const TURNSTILE_TIMEOUT_MS = 20_000;
+/** Token Turnstile sống 300s; chỉ tái dùng bản giải trước khi còn dưới 240s. */
+const WARM_TOKEN_TTL_MS = 240_000;
 
 let loading: Promise<TurnstileApi> | undefined;
+let warmed: { promise: Promise<string>; expiresAt: number } | undefined;
 
 function loadScript(): Promise<TurnstileApi> {
   if (typeof window !== "undefined" && window.turnstile) {
@@ -40,10 +43,7 @@ function loadScript(): Promise<TurnstileApi> {
   return loading;
 }
 
-/** Token chỉ dùng được một lần nên mỗi request lấy token mới. Không có site key thì bỏ qua. */
-export async function getTurnstileToken(): Promise<string | null> {
-  const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  if (!sitekey) return null;
+async function solveToken(sitekey: string): Promise<string> {
   const turnstile = await loadScript();
   const container = document.createElement("div");
   container.className = "fixed right-4 bottom-4 z-[100]";
@@ -81,4 +81,36 @@ export async function getTurnstileToken(): Promise<string | null> {
     if (widgetId) turnstile.remove(widgetId);
     container.remove();
   }
+}
+
+/**
+ * Tải trước script và giải ngầm 1 token Turnstile trong lúc người dùng đang gõ form,
+ * giúp lúc bấm Đăng nhập / Tạo tài khoản / Xuất bản phản hồi gần như ngay lập tức.
+ */
+export function warmTurnstile(): void {
+  if (typeof window === "undefined") return;
+  const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  if (!sitekey) return;
+  if (warmed && warmed.expiresAt > Date.now()) return;
+  const promise = solveToken(sitekey);
+  warmed = { promise, expiresAt: Date.now() + WARM_TOKEN_TTL_MS };
+  promise.catch(() => {
+    if (warmed?.promise === promise) warmed = undefined;
+  });
+}
+
+/** Token chỉ dùng được một lần nên mỗi request lấy token mới. Không có site key thì bỏ qua. */
+export async function getTurnstileToken(): Promise<string | null> {
+  const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  if (!sitekey) return null;
+  if (warmed && warmed.expiresAt > Date.now()) {
+    const { promise } = warmed;
+    warmed = undefined;
+    try {
+      return await promise;
+    } catch {
+      // Bản giải ngầm lỗi: thử giải mới trực tiếp một lần nữa.
+    }
+  }
+  return solveToken(sitekey);
 }
