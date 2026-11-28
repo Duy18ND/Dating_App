@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, Sparkles } from "lucide-react";
+import { ImagePlus } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { currentBackground, useEditorStore } from "@/lib/editor/store";
@@ -27,8 +27,9 @@ export function BackgroundPanel() {
   const onBoard = useEditorStore((s) => s.boardId !== null);
   const hideForPrint = useEditorStore((s) => s.printHideBackground);
   const setHideForPrint = useEditorStore((s) => s.setPrintHideBackground);
+  const syncKit = useEditorStore((s) => s.syncKitBackground);
+  const setSyncKit = useEditorStore((s) => s.setSyncKitBackground);
   const setBackground = useEditorStore((s) => s.setBackground);
-  const syncCardAndEnvelopeTheme = useEditorStore((s) => s.syncCardAndEnvelopeTheme);
   const applyKitPalette = useEditorStore((s) => s.applyKitPalette);
   const endCoalesce = useEditorStore((s) => s.endCoalesce);
   const input = useRef<HTMLInputElement>(null);
@@ -54,7 +55,21 @@ export function BackgroundPanel() {
   }
 
   return (
-    <Section title="Nền thiệp">
+    <Section title={onBoard ? "Nền khung" : "Nền thiệp & phong bì"}>
+      {!onBoard && (
+        <div className="space-y-1 rounded-lg border bg-accent/50 p-2.5">
+          <Toggle
+            label="Chọn 1 lần cho cả bộ (Mặt trước + Mặt sau + Phong bì)"
+            checked={syncKit}
+            onChange={setSyncKit}
+          />
+          <p className="text-[11px] text-muted-foreground">
+            {syncKit
+              ? "Đang đồng bộ: đổi màu hoặc mẫu giấy ở đây sẽ áp cho cả 2 mặt thiệp và phong bì."
+              : "Đang chỉnh riêng: chỉ đổi nền của mặt đang mở."}
+          </p>
+        </div>
+      )}
       <Choice options={MODES} value={background.type} onChange={switchMode} />
 
       {background.type === "preset" && (
@@ -160,17 +175,8 @@ export function BackgroundPanel() {
       {!onBoard && (
         <>
           <div className="space-y-2 border-t pt-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={() => syncCardAndEnvelopeTheme()}
-            >
-              <Sparkles className="size-3.5" /> Đồng bộ màu cho cả Thiệp &amp; Phong bì
-            </Button>
             <p className="text-xs font-medium text-muted-foreground">
-              Hoặc chọn bộ phối màu 1 chạm (Thiệp + Phong bì + Web)
+              Bộ phối màu 1 chạm (Thiệp + Phong bì + Web)
             </p>
             <div className="grid grid-cols-2 gap-1.5">
               {KIT_PALETTES.map((palette) => (

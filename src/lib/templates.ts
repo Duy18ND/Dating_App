@@ -73,6 +73,36 @@ const qr = (x: number, y: number, size: number, fill: string, iconId?: string): 
   iconId,
 });
 
+const linedArea = (
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  fill = "#7A7067",
+): Draft => ({
+  type: "lined_area",
+  lineStyle: "ruled",
+  x,
+  y,
+  width,
+  height,
+  fill,
+});
+
+/** Khối ký tên đồng nhất ở góc dưới phải cho mặt sau của cả 4 mẫu (font chữ ký Dancing Script). */
+const signatureBlock = (primaryFill: string, mutedFill = "#7A7067"): Draft[] => [
+  text(970, "Ký tên,", 52, "Dancing Script", mutedFill, {
+    x: 1020,
+    width: 620,
+    align: "right",
+  }),
+  text(1042, "— Tên của bạn", 66, "Dancing Script", primaryFill, {
+    x: 1020,
+    width: 620,
+    align: "right",
+  }),
+];
+
 interface FaceDraft {
   background: BackgroundConfig;
   elements: Draft[];
@@ -121,17 +151,18 @@ export const TEMPLATES: Template[] = [
     inside: {
       background: { type: "preset", value: "cream", overlayOpacity: 0 },
       elements: [
-        text(124, "Gửi cậu,", 76, "Charm", "#8E2424", { x: 120, width: 1140, align: "left" }),
+        text(124, "Gửi cậu,", 76, "Charm", "#8E2424", { x: 120, width: 1160, align: "left" }),
         text(
-          252,
+          244,
           "Có một bản nhạc và vài điều nhỏ\nmình muốn gửi riêng cho cậu.",
           52,
           "Cormorant Garamond",
           "#5C524B",
-          { x: 120, width: 1140, align: "left" },
+          { x: 120, width: 1160, align: "left" },
         ),
-        text(742, "Quét mở thư", 48, "Be Vietnam Pro", "#7A7067", { x: 1320, width: 356 }),
-        qr(1360, 840, 280, "#8E2424", "heart"),
+        qr(1360, 120, 280, "#8E2424", "heart"),
+        linedArea(120, 452, 1520, 480, "#7A7067"),
+        ...signatureBlock("#8E2424", "#7A7067"),
       ],
     },
     envelope: {
@@ -180,19 +211,20 @@ export const TEMPLATES: Template[] = [
       elements: [
         text(124, "Tiệc thành hôn", 76, "Playfair Display", "#6E1F2A", {
           x: 120,
-          width: 1140,
+          width: 1160,
           align: "left",
         }),
         text(
-          252,
-          "17:30 · Chủ nhật, 10.01.2027\nTrung tâm Tiệc cưới (Tên địa điểm)\nSố nhà, Đường, Quận, TP",
+          244,
+          "17:30 · Chủ nhật, 10.01.2027\nTrung tâm Tiệc cưới (Tên địa điểm)",
           50,
           "Cormorant Garamond",
           "#2B2623",
-          { x: 120, width: 1140, align: "left" },
+          { x: 120, width: 1160, align: "left" },
         ),
-        text(742, "Quét xác nhận", 48, "Be Vietnam Pro", "#7A7067", { x: 1320, width: 356 }),
-        qr(1360, 840, 280, "#6E1F2A", "rings"),
+        qr(1360, 120, 280, "#6E1F2A", "rings"),
+        linedArea(120, 452, 1520, 480, "#8B7D72"),
+        ...signatureBlock("#6E1F2A", "#7A7067"),
       ],
     },
     envelope: {
@@ -246,21 +278,22 @@ export const TEMPLATES: Template[] = [
     inside: {
       background: { type: "preset", value: "cream", overlayOpacity: 0 },
       elements: [
-        text(124, "Chốt lịch nha!", 78, "Mali", "#8E2424", {
+        text(124, "Chốt lịch nha!", 76, "Mali", "#8E2424", {
           x: 120,
-          width: 1140,
+          width: 1160,
           align: "left",
         }),
         text(
-          254,
+          244,
           "Thời gian: 19:00 · Thứ Bảy\nĐịa điểm: [Tên quán quen]",
           50,
           "Mali",
           "#2B2623",
-          { x: 120, width: 1140, align: "left" },
+          { x: 120, width: 1160, align: "left" },
         ),
-        text(742, "Quét vote món", 48, "Be Vietnam Pro", "#7A7067", { x: 1320, width: 356 }),
-        qr(1360, 840, 280, "#2B2623", "toast"),
+        qr(1360, 120, 280, "#2B2623", "toast"),
+        linedArea(120, 452, 1520, 480, "#7A7067"),
+        ...signatureBlock("#8E2424", "#7A7067"),
       ],
     },
     envelope: {
@@ -312,21 +345,22 @@ export const TEMPLATES: Template[] = [
     inside: {
       background: { type: "preset", value: "cream", overlayOpacity: 0 },
       elements: [
-        text(124, "Chúc cậu thật vui,", 78, "Charm", "#2F4A3A", {
+        text(124, "Chúc cậu thật vui,", 76, "Charm", "#2F4A3A", {
           x: 120,
-          width: 1140,
+          width: 1160,
           align: "left",
         }),
         text(
-          252,
+          244,
           "Chúc cậu một ngày rực rỡ\nvà thật nhiều niềm vui nhỏ.",
           52,
           "Cormorant Garamond",
           "#5C524B",
-          { x: 120, width: 1140, align: "left" },
+          { x: 120, width: 1160, align: "left" },
         ),
-        text(742, "Quét mở quà", 48, "Be Vietnam Pro", "#7A7067", { x: 1320, width: 356 }),
-        qr(1360, 840, 280, "#2F4A3A", "star"),
+        qr(1360, 120, 280, "#2F4A3A", "star"),
+        linedArea(120, 452, 1520, 480, "#7A7067"),
+        ...signatureBlock("#2F4A3A", "#7A7067"),
       ],
     },
     envelope: {

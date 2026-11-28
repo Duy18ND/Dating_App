@@ -1,14 +1,12 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/lib/editor/store";
 import { FONT_NAMES, type FontName } from "@/lib/font-names";
 import { LIMITS } from "@/lib/validation";
 import { ColorField } from "./ColorField";
 import { EnvelopeFront, FoldedEnvelope } from "./print/FoldedEnvelope";
 import { TextInput } from "./TextInput";
-import { Field, inputClass, Section } from "./ui";
+import { Field, inputClass, Section, Toggle } from "./ui";
 
 export const ENVELOPE_COLORS = ["#F2D7D5", "#F4E9DA", "#C8A882", "#E8B4BC", "#DDEBD8", "#8E2424"];
 
@@ -17,9 +15,11 @@ export function EnvelopePanel() {
   const decor = useEditorStore((s) => s.doc.canvas_data.envelope);
   const color = useEditorStore((s) => s.doc.web_config.envelopeColor);
   const recipient = useEditorStore((s) => s.doc.web_config.recipientName);
+  const syncKit = useEditorStore((s) => s.syncKitBackground);
+  const setSyncKit = useEditorStore((s) => s.setSyncKitBackground);
   const setEnvelope = useEditorStore((s) => s.setEnvelope);
+  const setEnvelopeColor = useEditorStore((s) => s.setEnvelopeColor);
   const setWebConfig = useEditorStore((s) => s.setWebConfig);
-  const syncCardAndEnvelopeTheme = useEditorStore((s) => s.syncCardAndEnvelopeTheme);
   const endCoalesce = useEditorStore((s) => s.endCoalesce);
 
   return (
@@ -65,26 +65,23 @@ export function EnvelopePanel() {
           </select>
         </Field>
         <ColorField
-          label="Màu phong bì"
+          label={syncKit ? "Màu cả bộ (Phong bì + Thiệp)" : "Màu phong bì"}
           colors={ENVELOPE_COLORS}
           value={color}
           onChange={(envelopeColor, custom) =>
-            setWebConfig({ envelopeColor }, custom ? "envelope" : undefined)
+            setEnvelopeColor(envelopeColor, custom ? "envelope" : undefined)
           }
           onCommit={endCoalesce}
         />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={() => syncCardAndEnvelopeTheme(color)}
-        >
-          <Sparkles className="size-3.5" /> Dùng chung màu này cho cả giấy thiệp
-        </Button>
+        <Toggle
+          label="Đồng bộ màu này cho cả Mặt trước & Mặt sau thiệp"
+          checked={syncKit}
+          onChange={setSyncKit}
+        />
         <p className="text-xs text-muted-foreground">
-          Màu này dùng cho cả phong bì in và phong bì trên trang web. Xem phôi trải phẳng ở mục “Xem
-          cả bộ”.
+          {syncKit
+            ? "Chọn 1 lần ăn cả phong bì in, phong bì web và 2 mặt thiệp. Xem phôi trải phẳng ở mục “Xem cả bộ”."
+            : "Đang chọn riêng màu phong bì (không đổi nền thiệp). Xem phôi trải phẳng ở mục “Xem cả bộ”."}
         </p>
       </Section>
     </div>

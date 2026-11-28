@@ -104,15 +104,30 @@ describe("khóa kích thước mã QR", () => {
 describe("hai mặt thiệp", () => {
   const faces = () => state().doc.canvas_data.faces;
 
-  it("thêm và đổi nền chỉ tác động lên mặt đang sửa", () => {
+  it("mặc định đổi nền 1 lần tự đồng bộ cả 2 mặt và màu phong bì; tắt đồng bộ thì chỉnh riêng từng mặt", () => {
     add("bìa");
     state().setFace("inside");
     add("trong");
     state().setBackground({ type: "color", value: "#FFEEEE" });
     expect(faces().front.elements.map((el) => el.text)).toEqual(["bìa"]);
     expect(faces().inside.elements.map((el) => el.text)).toEqual(["trong"]);
-    expect(faces().front.background.type).toBe("preset");
+    expect(faces().front.background.value).toBe("#FFEEEE");
     expect(faces().inside.background.value).toBe("#FFEEEE");
+    expect(state().doc.web_config.envelopeColor).toBe("#FFEEEE");
+
+    // Khi tắt đồng bộ: chỉ đổi mặt đang mở
+    state().setSyncKitBackground(false);
+    state().setBackground({ type: "color", value: "#DDEEFF" });
+    expect(faces().front.background.value).toBe("#FFEEEE");
+    expect(faces().inside.background.value).toBe("#DDEEFF");
+    expect(state().doc.web_config.envelopeColor).toBe("#FFEEEE");
+  });
+
+  it("đổi màu phong bì khi đang đồng bộ sẽ đổi luôn nền 2 mặt thiệp", () => {
+    state().setEnvelopeColor("#F2D7D5");
+    expect(state().doc.web_config.envelopeColor).toBe("#F2D7D5");
+    expect(faces().front.background).toMatchObject({ type: "color", value: "#F2D7D5" });
+    expect(faces().inside.background).toMatchObject({ type: "color", value: "#F2D7D5" });
   });
 
   it("đổi mặt thì bỏ chọn, và không vào lịch sử", () => {

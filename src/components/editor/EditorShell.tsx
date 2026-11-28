@@ -301,13 +301,19 @@ export function EditorShell() {
       setExtraView(next);
     } else {
       setExtraView(null);
+      if (next === "front") useEditorStore.getState().setTool("select");
       useEditorStore.getState().setFace(next);
     }
   }
 
   // Thiết kế khung tự do dùng lại chính trình soạn thiệp, bỏ công cụ chỉ dành cho bản in.
+  // Mặt trước là bìa thiệp nên ẩn tab Vẽ tay (chỉ dùng Vẽ tay ở Mặt sau + QR hoặc Khung tự do).
   const designing = boardId !== null;
-  const tools = designing ? TABS.filter((t) => BOARD_TOOLS.includes(t.id)) : TABS;
+  const tools = designing
+    ? TABS.filter((t) => BOARD_TOOLS.includes(t.id))
+    : face === "front"
+      ? TABS.filter((t) => t.id !== "draw")
+      : TABS;
   const active = tools.find((t) => t.id === tab) ?? tools[0];
   const printing = mode === "print" && !designing;
   const onCard = designing || (printing && extraView === null);

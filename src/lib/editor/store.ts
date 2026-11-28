@@ -51,6 +51,8 @@ interface EditorState {
   selectedId: string | null;
   editingTextId: string | null;
   printHideBackground: boolean;
+  /** Mặc định bật: chọn màu/nền 1 lần tự đồng bộ cả Mặt trước, Mặt sau và Phong bì. */
+  syncKitBackground: boolean;
   published: Published | null;
   /** Bản đã lưu gần nhất; khác `doc` nghĩa là còn thay đổi chưa lưu. */
   savedDoc: LetterPayload | null;
@@ -65,6 +67,7 @@ interface EditorState {
   select: (id: string | null) => void;
   setEditingText: (id: string | null) => void;
   setPrintHideBackground: (hide: boolean) => void;
+  setSyncKitBackground: (sync: boolean) => void;
   setFace: (face: FaceId) => void;
   setBoard: (boardId: string | null) => void;
 
@@ -85,6 +88,8 @@ interface EditorState {
   duplicateElement: (id: string) => void;
   moveLayer: (id: string, move: LayerMove) => void;
   setBackground: (patch: Partial<BackgroundConfig>, key?: string) => void;
+  /** Đổi màu phong bì; khi đang đồng bộ cả bộ sẽ đổi luôn nền Mặt trước và Mặt sau. */
+  setEnvelopeColor: (color: string, key?: string) => void;
   /** Đồng bộ nền thiệp hiện tại cho cả Mặt trước, Mặt sau và màu Phong bì trong 1 bước Undo. */
   syncCardAndEnvelopeTheme: (envelopeColorOverride?: string) => void;
   /** Áp dụng 1 bộ phối màu cho cả Mặt trước, Mặt sau, Phong bì và Trang web trong 1 bước Undo. */
@@ -258,6 +263,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   selectedId: null,
   editingTextId: null,
   printHideBackground: false,
+  syncKitBackground: true,
   published: null,
   savedDoc: null,
   tool: "select",
@@ -272,6 +278,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       face: "front",
       boardId: null,
       printHideBackground: false,
+      syncKitBackground: true,
       past: [],
       future: [],
       coalesceKey: null,
@@ -286,6 +293,7 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
   select: (selectedId) => set({ selectedId, coalesceKey: null }),
   setEditingText: (editingTextId) => set({ editingTextId, coalesceKey: null }),
   setPrintHideBackground: (printHideBackground) => set({ printHideBackground }),
+  setSyncKitBackground: (syncKitBackground) => set({ syncKitBackground }),
   setBoard: (boardId) =>
     set({ boardId, tool: "select", selectedId: null, editingTextId: null, coalesceKey: null }),
   setFace: (face) => {
@@ -386,12 +394,56 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
     ),
 
   setBackground: (patch, key) => {
-    const ref = refOf(get());
+    const state = get();
+    const ref = refOf(state);
     get().commit((doc) => {
       const current = surfaceAt(doc, ref);
-      return current
-        ? withSurface(doc, ref, { background: { ...current.background, ...patch } })
-        : doc;
+      if (!current) return doc;
+      const nextBg: BackgroundConfig = { ...current.background, ...patch };
+      if ("face" in ref && state.syncKitBackground) {
+        const nextEnvelopeColor =
+          nextBg.type === "color"
+            ? nextBg.value
+            : nextBg.type === "preset"
+              ? (PRESET_STYLES[nextBg.value as keyof typeof PRESET_STYLES]?.envelopeColor ??
+                doc.web_config.envelopeColor)
+              : doc.web_config.envelopeColor;
+        return {
+          ...doc,
+          canvas_data: {
+            ...doc.canvas_data,
+            faces: {
+              front: { ...doc.canvas_data.faces.front, background: { ...nextBg } },
+              inside: { ...doc.canvas_data.faces.inside, background: { ...nextBg } },
+            },
+          },
+          web_config: {
+            ...doc.web_config,
+            envelopeColor: nextEnvelopeColor,
+          },
+        };
+      }
+      return withSurface(doc, ref, { background: nextBg });
+    }, key);
+  },
+  setEnvelopeColor: (color, key) => {
+    const sync = get().syncKitBackground;
+    get().commit((doc) => {
+      if (!sync) {
+        return { ...doc, web_config: { ...doc.web_config, envelopeColor: color } };
+      }
+      const nextBg: BackgroundConfig = { type: "color", value: color, overlayOpacity: 0 };
+      return {
+        ...doc,
+        canvas_data: {
+          ...doc.canvas_data,
+          faces: {
+            front: { ...doc.canvas_data.faces.front, background: { ...nextBg } },
+            inside: { ...doc.canvas_data.faces.inside, background: { ...nextBg } },
+          },
+        },
+        web_config: { ...doc.web_config, envelopeColor: color },
+      };
     }, key);
   },
   syncCardAndEnvelopeTheme: (envelopeColorOverride) => {
