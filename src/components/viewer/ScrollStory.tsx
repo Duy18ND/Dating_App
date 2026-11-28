@@ -845,6 +845,8 @@ export function ScrollStory({
                       caption={section.caption}
                       dateLabel={formatDateVi(section.date)}
                       stripColor={section.stripColor}
+                      layout={section.layout}
+                      animation={section.animation}
                       photos={section.photos}
                       headingStyle={headingStyle}
                       scriptStyle={scriptStyle}

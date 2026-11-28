@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { currentElements, currentHeight, useEditorStore } from "@/lib/editor/store";
 import { samplePayload } from "@/lib/test-fixtures";
-import { collectUserImageUrls, collectWebImageUrls, webConfigSchema } from "@/lib/validation";
+import { collectUserImageUrls, collectWebImageUrls, LIMITS, webConfigSchema } from "@/lib/validation";
 import { isSectionEmpty, missingSectionTypes, newSection } from "@/lib/web-sections";
 import type { BoardSection, CanvasElement, WebConfig } from "@/types/letter";
 
@@ -42,8 +42,8 @@ describe("khung tự do: ảnh phải được gắn với thư (nếu không cr
     expect(collectUserImageUrls(samplePayload().canvas_data, web([withImages]))).toContain(PHOTO);
   });
 
-  it("ảnh trong khung tính vào hạn mức 8 ảnh trang web", () => {
-    const elements = Array.from({ length: 9 }, (_, i) =>
+  it("ảnh trong khung tính vào hạn mức ảnh trang web", () => {
+    const elements = Array.from({ length: LIMITS.maxWebImages + 1 }, (_, i) =>
       element({ id: `i${i}`, src: `https://cdn.test/uploads/${i}.webp` }),
     );
     expect(webConfigSchema.safeParse(web([board({ elements })])).success).toBe(false);

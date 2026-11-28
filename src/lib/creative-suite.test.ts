@@ -13,7 +13,13 @@ import {
   webStyleSchema,
 } from "@/lib/validation";
 import { isSectionEmpty, newSection } from "@/lib/web-sections";
-import { BACKGROUND_PRESETS, IMAGE_FRAMES, WEB_GARLANDS } from "@/types/letter";
+import {
+  BACKGROUND_PRESETS,
+  IMAGE_FRAMES,
+  PHOTOBOOTH_ANIMATIONS,
+  PHOTOBOOTH_LAYOUTS,
+  WEB_GARLANDS,
+} from "@/types/letter";
 
 describe("color HEX helpers", () => {
   it("chuẩn hóa mã #RGB và #RRGGBB, từ chối chuỗi sai", () => {
@@ -112,20 +118,21 @@ describe("Mẫu Canva Web, Băng rôn, Photobooth & Thẻ cào", () => {
     }
   });
 
-  it("photobooth thu gom đủ URL ảnh để cron không xóa nhầm", () => {
+  it("photobooth hỗ trợ tới 8 ảnh, đủ 4 kiểu khung và 5 hiệu ứng animation", () => {
     const section = newSection("photobooth");
     expect(isSectionEmpty(section, false)).toBe(true);
     if (section.type === "photobooth") {
-      section.photos = [
-        { src: "https://cdn.test/uploads/p1.webp", frame: "heart" },
-        { src: "https://cdn.test/uploads/p2.webp", frame: "circle" },
-      ];
-      expect(webSectionSchema.safeParse(section).success).toBe(true);
+      section.photos = Array.from({ length: 8 }, (_, i) => ({
+        src: `https://cdn.test/uploads/p${i + 1}.webp`,
+        frame: i % 2 === 0 ? "heart" : "circle",
+      }));
+      for (const layout of PHOTOBOOTH_LAYOUTS) {
+        for (const animation of PHOTOBOOTH_ANIMATIONS) {
+          expect(webSectionSchema.safeParse({ ...section, layout, animation }).success).toBe(true);
+        }
+      }
       expect(isSectionEmpty(section, false)).toBe(false);
-      expect(collectWebImageUrls({ sections: [section] })).toEqual([
-        "https://cdn.test/uploads/p1.webp",
-        "https://cdn.test/uploads/p2.webp",
-      ]);
+      expect(collectWebImageUrls({ sections: [section] })).toHaveLength(8);
     }
   });
 

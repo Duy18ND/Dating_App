@@ -32,7 +32,7 @@ describe("T-45: Hợp đồng dữ liệu trang web (sections, style, fit/focus)
     expect(resolveWebStyle(p.web_config.style).theme.id).toBe("warm_letter");
   });
 
-  it("kiểm tra giới hạn FR-10 và tối đa 8 ảnh web", () => {
+  it("kiểm tra giới hạn FR-10 và tối đa 12 ảnh web", () => {
     const p = samplePayload();
     p.web_config.sections = [
       {
@@ -59,20 +59,24 @@ describe("T-45: Hợp đồng dữ liệu trang web (sections, style, fit/focus)
           image: { src: `https://cdn.test/web-mem-${i}.webp` },
         })),
       },
+      {
+        id: "pb1",
+        type: "photobooth",
+        enabled: true,
+        photos: Array.from({ length: 4 }, (_, i) => ({
+          src: `https://cdn.test/web-pb-${i}.webp`,
+        })),
+      },
     ];
     expect(ok(p)).toBe(true);
-    expect(collectWebImageUrls(p.web_config)).toHaveLength(8);
-    expect(collectUserImageUrls(p.canvas_data, p.web_config)).toHaveLength(8);
+    expect(collectWebImageUrls(p.web_config)).toHaveLength(12);
+    expect(collectUserImageUrls(p.canvas_data, p.web_config)).toHaveLength(12);
 
-    // Thêm ảnh thứ 9 trên web -> từ chối
+    // Thêm ảnh thứ 13 trên web -> từ chối
     const over = structuredClone(p);
-    const mem = over.web_config.sections![2];
-    if (mem.type === "memories") {
-      mem.items.push({
-        id: "mem-extra",
-        caption: "Quá giới hạn ảnh",
-        image: { src: "https://cdn.test/web-mem-extra.webp" },
-      });
+    const pb = over.web_config.sections![3];
+    if (pb.type === "photobooth") {
+      pb.photos.push({ src: "https://cdn.test/web-pb-extra.webp" });
     }
     expect(ok(over)).toBe(false);
   });

@@ -167,11 +167,66 @@
   }
 }
 
+/* Photobooth animations (60fps composite-only: transform & opacity) */
+@keyframes pb-print-slide {
+  0% { opacity: 0; transform: translateY(-92%); }
+  12% { opacity: 1; }
+  38% { transform: translateY(-58%); }
+  46% { transform: translateY(-54%); }
+  74% { transform: translateY(-20%); }
+  82% { transform: translateY(-16%); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes pb-flash-snap {
+  0% { opacity: 0; transform: scale(0.92); }
+  55% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes pb-flash-glow {
+  0% { opacity: 0; }
+  18% { opacity: 0.92; }
+  100% { opacity: 0; }
+}
+@keyframes pb-polaroid-drop {
+  0% { opacity: 0; transform: translateY(-34px) scale(1.06) rotate(var(--pb-start-tilt, -7deg)); }
+  70% { opacity: 1; transform: translateY(4px) scale(0.99) rotate(var(--pb-tilt, 0deg)); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(var(--pb-tilt, 0deg)); }
+}
+@keyframes pb-film-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+.pb-anim-print {
+  animation: pb-print-slide 1.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pb-anim-snap {
+  animation: pb-flash-snap 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--pb-delay, 0ms);
+}
+.pb-anim-flash {
+  animation: pb-flash-glow 540ms ease-out both;
+  animation-delay: var(--pb-delay, 0ms);
+}
+.pb-anim-drop {
+  animation: pb-polaroid-drop 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--pb-delay, 0ms);
+}
+.pb-anim-marquee {
+  animation: pb-film-marquee var(--pb-marquee-s, 18s) linear infinite;
+}
+.pb-marquee-wrap:hover .pb-anim-marquee,
+.pb-marquee-wrap:focus-within .pb-anim-marquee {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-rise, .anim-pop, .anim-float, .anim-twinkle, .anim-peek, .anim-beat,
-  .anim-blink, .anim-shake, .anim-hop, .anim-reveal {
+  .anim-blink, .anim-shake, .anim-hop, .anim-reveal,
+  .pb-anim-print, .pb-anim-snap, .pb-anim-flash, .pb-anim-drop, .pb-anim-marquee {
     animation: none !important;
   }
+  .pb-anim-flash { opacity: 0 !important; }
   .lift, .wiggle-on-hover { transition: none; }
   .lift:hover, .lift:active { transform: none; }
 }

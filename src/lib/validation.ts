@@ -11,6 +11,8 @@ import {
   IMAGE_FITS,
   IMAGE_FRAMES,
   PAPER_STYLES,
+  PHOTOBOOTH_ANIMATIONS,
+  PHOTOBOOTH_LAYOUTS,
   TEMPLATE_TYPES,
   WEB_CELEBRATE_EFFECTS,
   WEB_COUNTER_EFFECTS,
@@ -28,7 +30,8 @@ import {
 
 export const LIMITS = {
   maxUserImages: 4,
-  maxWebImages: 8,
+  maxWebImages: 12,
+  maxPhotoboothPhotos: 8,
   maxElements: 300,
   maxPointNumbers: 4000,
   maxBodyBytes: 1_000_000,
@@ -371,7 +374,9 @@ export const webSectionSchema = z.discriminatedUnion("type", [
     caption: shortText(LIMITS.maxMemoryCaption).optional(),
     date: optionalDate,
     stripColor: hexColor.optional(),
-    photos: z.array(webImageSchema).max(4),
+    layout: z.enum(PHOTOBOOTH_LAYOUTS).optional(),
+    animation: z.enum(PHOTOBOOTH_ANIMATIONS).optional(),
+    photos: z.array(webImageSchema).max(LIMITS.maxPhotoboothPhotos),
   }),
   z.strictObject({
     id: sectionId,

@@ -1,15 +1,25 @@
 "use client";
 
-import { Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Images, Plus, Trash2, X } from "lucide-react";
 import { nanoid } from "nanoid";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/lib/editor/store";
 import { LIMITS } from "@/lib/validation";
-import type { CounterMode, MemoryItem, WebImage, WebSection, WebSectionType } from "@/types/letter";
+import type {
+  CounterMode,
+  MemoryItem,
+  PhotoboothAnimation,
+  PhotoboothLayout,
+  WebImage,
+  WebSection,
+  WebSectionType,
+} from "@/types/letter";
 import { ColorField } from "../ColorField";
 import { TextArea, TextInput } from "../TextInput";
 import { BlockSettings } from "../WebPanel";
 import { Choice } from "../ui";
+import { useImageUpload } from "../useImageUpload";
 import { BoardFields } from "./BoardFields";
 import { WebImageField } from "./WebImageField";
 
@@ -295,17 +305,50 @@ function EndingFields({ section }: { section: Of<"ending"> }) {
 const STRIP_COLORS = ["#FFFDF9", "#1E1B1A", "#FDECEF", "#E9F0E6", "#EAF2FA", "#F3E6CE"];
 const FOIL_COLORS = ["#D9B36C", "#E5A9B8", "#C4CDD9", "#8E2424", "#7AA082"];
 
+const PHOTOBOOTH_LAYOUT_OPTIONS: { value: PhotoboothLayout; label: string }[] = [
+  { value: "strip", label: "Dải dọc" },
+  { value: "grid2x2", label: "Lưới 2×2" },
+  { value: "film", label: "Cuộn phim" },
+  { value: "polaroid", label: "Polaroid" },
+];
+
+const PHOTOBOOTH_ANIMATION_OPTIONS: { value: PhotoboothAnimation; label: string }[] = [
+  { value: "print_slide", label: "In trượt ra" },
+  { value: "flash_snap", label: "Chớp flash" },
+  { value: "film_scroll", label: "Cuộn phim chạy" },
+  { value: "polaroid_drop", label: "Rơi xếp chồng" },
+  { value: "none", label: "Tĩnh" },
+];
+
 function PhotoboothFields({ section }: { section: Of<"photobooth"> }) {
   const endCoalesce = useEditorStore((s) => s.endCoalesce);
+  const multiInput = useRef<HTMLInputElement>(null);
+  const { uploadMany, busy, progress, error, used, max, full } = useImageUpload("web");
+  const [openPhoto, setOpenPhoto] = useState<number | null>(null);
+
+  const maxPhotos = LIMITS.maxPhotoboothPhotos;
+  const remainingSlots = Math.max(0, maxPhotos - section.photos.length);
+
   const setPhotos = (photos: WebImage[], key?: string) =>
     useEditorStore
       .getState()
       .updateWebSection(section.id, { photos } as Partial<WebSection>, key);
 
+  const movePhoto = (index: number, delta: -1 | 1) => {
+    const target = index + delta;
+    if (target < 0 || target >= section.photos.length) return;
+    const next = [...section.photos];
+    const [moved] = next.splice(index, 1);
+    next.splice(target, 0, moved);
+    setPhotos(next);
+    setOpenPhoto((cur) => (cur === index ? target : cur === target ? index : cur));
+  };
+
   return (
     <>
       <p className="text-xs text-muted-foreground">
-        Ghép 2–4 ảnh dọc thành dải Photobooth kiểu Hàn Quốc có chú thích và ngày ở chân dải ảnh.
+        Chọn nhiều ảnh cùng lúc (tối đa {maxPhotos} ảnh), ghép theo khung Photobooth và bật hiệu ứng
+        chuyển động khi mở thiệp.
       </p>
       <TextInput
         label="Tiêu đề phần"
@@ -313,6 +356,22 @@ function PhotoboothFields({ section }: { section: Of<"photobooth"> }) {
         maxLength={LIMITS.maxMessageTitle}
         onChange={(title) => patch(section, { title }, "title")}
       />
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-muted-foreground">Kiểu khung Photobooth</p>
+        <Choice
+          options={PHOTOBOOTH_LAYOUT_OPTIONS}
+          value={section.layout ?? "strip"}
+          onChange={(layout) => patch(section, { layout })}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-muted-foreground">Hiệu ứng chuyển động</p>
+        <Choice
+          options={PHOTOBOOTH_ANIMATION_OPTIONS}
+          value={section.animation ?? "print_slide"}
+          onChange={(animation) => patch(section, { animation })}
+        />
+      </div>
       <ColorField
         label="Màu dải phim Photobooth"
         colors={STRIP_COLORS}
@@ -322,43 +381,146 @@ function PhotoboothFields({ section }: { section: Of<"photobooth"> }) {
         }
         onCommit={endCoalesce}
       />
-      {section.photos.map((photo, index) => (
-        <fieldset key={`${photo.src}-${index}`} className="space-y-2 rounded-md border p-2.5">
-          <legend className="px-1 text-xs font-semibold">Ảnh {index + 1}</legend>
-          <WebImageField
-            label={`Khung ảnh ${index + 1}`}
-            image={photo}
-            defaultFit="cover"
-            focusKey={`section:${section.id}:photo-${index}`}
-            onChange={(next, key) => {
+
+      {/* Chọn nhiều ảnh cùng lúc */}
+      <div className="space-y-2 rounded-lg border border-dashed bg-accent/40 p-2.5">
+        <input
+          ref={multiInput}
+          type="file"
+          accept="image/*"
+          multiple
+          hidden
+          onChange={(event) => {
+            const files = event.target.files;
+            void uploadMany(files, remainingSlots, (uploaded) => {
               const current = latest(section);
-              if (!next) {
-                setPhotos(current.photos.filter((_, i) => i !== index));
-              } else {
-                setPhotos(
-                  current.photos.map((p, i) => (i === index ? next : p)),
-                  key,
-                );
-              }
-            }}
-          />
-        </fieldset>
-      ))}
-      {section.photos.length < 4 && (
-        <div className="rounded-md border border-dashed p-2.5">
-          <WebImageField
-            label={`Thêm ảnh vào dải (${section.photos.length}/4)`}
-            image={undefined}
-            defaultFit="cover"
-            focusKey={`section:${section.id}:add`}
-            onChange={(added) => {
-              if (!added) return;
-              const current = latest(section);
-              setPhotos([...current.photos, { ...added, fit: "cover" }]);
-            }}
-          />
+              const added: WebImage[] = uploaded.map(({ url }) => ({ src: url, fit: "cover" }));
+              setPhotos([...current.photos, ...added].slice(0, maxPhotos));
+            });
+            event.target.value = "";
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full bg-card"
+          disabled={busy || full || remainingSlots <= 0}
+          onClick={() => multiInput.current?.click()}
+        >
+          <Images className="size-4" />
+          {busy && progress
+            ? `Đang tải ${progress.done}/${progress.total} ảnh...`
+            : remainingSlots > 0
+              ? `Chọn nhiều ảnh cùng lúc (${section.photos.length}/${maxPhotos})`
+              : `Đã đủ ${maxPhotos}/${maxPhotos} ảnh`}
+        </Button>
+        <p className="text-[11px] text-muted-foreground">
+          Giữ Ctrl / Shift hoặc chọn nhiều ảnh trên điện thoại để tải 1 lần. Trang web đã dùng{" "}
+          {used}/{max} ảnh.
+        </p>
+        {error && (
+          <p role="alert" className="text-xs text-destructive">
+            {error}
+          </p>
+        )}
+      </div>
+
+      {/* Danh sách ảnh gọn: xem trước, đổi thứ tự, xóa hoặc mở chỉnh khung */}
+      {section.photos.length > 0 && (
+        <div className="space-y-2">
+          {section.photos.map((photo, index) => {
+            const expanded = openPhoto === index;
+            return (
+              <div key={`${photo.src}-${index}`} className="rounded-md border bg-card">
+                <div className="flex items-center gap-2 p-1.5">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- ảnh thu nhỏ R2 */}
+                  <img
+                    src={photo.src}
+                    alt={`Ảnh ${index + 1}`}
+                    className="size-10 shrink-0 rounded object-cover"
+                  />
+                  <button
+                    type="button"
+                    aria-expanded={expanded}
+                    onClick={() => setOpenPhoto(expanded ? null : index)}
+                    className="flex min-w-0 flex-1 items-center gap-1 text-left text-xs font-medium"
+                  >
+                    <ChevronDown
+                      className={`size-3.5 shrink-0 transition-transform ${expanded ? "" : "-rotate-90"}`}
+                    />
+                    <span className="truncate">Ảnh {index + 1}</span>
+                    <span className="text-[11px] font-normal text-muted-foreground">
+                      · {expanded ? "Thu gọn" : "Chỉnh khung"}
+                    </span>
+                  </button>
+                  <div className="flex shrink-0 items-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-7"
+                      aria-label={`Đưa ảnh ${index + 1} lên`}
+                      disabled={index === 0}
+                      onClick={() => movePhoto(index, -1)}
+                    >
+                      <ArrowUp className="size-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-7"
+                      aria-label={`Đưa ảnh ${index + 1} xuống`}
+                      disabled={index === section.photos.length - 1}
+                      onClick={() => movePhoto(index, 1)}
+                    >
+                      <ArrowDown className="size-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-destructive"
+                      aria-label={`Xóa ảnh ${index + 1}`}
+                      onClick={() => {
+                        const current = latest(section);
+                        setPhotos(current.photos.filter((_, i) => i !== index));
+                        setOpenPhoto((cur) => (cur === index ? null : cur !== null && cur > index ? cur - 1 : cur));
+                      }}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
+                {expanded && (
+                  <div className="border-t p-2.5">
+                    <WebImageField
+                      label={`Tùy chỉnh ảnh ${index + 1}`}
+                      image={photo}
+                      defaultFit="cover"
+                      focusKey={`section:${section.id}:photo-${index}`}
+                      onChange={(next, key) => {
+                        const current = latest(section);
+                        if (!next) {
+                          setPhotos(current.photos.filter((_, i) => i !== index));
+                          setOpenPhoto(null);
+                        } else {
+                          setPhotos(
+                            current.photos.map((p, i) => (i === index ? next : p)),
+                            key,
+                          );
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
+
       <TextInput
         label="Chú thích chân dải ảnh"
         value={section.caption ?? ""}

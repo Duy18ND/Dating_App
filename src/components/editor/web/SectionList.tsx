@@ -1,10 +1,8 @@
 "use client";
 
-import { Brush, ChevronDown, GripVertical, Plus, Sparkles } from "lucide-react";
+import { ChevronDown, GripVertical, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BOARD_TEMPLATES } from "@/lib/board-templates";
 import { useEditorStore } from "@/lib/editor/store";
-import { LIMITS } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 import { defaultWebSections } from "@/lib/web-defaults";
 import { defaultWebStyle } from "@/lib/web-styles";
@@ -63,63 +61,10 @@ export function SectionList({
     );
   }
 
-  const missing = missingSectionTypes(sections);
-  const boardCount = sections.filter((s) => s.type === "board").length;
-  const canAddBoard = boardCount < LIMITS.maxBoards;
-
-  function createCanvaBoard(builder: () => ReturnType<typeof newSection>) {
-    const board = builder();
-    const current = useEditorStore.getState().doc.web_config.sections ?? [];
-    setWebSections(insertSection(current, board));
-    onOpen(board.id);
-    useEditorStore.getState().setBoard(board.id);
-  }
+  const missing = missingSectionTypes(sections).filter((type) => type !== "board");
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2 rounded-xl border bg-accent/60 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
-            <Sparkles className="size-3.5" /> Thiết kế tự do như Canva
-          </p>
-          <span className="text-[11px] text-muted-foreground">
-            {boardCount}/{LIMITS.maxBoards} khung
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Chọn mẫu có sẵn (băng rôn, bóng bay, sticker meme) hoặc khung trắng để kéo thả ảnh, chữ tự
-          do.
-        </p>
-        <div className="grid grid-cols-2 gap-1.5">
-          {BOARD_TEMPLATES.map((tpl) => (
-            <button
-              key={tpl.id}
-              type="button"
-              disabled={!canAddBoard}
-              onClick={() => createCanvaBoard(tpl.build)}
-              className="flex items-center gap-2 rounded-md border bg-card px-2 py-1.5 text-left text-xs font-medium hover:border-primary hover:bg-accent disabled:opacity-50"
-            >
-              <span
-                aria-hidden
-                className="size-4 shrink-0 rounded border border-black/15"
-                style={{ backgroundColor: tpl.swatch }}
-              />
-              <span className="truncate">{tpl.label}</span>
-            </button>
-          ))}
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="w-full"
-          disabled={!canAddBoard}
-          onClick={() => createCanvaBoard(() => newSection("board"))}
-        >
-          <Brush className="size-3.5" /> Tạo khung trắng tự thiết kế
-        </Button>
-      </div>
-
       <p className="text-xs text-muted-foreground">Nắm nút ⠿ rồi kéo để đổi thứ tự.</p>
       <ol ref={list} className="space-y-2">
         {sections.map((section, index) => {

@@ -1,10 +1,16 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { RotateCcw, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { inkOn } from "@/lib/render/ink";
 import { cn } from "@/lib/utils";
-import type { ImageFrame, WebGarland, WebImage } from "@/types/letter";
+import type {
+  ImageFrame,
+  PhotoboothAnimation,
+  PhotoboothLayout,
+  WebGarland,
+  WebImage,
+} from "@/types/letter";
 
 /** Băng rôn / dây treo trang trí đầu trang web (nhẹ, vector SVG, tôn trọng reduced-motion). */
 export function HeaderGarland({ kind, accent }: { kind: WebGarland; accent: string }) {
@@ -166,12 +172,112 @@ export function WebPhotoFrame({
   return <div className={cn("overflow-hidden rounded-2xl", className)}>{children}</div>;
 }
 
-/** Dải ảnh Photobooth kiểu Hàn Quốc (2–4 ảnh dọc, chân dải ảnh có chú thích và ngày). */
+const POLAROID_TILTS = [-3.2, 2.4, -1.8, 3.1, -2.5, 1.9, -2.8, 2.2];
+
+function PhotoboothPhoto({
+  photo,
+  index,
+  caption,
+  aspectClass = "aspect-[4/3]",
+  animateSnap,
+  animateDrop,
+  tiltDeg = 0,
+  showIndex,
+  stripInk,
+}: {
+  photo: WebImage;
+  index: number;
+  caption?: string;
+  aspectClass?: string;
+  animateSnap?: boolean;
+  animateDrop?: boolean;
+  tiltDeg?: number;
+  showIndex?: boolean;
+  stripInk?: string;
+}) {
+  const fx = Math.round((photo.focus?.x ?? 0.5) * 100);
+  const fy = Math.round((photo.focus?.y ?? 0.5) * 100);
+  const zoom = photo.zoom ?? 1;
+  const fitClass = photo.fit === "contain" ? "object-contain" : "object-cover";
+  const delayStyle = {
+    "--pb-delay": `${index * 190}ms`,
+    "--pb-tilt": `${tiltDeg}deg`,
+    "--pb-start-tilt": `${tiltDeg > 0 ? tiltDeg + 5 : tiltDeg - 5}deg`,
+  } as CSSProperties;
+
+  const img = (
+    <div className={cn("relative w-full overflow-hidden rounded-sm bg-black/5", aspectClass)}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- ảnh người dùng R2 */}
+      <img
+        src={photo.src}
+        alt={caption || `Ảnh photobooth ${index + 1}`}
+        loading="lazy"
+        decoding="async"
+        className={cn("h-full w-full", fitClass)}
+        style={{
+          objectPosition: `${fx}% ${fy}%`,
+          ...(zoom > 1 && { transform: `scale(${zoom})`, transformOrigin: `${fx}% ${fy}%` }),
+        }}
+      />
+      {showIndex && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute right-1.5 bottom-1 rounded bg-black/45 px-1.5 py-0.5 font-mono text-[10px] text-white/95"
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+      )}
+      {animateSnap && (
+        <span
+          aria-hidden
+          style={delayStyle}
+          className="pb-anim-flash pointer-events-none absolute inset-0 bg-white"
+        />
+      )}
+    </div>
+  );
+
+  const framed = photo.frame && photo.frame !== "none" ? (
+    <WebPhotoFrame frame={photo.frame}>{img}</WebPhotoFrame>
+  ) : (
+    img
+  );
+
+  return (
+    <div
+      style={{ ...delayStyle, color: stripInk }}
+      className={cn(
+        animateSnap && "pb-anim-snap",
+        animateDrop && "pb-anim-drop",
+      )}
+    >
+      {framed}
+    </div>
+  );
+}
+
+function SprocketRow({ count = 14, color }: { count?: number; color: string }) {
+  return (
+    <div aria-hidden className="flex items-center justify-between gap-1.5 px-2 py-1.5">
+      {Array.from({ length: count }, (_, i) => (
+        <span
+          key={i}
+          className="h-2.5 w-3.5 shrink-0 rounded-[2px] opacity-85"
+          style={{ backgroundColor: color }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Dải ảnh Photobooth kiểu Hàn Quốc: 4 kiểu khung (dải dọc, lưới 2×2, cuộn phim, polaroid) + 4 hiệu ứng animation. */
 export function PhotoboothStrip({
   title,
   caption,
   dateLabel,
   stripColor = "#FFFDF9",
+  layout = "strip",
+  animation = "print_slide",
   photos,
   headingStyle,
   scriptStyle,
@@ -182,15 +288,278 @@ export function PhotoboothStrip({
   caption?: string;
   dateLabel?: string;
   stripColor?: string;
+  layout?: PhotoboothLayout;
+  animation?: PhotoboothAnimation;
   photos: WebImage[];
   headingStyle: CSSProperties;
   scriptStyle: CSSProperties;
   accent: string;
   mutedColor: string;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [seen, setSeen] = useState(false);
+  const [playKey, setPlayKey] = useState(0);
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setSeen(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.12 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const stripInk = inkOn(stripColor);
+  const isDarkStrip = stripInk === "#FFFFFF";
+  const sprocketHole = isDarkStrip ? "#F5F1EB" : "#26211F";
+  const activeAnim = seen ? animation : "none";
+  const animPrint = activeAnim === "print_slide";
+  const animSnap = activeAnim === "flash_snap";
+  const animDrop = activeAnim === "polaroid_drop";
+  const animMarquee = animation === "film_scroll" && photos.length >= 2;
+  const canReplay =
+    animation === "print_slide" || animation === "flash_snap" || animation === "polaroid_drop";
+
+  const footer = (
+    <div className="space-y-1 pt-2.5 text-center">
+      {caption && (
+        <p style={{ ...scriptStyle, color: stripInk }} className="text-xl leading-snug">
+          {caption}
+        </p>
+      )}
+      <p className="font-mono text-[10px] tracking-[0.22em] uppercase opacity-70" style={{ color: stripInk }}>
+        {dateLabel || "THƯ NHỎ PHOTOBOOTH"}
+      </p>
+      <div aria-hidden className="mx-auto mt-1.5 flex items-center justify-center gap-0.5 opacity-60">
+        {[2, 1, 3, 1, 2, 1, 1, 3, 1, 2, 2, 1].map((w, i) => (
+          <span
+            key={i}
+            className="block h-2.5 rounded-[0.5px]"
+            style={{ width: `${w * 2}px`, backgroundColor: i % 4 === 0 ? accent : stripInk }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+
+  let body: ReactNode;
+
+  if (animMarquee) {
+    const reelPhotos = [...photos, ...photos];
+    const durationSec = Math.max(12, photos.length * 3.8);
+    body = (
+      <div
+        className="pb-marquee-wrap w-full overflow-hidden rounded-xl border shadow-md"
+        style={{ backgroundColor: stripColor, color: stripInk, borderColor: "rgba(0,0,0,0.14)" }}
+      >
+        <SprocketRow count={18} color={sprocketHole} />
+        <div
+          className="pb-anim-marquee flex w-max gap-3 px-3 py-1"
+          style={{ "--pb-marquee-s": `${durationSec}s` } as CSSProperties}
+        >
+          {reelPhotos.map((photo, idx) => (
+            <div key={`${photo.src}-${idx}`} className="w-[185px] shrink-0 sm:w-[220px]">
+              <PhotoboothPhoto
+                photo={photo}
+                index={idx % photos.length}
+                caption={caption}
+                aspectClass={layout === "polaroid" ? "aspect-square" : "aspect-[4/3]"}
+                showIndex
+                stripInk={stripInk}
+              />
+            </div>
+          ))}
+        </div>
+        <SprocketRow count={18} color={sprocketHole} />
+        <div className="px-4 pb-4">{footer}</div>
+      </div>
+    );
+  } else if (layout === "grid2x2") {
+    body = (
+      <div
+        key={`${layout}-${animation}-${playKey}`}
+        className={cn(
+          "w-full max-w-[440px] rounded-xl border p-3.5 pb-5 shadow-md",
+          animPrint && "pb-anim-print",
+        )}
+        style={{ backgroundColor: stripColor, color: stripInk, borderColor: "rgba(0,0,0,0.12)" }}
+      >
+        <div className="mb-2.5 flex items-center justify-between px-0.5 font-mono text-[10px] tracking-[0.2em] uppercase opacity-70">
+          <span>LIFE4CUTS</span>
+          <span>{dateLabel || `${photos.length} CUTS`}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2.5">
+          {photos.map((photo, index) => (
+            <PhotoboothPhoto
+              key={`${photo.src}-${index}`}
+              photo={photo}
+              index={index}
+              caption={caption}
+              aspectClass="aspect-[4/3]"
+              animateSnap={animSnap}
+              animateDrop={animDrop}
+              showIndex
+              stripInk={stripInk}
+            />
+          ))}
+        </div>
+        {footer}
+      </div>
+    );
+  } else if (layout === "film") {
+    body = (
+      <div
+        key={`${layout}-${animation}-${playKey}`}
+        className={cn(
+          "w-full max-w-[340px] overflow-hidden rounded-xl border shadow-md",
+          animPrint && "pb-anim-print",
+        )}
+        style={{ backgroundColor: stripColor, color: stripInk, borderColor: "rgba(0,0,0,0.16)" }}
+      >
+        <div className="flex">
+          {/* Lề đục lỗ trái */}
+          <div aria-hidden className="flex w-6 shrink-0 flex-col justify-around py-3 pl-1.5">
+            {Array.from({ length: Math.max(8, photos.length * 3) }, (_, i) => (
+              <span
+                key={i}
+                className="h-3 w-3 rounded-[2px] opacity-85"
+                style={{ backgroundColor: sprocketHole }}
+              />
+            ))}
+          </div>
+          {/* Cột khung phim giữa */}
+          <div className="min-w-0 flex-1 space-y-2.5 py-3">
+            <div className="flex items-center justify-between font-mono text-[9px] tracking-[0.2em] uppercase opacity-70">
+              <span>35MM · 400</span>
+              <span>THƯ NHỎ</span>
+            </div>
+            {photos.map((photo, index) => (
+              <PhotoboothPhoto
+                key={`${photo.src}-${index}`}
+                photo={photo}
+                index={index}
+                caption={caption}
+                aspectClass="aspect-[3/2]"
+                animateSnap={animSnap}
+                animateDrop={animDrop}
+                showIndex
+                stripInk={stripInk}
+              />
+            ))}
+            {footer}
+          </div>
+          {/* Lề đục lỗ phải */}
+          <div aria-hidden className="flex w-6 shrink-0 flex-col justify-around py-3 pr-1.5 items-end">
+            {Array.from({ length: Math.max(8, photos.length * 3) }, (_, i) => (
+              <span
+                key={i}
+                className="h-3 w-3 rounded-[2px] opacity-85"
+                style={{ backgroundColor: sprocketHole }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  } else if (layout === "polaroid") {
+    body = (
+      <div
+        key={`${layout}-${animation}-${playKey}`}
+        className={cn(
+          "w-full max-w-[460px] space-y-4",
+          animPrint && "pb-anim-print",
+        )}
+      >
+        <div className="grid grid-cols-2 gap-3.5 sm:gap-5">
+          {photos.map((photo, index) => {
+            const tilt = POLAROID_TILTS[index % POLAROID_TILTS.length];
+            const cardStyle = {
+              backgroundColor: stripColor,
+              color: stripInk,
+              borderColor: "rgba(0,0,0,0.1)",
+              "--pb-delay": `${index * 190}ms`,
+              "--pb-tilt": `${tilt}deg`,
+              "--pb-start-tilt": `${tilt > 0 ? tilt + 5 : tilt - 5}deg`,
+              ...(animDrop ? {} : { transform: `rotate(${tilt}deg)` }),
+            } as CSSProperties;
+            return (
+              <div
+                key={`${photo.src}-${index}`}
+                style={cardStyle}
+                className={cn(
+                  "rounded-sm border p-2 pb-6 shadow-md transition-transform duration-200 hover:z-10 hover:rotate-0 hover:scale-[1.03]",
+                  animDrop && "pb-anim-drop",
+                )}
+              >
+                <PhotoboothPhoto
+                  photo={photo}
+                  index={index}
+                  caption={caption}
+                  aspectClass="aspect-square"
+                  animateSnap={animSnap}
+                  stripInk={stripInk}
+                />
+                <p className="mt-2 text-center font-mono text-[10px] tracking-widest opacity-65">
+                  #{String(index + 1).padStart(2, "0")}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+        {(caption || dateLabel) && (
+          <div className="text-center">
+            {caption && (
+              <p style={{ ...scriptStyle, color: accent }} className="text-xl leading-snug">
+                {caption}
+              </p>
+            )}
+            {dateLabel && (
+              <p className="mt-0.5 font-mono text-[11px] tracking-widest uppercase" style={{ color: mutedColor }}>
+                {dateLabel}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  } else {
+    // strip (mặc định kiểu dải dọc Life4Cuts Hàn Quốc)
+    body = (
+      <div
+        key={`${layout}-${animation}-${playKey}`}
+        className={cn(
+          "w-full max-w-[300px] space-y-2.5 rounded-xl border p-3.5 pb-5 shadow-md sm:max-w-[330px]",
+          animPrint && "pb-anim-print",
+        )}
+        style={{ backgroundColor: stripColor, color: stripInk, borderColor: "rgba(0,0,0,0.12)" }}
+      >
+        {photos.map((photo, index) => (
+          <PhotoboothPhoto
+            key={`${photo.src}-${index}`}
+            photo={photo}
+            index={index}
+            caption={caption}
+            aspectClass="aspect-[4/3]"
+            animateSnap={animSnap}
+            animateDrop={animDrop}
+            showIndex
+            stripInk={stripInk}
+          />
+        ))}
+        {footer}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div ref={rootRef} className="flex flex-col items-center gap-4">
       {title && (
         <div className="space-y-1 text-center">
           <p className="text-xs font-medium tracking-widest uppercase" style={{ color: mutedColor }}>
@@ -201,47 +570,36 @@ export function PhotoboothStrip({
           </h2>
         </div>
       )}
-      <div
-        className="w-full max-w-[300px] space-y-3 rounded-xl border p-3.5 pb-6 shadow-md sm:max-w-[330px]"
-        style={{ backgroundColor: stripColor, color: stripInk, borderColor: "rgba(0,0,0,0.12)" }}
-      >
-        {photos.map((photo, index) => {
-          const fx = Math.round((photo.focus?.x ?? 0.5) * 100);
-          const fy = Math.round((photo.focus?.y ?? 0.5) * 100);
-          const zoom = photo.zoom ?? 1;
-          return (
-            <div key={`${photo.src}-${index}`} className="aspect-[4/3] w-full overflow-hidden rounded-sm bg-black/5">
-              {/* eslint-disable-next-line @next/next/no-img-element -- ảnh người dùng R2 */}
-              <img
-                src={photo.src}
-                alt={caption || `Ảnh photobooth ${index + 1}`}
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover"
-                style={{
-                  objectPosition: `${fx}% ${fy}%`,
-                  ...(zoom > 1 && { transform: `scale(${zoom})`, transformOrigin: `${fx}% ${fy}%` }),
-                }}
-              />
-            </div>
-          );
-        })}
-        <div className="space-y-1 pt-2 text-center">
-          {caption && (
-            <p style={{ ...scriptStyle, color: stripInk }} className="text-xl leading-snug">
-              {caption}
-            </p>
-          )}
-          <p className="text-[11px] tracking-widest uppercase opacity-70" style={{ color: stripInk }}>
-            {dateLabel || "THƯ NHỎ PHOTOBOOTH"}
-          </p>
-          <span
+
+      {/* Khe nhả ảnh kiểu máy photobooth khi bật hiệu ứng In trượt ra */}
+      {animation === "print_slide" && !animMarquee ? (
+        <div className="flex w-full flex-col items-center">
+          <div
             aria-hidden
-            className="mx-auto mt-1 block h-1 w-8 rounded-full opacity-70"
-            style={{ backgroundColor: accent }}
+            className="z-10 h-3.5 w-full max-w-[360px] rounded-full border border-black/15 bg-black/15 shadow-inner"
+            style={{ maxWidth: layout === "grid2x2" || layout === "polaroid" ? 470 : 360 }}
           />
+          <div className="-mt-1.5 flex w-full justify-center overflow-hidden pt-2 pb-2">
+            {body}
+          </div>
         </div>
-      </div>
+      ) : (
+        body
+      )}
+
+      {canReplay && (
+        <button
+          type="button"
+          onClick={() => {
+            setSeen(true);
+            setPlayKey((k) => k + 1);
+          }}
+          className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium opacity-75 transition-opacity hover:opacity-100"
+          style={{ color: mutedColor, borderColor: "rgba(0,0,0,0.12)" }}
+        >
+          <RotateCcw className="size-3" /> Xem lại hiệu ứng
+        </button>
+      )}
     </div>
   );
 }

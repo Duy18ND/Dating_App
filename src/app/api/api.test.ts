@@ -79,9 +79,11 @@ function withCardImage(canvas: CanvasData, src: string): CanvasData {
   return next;
 }
 
-/** Ảnh đầu cho phần hero, còn lại là các kỷ niệm. */
+/** Ảnh đầu cho phần hero, tối đa 8 ảnh tiếp theo cho kỷ niệm, phần dư đưa vào photobooth. */
 function withWebImages(web: WebConfig, urls: string[]): WebConfig {
   const [first, ...rest] = urls;
+  const memUrls = rest.slice(0, 8);
+  const pbUrls = rest.slice(8);
   return {
     ...web,
     sections: [
@@ -90,8 +92,18 @@ function withWebImages(web: WebConfig, urls: string[]): WebConfig {
         id: "s-mem",
         type: "memories",
         enabled: true,
-        items: rest.map((src, i) => ({ id: `m${i}`, caption: `Kỷ niệm ${i}`, image: { src } })),
+        items: memUrls.map((src, i) => ({ id: `m${i}`, caption: `Kỷ niệm ${i}`, image: { src } })),
       },
+      ...(pbUrls.length > 0
+        ? [
+            {
+              id: "s-pb",
+              type: "photobooth" as const,
+              enabled: true,
+              photos: pbUrls.map((src) => ({ src })),
+            },
+          ]
+        : []),
     ],
   };
 }
@@ -204,9 +216,9 @@ describe("POST /api/letters", () => {
     );
   });
 
-  it("từ chối trang web quá 8 ảnh mà không ghi database", async () => {
+  it("từ chối trang web quá 12 ảnh mà không ghi database", async () => {
     const payload = samplePayload();
-    const urls = Array.from({ length: 9 }, (_, i) => `https://cdn.test/uploads/w${i}.webp`);
+    const urls = Array.from({ length: 13 }, (_, i) => `https://cdn.test/uploads/w${i}.webp`);
     payload.web_config = withWebImages(payload.web_config, urls);
     expect((await createLetter(send("POST", payload))).status).toBe(400);
     expect(repo.insertLetter).not.toHaveBeenCalled();

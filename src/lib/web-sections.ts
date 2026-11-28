@@ -59,8 +59,10 @@ export function newSection(type: WebSectionType): WebSection {
         ...base,
         type,
         title: "Photobooth của tụi mình",
-        caption: "4 khoảnh khắc đáng nhớ",
+        caption: "Khoảnh khắc đáng nhớ",
         stripColor: "#FFFDF9",
+        layout: "strip",
+        animation: "print_slide",
         photos: [],
       };
     case "scratch":

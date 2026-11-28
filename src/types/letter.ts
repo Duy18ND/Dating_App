@@ -187,6 +187,18 @@ export type BoardHeight = (typeof BOARD_HEIGHTS)[number];
 export const COUNTER_MODES = ["since", "until"] as const;
 export type CounterMode = (typeof COUNTER_MODES)[number];
 
+export const PHOTOBOOTH_LAYOUTS = ["strip", "grid2x2", "film", "polaroid"] as const;
+export type PhotoboothLayout = (typeof PHOTOBOOTH_LAYOUTS)[number];
+
+export const PHOTOBOOTH_ANIMATIONS = [
+  "none",
+  "print_slide",
+  "flash_snap",
+  "film_scroll",
+  "polaroid_drop",
+] as const;
+export type PhotoboothAnimation = (typeof PHOTOBOOTH_ANIMATIONS)[number];
+
 export interface MemoryItem {
   id: string;
   image?: WebImage;
@@ -204,7 +216,7 @@ export type WebSection =
   | { id: string; type: "message"; enabled: boolean; title: string; body: string }
   | { id: string; type: "interact"; enabled: boolean }
   | { id: string; type: "ending"; enabled: boolean; text: string; signature?: string }
-  /** Dải ảnh Photobooth 2–4 ô dọc có màu dải phim, chú thích và ngày. */
+  /** Dải ảnh Photobooth (tối đa 8 ảnh) với nhiều kiểu khung và hiệu ứng animation. */
   | {
       id: string;
       type: "photobooth";
@@ -213,6 +225,8 @@ export type WebSection =
       caption?: string;
       date?: string;
       stripColor?: string;
+      layout?: PhotoboothLayout;
+      animation?: PhotoboothAnimation;
       photos: WebImage[];
     }
   /** Thẻ cào lớp nhũ bí mật trên trang web. */
